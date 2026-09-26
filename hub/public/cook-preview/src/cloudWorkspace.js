@@ -1,5 +1,5 @@
 /**
- * LAC COOK phase 6: opt-in cloud persistence adapter (NOT mounted in the preview).
+ * 요리 계산기 phase 6: opt-in cloud persistence adapter (NOT mounted in the preview).
  * Host (future LAC HUB) MUST inject its existing authenticated Supabase client.
  * No URL, API key, Discord identity or company identifier is embedded here.
  *
@@ -38,7 +38,7 @@ function checkResponse(result, action) {
 
 function ensureRevisionContext(options) {
   if (!options || typeof options.revision !== 'string' || !options.revision || !Array.isArray(options.foods)) {
-    throw new Error('COOK 데이터 버전과 요리 목록을 확인할 수 없어.');
+    throw new Error('요리 계산기 데이터 버전과 요리 목록을 확인할 수 없어.');
   }
 }
 

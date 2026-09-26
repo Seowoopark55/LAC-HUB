@@ -903,7 +903,7 @@ function renderPlatformSuggestionQueue(state){
 // Do not add new permission toggles here until DB/RPC and server-side access gates exist.
 function renderPlatformContentSettings(state) {
   const rows = state.platformContentSettings;
-  const note = '<div class="lac-content-warning"><strong>웹 콘텐츠 진입 정책 연동 단계</strong><span>공개·무료 설정은 HUB의 카드와 게임 정보·LAC COOK 진입 화면에 반영됩니다. 실제 회사별 데이터는 기존 멤버/RLS 권한으로 별도 보호됩니다. BUILD 독립 주소와 COOK 정적 파일의 직접 주소 및 개별 콘텐츠 이용권은 아직 서버 차단과 연결되지 않았으므로, 이 화면의 설정만으로 완전한 접근 차단을 보장할 수 없습니다.</span></div>';
+  const note = '<div class="lac-content-warning"><strong>웹 콘텐츠 진입 정책 연동 단계</strong><span>공개·무료 설정은 HUB의 카드와 게임 정보·요리 계산기 진입 화면에 반영됩니다. 실제 회사별 데이터는 기존 멤버/RLS 권한으로 별도 보호됩니다. BUILD 독립 주소와 요리 계산기 정적 파일의 직접 주소 및 개별 콘텐츠 이용권은 아직 서버 차단과 연결되지 않았으므로, 이 화면의 설정만으로 완전한 접근 차단을 보장할 수 없습니다.</span></div>';
   if (state.platformContentError) return `<section class="lac-content-admin">${note}<p class="lac-content-error">${esc(state.platformContentError)}</p><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">다시 불러오기</button></section>`;
   if (!Array.isArray(rows)) return `<section class="lac-content-admin">${note}<p>콘텐츠 설정을 불러오는 중입니다.</p></section>`;
   const descriptions = {
@@ -912,11 +912,14 @@ function renderPlatformContentSettings(state) {
     lac_cook:'요리 제작 계산 · 작업 저장 기능을 제공하는 서비스',
     game_info:'공통 게임 정보와 운영자 승인 개조서 카탈로그를 한곳에서 열람',
   };
-  const items = rows.map(row => `<article class="lac-content-admin-row">
-    <div class="lac-content-admin-name"><strong>${esc(row.display_name)}</strong><span class="lac-content-admin-description">${esc(descriptions[row.content_key]||'등록된 콘텐츠의 공개 및 무료 운영 설정')}</span><small>설정 키: ${esc(row.content_key)} · 메인 진입 정책 연결</small></div>
-    <div class="lac-content-admin-actions"><label><span>공개 설정 <small>HUB 카드 표시 및 진입 정책</small></span><button type="button" class="lac-content-toggle ${row.is_published?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_published" aria-label="${esc(row.display_name)} 공개 설정 ${row.is_published?'켜짐':'꺼짐'}" aria-pressed="${row.is_published?'true':'false'}">${row.is_published?'켜짐':'꺼짐'}</button></label>
-    <label><span>무료 설정 <small>회사 미등록 로그인 사용자의 이용 기준</small></span><button type="button" class="lac-content-toggle ${row.is_free?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_free" aria-label="${esc(row.display_name)} 무료 설정 ${row.is_free?'켜짐':'꺼짐'}" aria-pressed="${row.is_free?'true':'false'}">${row.is_free?'켜짐':'꺼짐'}</button></label></div>
-  </article>`).join('');
+  const items = rows.map(row => {
+    const displayName=row.content_key==='lac_cook'?'요리 계산기':row.display_name;
+    return `<article class="lac-content-admin-row">
+    <div class="lac-content-admin-name"><strong>${esc(displayName)}</strong><span class="lac-content-admin-description">${esc(descriptions[row.content_key]||'등록된 콘텐츠의 공개 및 무료 운영 설정')}</span><small>설정 키: ${esc(row.content_key)} · 메인 진입 정책 연결</small></div>
+    <div class="lac-content-admin-actions"><label><span>공개 설정 <small>HUB 카드 표시 및 진입 정책</small></span><button type="button" class="lac-content-toggle ${row.is_published?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_published" aria-label="${esc(displayName)} 공개 설정 ${row.is_published?'켜짐':'꺼짐'}" aria-pressed="${row.is_published?'true':'false'}">${row.is_published?'켜짐':'꺼짐'}</button></label>
+    <label><span>무료 설정 <small>회사 미등록 로그인 사용자의 이용 기준</small></span><button type="button" class="lac-content-toggle ${row.is_free?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_free" aria-label="${esc(displayName)} 무료 설정 ${row.is_free?'켜짐':'꺼짐'}" aria-pressed="${row.is_free?'true':'false'}">${row.is_free?'켜짐':'꺼짐'}</button></label></div>
+  </article>`;
+  }).join('');
   // The menu may contain more content than the current legacy policy RPC returns.
   // Show missing entries explicitly instead of pretending they are configurable.
   const knownKeys = new Set(rows.map(row => String(row.content_key)));
@@ -925,7 +928,7 @@ function renderPlatformContentSettings(state) {
   ].filter(item => !item.keys.some(key => knownKeys.has(key)));
   const awaiting = unlinked.length ? `<section class="lac-content-admin-unlinked"><h3>정책 연결 대기 중인 웹 콘텐츠</h3>${unlinked.map(item => `<article class="lac-content-admin-row lac-content-admin-row--pending"><div class="lac-content-admin-name"><strong>${esc(item.name)}</strong><span class="lac-content-admin-description">${esc(item.detail)}</span></div><span class="lac-content-admin-phase">설정 준비 중</span></article>`).join('')}</section>` : '';
   const bot = `<section class="lac-content-admin-unlinked"><h3>회사별 Discord BOT 기능</h3><p>공금 · 총알 · 무법지대 · 개조서 · 핀볼 · 요리 주문 · 계좌조회 · AI 질문(BETA)은 회사 설정에서 각각 관리합니다. AI 질문의 실제 활성화 및 콘텐츠별 이용 권한은 별도 연동 작업이 필요합니다.</p></section>`;
-  return `<section class="lac-content-admin">${note}<header><div><h2>콘텐츠 운영</h2><p class="lac-content-admin-intro">웹 콘텐츠 진입 조건을 관리합니다. 회사 통합 이용권은 회사 관리 → 관리에서 부여·회수합니다. COOK 정적 파일 직접 주소의 서버 차단은 별도 작업이 필요합니다.</p></div><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div>${awaiting}${bot}</section>`;
+  return `<section class="lac-content-admin">${note}<header><div><h2>콘텐츠 운영</h2><p class="lac-content-admin-intro">웹 콘텐츠 진입 조건을 관리합니다. 회사 통합 이용권은 회사 관리 → 관리에서 부여·회수합니다. 요리 계산기 정적 파일 직접 주소의 서버 차단은 별도 작업이 필요합니다.</p></div><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div>${awaiting}${bot}</section>`;
 }
 
 function renderPlatformPassRequests(state){

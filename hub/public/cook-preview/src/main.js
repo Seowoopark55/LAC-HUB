@@ -554,7 +554,7 @@ start();
  */
 let detachCookHost = null;
 export function attachCookHubHost({supabase, onHubReturn, cloudWorkspaceEnabled = false} = {}) {
-  if (detachCookHost) throw Error('LAC COOK은 이미 HUB에 연결되어 있습니다.');
+  if (detachCookHost) throw Error('요리 계산기는 이미 HUB에 연결되어 있습니다.');
   if (typeof onHubReturn !== 'function') throw Error('HUB 복귀 기능이 준비되지 않았습니다.');
   const previous = $('cook-return-preview');
   const back = document.createElement('button');
@@ -616,5 +616,5 @@ if (new URLSearchParams(window.location.search).get('lacCookHostPreview') === '1
     onHubReturn:() => requestHostReturn({selfWindow:window,parentWindow:window.parent}),
     cloudWorkspaceEnabled:false
   });
-  $('cook-mode-note').textContent = 'COOK은 현재 데이터 스냅샷을 사용하며, 작업은 이 브라우저에만 자동 저장됩니다. 클라우드 저장과 계정별 동기화는 지원하지 않습니다. 기존 AXE COOK·Google Sheets·HUB 데이터는 변경하지 않습니다.';
+  $('cook-mode-note').textContent = '요리 계산기는 현재 데이터 스냅샷을 사용하며, 작업은 이 브라우저에만 자동 저장됩니다. 클라우드 저장과 계정별 동기화는 지원하지 않습니다. 기존 AXE COOK·Google Sheets·HUB 데이터는 변경하지 않습니다.';
 }

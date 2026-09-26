@@ -1,5 +1,5 @@
 /**
- * LAC COOK phase 9: read-only host-navigation handshake for an isolated preview.
+ * 요리 계산기 phase 9: read-only host-navigation handshake for an isolated preview.
  * This bridge intentionally does NOT import HUB or Supabase clients, expose a
  * session, begin OAuth, or enable any cloud workspace operation.
  */
@@ -28,16 +28,16 @@ export function requestHostReturn({selfWindow, parentWindow} = {}) {
  */
 export function createCookHostPreview({container, onReturn, pageUrl, hostWindow, hostDocument} = {}) {
   if (!container || typeof onReturn !== 'function' || !hostWindow || !hostDocument) {
-    throw new Error('COOK 컨테이너와 HUB 복귀 연결이 필요해.');
+    throw new Error('요리 계산기 컨테이너와 HUB 복귀 연결이 필요해.');
   }
   const href = new URL(pageUrl, hostWindow.location.href);
-  if (href.origin !== hostWindow.location.origin) throw new Error('COOK은 같은 출처에서만 호스팅할 수 있어.');
+  if (href.origin !== hostWindow.location.origin) throw new Error('요리 계산기는 같은 출처에서만 호스팅할 수 있어.');
   if (href.searchParams.get('lacCookHostPreview') !== '1') {
     throw new Error('검토용 임베드 모드가 설정되지 않았어.');
   }
   const iframe = hostDocument.createElement('iframe');
-  iframe.title = 'LAC COOK 통합 사전 검토 화면';
-  iframe.setAttribute('aria-label','LAC COOK 통합 사전 검토 화면');
+  iframe.title = '요리 계산기 통합 사전 검토 화면';
+  iframe.setAttribute('aria-label','요리 계산기 통합 사전 검토 화면');
   iframe.src = href.href;
   iframe.className = 'cook-preview-iframe';
   const listener = event => {
@@ -48,8 +48,8 @@ export function createCookHostPreview({container, onReturn, pageUrl, hostWindow,
   let disposed = false;
   return {
     frame:iframe,
-    show() {if (disposed) throw new Error('이미 해제된 COOK 화면이야.');container.hidden = false;},
-    hide() {if (disposed) throw new Error('이미 해제된 COOK 화면이야.');container.hidden = true;},
+    show() {if (disposed) throw new Error('이미 해제된 요리 계산기 화면이야.');container.hidden = false;},
+    hide() {if (disposed) throw new Error('이미 해제된 요리 계산기 화면이야.');container.hidden = true;},
     destroy() {
       if (disposed) return;
       disposed = true;

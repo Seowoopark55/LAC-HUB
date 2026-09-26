@@ -103,7 +103,7 @@ function showCookPreview({ push = false } = {}) {
   if (!cookHost) {
     cookHost=document.createElement('section');
     cookHost.id='lac-cook-host';
-    cookHost.setAttribute('aria-label','LAC COOK');
+    cookHost.setAttribute('aria-label','요리 계산기');
     root.insertAdjacentElement('afterend',cookHost);
     // Close the on-page screenshot dialog by clicking its backdrop; native
     // <dialog> handles Escape and restores keyboard focus to the opener.
@@ -203,26 +203,26 @@ function showCookPreview({ push = false } = {}) {
     const loggedIn=Boolean(state.session?.user);
     const pending=loggedIn && !state.ready;
     const published=contentIsVisible(state,'lac_cook');
-    cookHost.innerHTML=`<section class="lac-cook-gate" aria-label="LAC COOK 이용 안내">
-      <div class="lac-pass-landing__top"><a class="lac-cook-gate__back lac-pass-back" href="/" aria-label="LAC HUB 메인으로 돌아가기"><span class="lac-pass-back__icon" aria-hidden="true">←</span><span>LAC HUB로 돌아가기</span></a><span class="lac-pass-landing__context">LAC COOK <span aria-hidden="true">·</span> 이용 안내</span></div>
-      <span class="lac-cook-gate__eyebrow">LAC COOK · 화면 예시</span>
-      <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 LAC COOK을 이용할 수 없어요.':'LAC COOK, 이렇게 이용할 수 있어요.'}</h1>
+    cookHost.innerHTML=`<section class="lac-cook-gate" aria-label="요리 계산기 이용 안내">
+      <div class="lac-pass-landing__top"><a class="lac-cook-gate__back lac-pass-back" href="/" aria-label="LAC HUB 메인으로 돌아가기"><span class="lac-pass-back__icon" aria-hidden="true">←</span><span>LAC HUB로 돌아가기</span></a><span class="lac-pass-landing__context">요리 계산기 <span aria-hidden="true">·</span> 이용 안내</span></div>
+      <span class="lac-cook-gate__eyebrow">요리 계산기 · 화면 예시</span>
+      <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 요리 계산기를 이용할 수 없어요.':'요리 계산기, 이렇게 이용할 수 있어요.'}</h1>
       <p>${published&&state.contentPoliciesLoaded?'요리를 선택하면 필요한 재료와 작업 수량을 한눈에 정리할 수 있어요.':'LAC HUB 메인에서 현재 이용 가능한 콘텐츠를 확인해 주세요.'}</p>
-      <section class="lac-cook-registration" aria-label="LAC COOK 회사 등록 안내">
-        ${hasCompany(state)?renderCompanyPassNotice(state,'LAC COOK',true):renderCookRegistration(state)}
+      <section class="lac-cook-registration" aria-label="요리 계산기 회사 등록 안내">
+        ${hasCompany(state)?renderCompanyPassNotice(state,'요리 계산기',true):renderCookRegistration(state)}
         <p class="lac-cook-registration__feedback" data-cook-registration-feedback role="status" aria-live="polite" hidden></p>
       </section>
-      <figure class="lac-cook-shot lac-preview-frame" aria-label="LAC COOK 실제 이용 화면 미리보기">
-        <div class="lac-preview-frame__head"><div><strong>LAC COOK 화면 미리보기</strong><small>실제 이용 화면을 촬영한 이미지</small></div><span>화면 캡처</span></div>
-        <button type="button" class="lac-cook-shot__open" data-action="cook-preview-open" aria-haspopup="dialog" aria-controls="lac-cook-preview-dialog" aria-label="이 페이지에서 LAC COOK 실제 이용 화면 크게 보기">
-          <img src="/hub/lac-cook-screen-preview.png" alt="요리 검색, 작업 목록, 제작 레시피 및 재료 구매 리스트가 함께 보이는 LAC COOK 실제 화면" loading="lazy">
+      <figure class="lac-cook-shot lac-preview-frame" aria-label="요리 계산기 실제 이용 화면 미리보기">
+        <div class="lac-preview-frame__head"><div><strong>요리 계산기 화면 미리보기</strong><small>실제 이용 화면을 촬영한 이미지</small></div><span>화면 캡처</span></div>
+        <button type="button" class="lac-cook-shot__open" data-action="cook-preview-open" aria-haspopup="dialog" aria-controls="lac-cook-preview-dialog" aria-label="이 페이지에서 요리 계산기 실제 이용 화면 크게 보기">
+          <img src="/hub/lac-cook-screen-preview.png" alt="요리 검색, 작업 목록, 제작 레시피 및 재료 구매 리스트가 함께 보이는 요리 계산기 실제 화면" loading="lazy">
           <span class="lac-cook-shot__zoom">＋ 화면 전체 보기</span>
         </button>
         <figcaption>요리 제작부터 재료 구매 리스트까지 실제 화면으로 살펴보세요. 이미지를 누르면 이 페이지에서 확대됩니다.</figcaption>
       </figure>
-      <dialog id="lac-cook-preview-dialog" class="lac-cook-preview-dialog" data-cook-preview-dialog aria-label="LAC COOK 실제 화면 확대 보기">
-        <div class="lac-cook-preview-dialog__head"><strong>LAC COOK · 실제 이용 화면</strong><button type="button" data-action="cook-preview-close" aria-label="확대 화면 닫기">닫기 ×</button></div>
-        <img src="/hub/lac-cook-screen-preview.png" alt="LAC COOK의 요리 검색, 작업 목록, 제작 레시피 및 재료 구매 리스트 전체 화면">
+      <dialog id="lac-cook-preview-dialog" class="lac-cook-preview-dialog" data-cook-preview-dialog aria-label="요리 계산기 실제 화면 확대 보기">
+        <div class="lac-cook-preview-dialog__head"><strong>요리 계산기 · 실제 이용 화면</strong><button type="button" data-action="cook-preview-close" aria-label="확대 화면 닫기">닫기 ×</button></div>
+        <img src="/hub/lac-cook-screen-preview.png" alt="요리 계산기의 요리 검색, 작업 목록, 제작 레시피 및 재료 구매 리스트 전체 화면">
       </dialog>
       ${(!loggedIn||!state.contentPoliciesLoaded||!published)?`<p class="lac-cook-gate__hint">${!loggedIn?'HUB 메인에서 Discord 로그인을 진행해 주세요.':!state.contentPoliciesLoaded?'설정 조회에 실패했습니다. 잠시 후 다시 접속해 주세요.':'운영자가 콘텐츠를 다시 공개하면 이용할 수 있어요.'}</p>`:''}
 
@@ -230,7 +230,7 @@ function showCookPreview({ push = false } = {}) {
   } else if (!cookFrame) {
     cookHost.replaceChildren();
     cookFrame=document.createElement('iframe');
-    cookFrame.title='LAC COOK';
+    cookFrame.title='요리 계산기';
     cookFrame.src='/cook-preview/index.html?lacCookHostPreview=1';
     cookFrame.setAttribute('referrerpolicy','same-origin');
     cookHost.append(cookFrame);
@@ -239,7 +239,7 @@ function showCookPreview({ push = false } = {}) {
   document.documentElement.classList.add('lac-cook-route');
   root.hidden=true;
   cookHost.hidden=false;
-  document.title='LAC COOK';
+  document.title='요리 계산기';
 }
 
 window.addEventListener('message', event => {
