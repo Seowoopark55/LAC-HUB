@@ -504,3 +504,18 @@
   }
   .hub-news__support-divider{display:none}
 }
+
+/* Phase 23.1: balance atmospheric backgrounds for readability. */
+.hub-news__notice::after{
+  background:
+    linear-gradient(180deg, rgba(7,10,14,.28) 0%, rgba(7,10,14,.42) 40%, rgba(7,10,14,.78) 100%),
+    linear-gradient(90deg, rgba(7,10,14,.93) 0%, rgba(7,10,14,.56) 46%, rgba(7,10,14,.86) 100%);
+}
+.hub-news__support::before{
+  background-position:72% center;
+}
+.hub-news__support::after{
+  background:
+    linear-gradient(180deg, rgba(7,10,14,.19) 0%, rgba(7,10,14,.30) 40%, rgba(7,10,14,.71) 100%),
+    linear-gradient(90deg, rgba(7,10,14,.92) 0%, rgba(7,10,14,.68) 43%, rgba(7,10,14,.36) 69%, rgba(7,10,14,.62) 100%);
+}
