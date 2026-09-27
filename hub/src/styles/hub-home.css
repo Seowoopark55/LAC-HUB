@@ -418,46 +418,48 @@
 @media (min-width:1700px) and (min-height:741px){
   .hub-footer{
     display:block;
-    min-height:25px;
-    margin-top:9px;
-    padding:8px 0 2px;
+    min-height:28px;
+    margin-top:10px;
+    padding:8px 0 3px;
   }
   .hub-footer__brand{
     justify-content:flex-start;
   }
   .hub-footer__legal{
     position:absolute;
-    left:calc(100% + 14px);
-    bottom:0;
-    width:min(250px,calc((100vw - 1440px)/2 + 20px));
+    left:calc(100% + 16px);
+    bottom:4px;
+    width:min(292px,calc((100vw - 1440px)/2 + 48px));
     min-width:0;
     display:grid;
-    gap:6px;
-    padding:9px 10px 9px 13px;
-    border-left:1px solid rgba(205,159,92,.34);
-    border-radius:0 8px 8px 0;
-    background:linear-gradient(90deg,rgba(8,11,15,.76),rgba(8,11,15,.38) 72%,rgba(8,11,15,.08));
+    gap:8px;
+    padding:11px 13px 11px 16px;
+    border-left:1px solid rgba(205,159,92,.36);
+    border-radius:0 10px 10px 0;
+    background:linear-gradient(90deg,rgba(7,10,14,.88),rgba(7,10,14,.58) 70%,rgba(7,10,14,.18));
     text-align:left;
-    text-shadow:0 1px 2px rgba(0,0,0,.72);
+    text-shadow:0 1px 2px rgba(0,0,0,.82);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
   }
   .hub-footer__legal p,.hub-footer__legal small{
-    font-size:10.4px;
-    line-height:1.55;
-    overflow-wrap:anywhere;
+    font-size:10.9px;
+    line-height:1.62;
+    overflow-wrap:normal;
+    word-break:keep-all;
   }
-  .hub-footer__legal p{color:#a6b0ba}
-  .hub-footer__legal small{color:#838e99}
+  .hub-footer__legal p{color:#bcc6d0}
+  .hub-footer__legal small{color:#97a2ad}
 }
 
 /* Medium desktop: keep the notice inside the content footer, but improve readability. */
 @media (min-width:601px) and (max-width:1699px){
   .hub-footer__legal{
-    max-width:760px;
+    max-width:800px;
     justify-self:end;
   }
   .hub-footer__legal p,.hub-footer__legal small{
-    font-size:10px;
-    line-height:1.52;
+    font-size:10.2px;
+    line-height:1.56;
   }
 }
 
