@@ -324,3 +324,23 @@
   .hub-contents__title{padding-bottom:9px;margin-bottom:12px}
   .hub-contents__title > div::after{bottom:-9px;width:min(160px,100%)}
 }
+
+/* Phase 25: subdued hero company CTA — dark surface with restrained gold accent. */
+.hub-hero .hub-cta--primary{
+  border:1px solid rgba(166,132,82,.58);
+  background:linear-gradient(180deg,rgba(42,37,31,.94),rgba(27,25,23,.98));
+  color:#e5c38d;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 5px 14px rgba(0,0,0,.14);
+  text-shadow:0 1px 0 rgba(0,0,0,.28);
+}
+.hub-hero .hub-cta--primary:hover{
+  filter:none;
+  border-color:rgba(186,150,96,.72);
+  background:linear-gradient(180deg,rgba(48,42,34,.96),rgba(31,28,25,.99));
+  color:#ecd09e;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 6px 16px rgba(0,0,0,.16);
+}
+.hub-hero .hub-cta--primary:active{
+  transform:translateY(1px);
+  background:linear-gradient(180deg,rgba(34,30,26,.98),rgba(25,23,21,1));
+}
