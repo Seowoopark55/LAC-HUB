@@ -20,6 +20,22 @@ export async function createHubTicket({contentKey,category,title,body}) {
   const result=await supabase.rpc('hub_board_create',{p_content_key:contentKey,p_category:category,p_title:title,p_body:body});
   return resultData(result,'게시글 등록에 실패했습니다.');
 }
+
+export async function notifyPlatformInbox(kind, recordId){
+  assertClient();
+  const {data:{session},error}=await supabase.auth.getSession();
+  if(error||!session?.access_token)return {sent:false,reason:'login_required'};
+  try{
+    const response=await fetch('/api/inbox/notify',{
+      method:'POST',
+      headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({kind:String(kind||''),record_id:String(recordId||'')}),
+    });
+    if(!response.ok)return {sent:false,reason:'notification_unavailable'};
+    return await response.json();
+  }catch{return {sent:false,reason:'notification_unavailable'};}
+}
+
 export async function loadHubTicket(ticketId) {
   assertClient();
   const ticket=resultData(await supabase.from('hub_tickets').select('id,author_id,author_name,content_key,category,title,body,status,created_at,updated_at').eq('id',ticketId).single(),'게시글을 불러오지 못했습니다.');

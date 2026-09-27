@@ -321,7 +321,8 @@ function renderManagementCenter(state) {
   const siteOpen=(state.hubBoard?.tickets||[]).filter(item=>item.status!=='complete').length;
   const passQueue=(state.adminPassRequests||[]).filter(item=>item.status==='pending').length;
   const modbookQueue=Array.isArray(state.gameAdmin?.requests)?state.gameAdmin.requests.length:0;
-  const queue=siteOpen+Number(state.platformSupport?.counts?.pending||0)+Number(state.platformSupport?.counts?.checking||0)
+  const buildReportQueue=(state.platformBuildReports?.items||[]).filter(item=>String(item.status||'pending')==='pending').length;
+  const queue=siteOpen+buildReportQueue+Number(state.platformSupport?.counts?.pending||0)+Number(state.platformSupport?.counts?.checking||0)
     +Number(state.platformSuggestions?.counts?.pending||0)+Number(state.platformSuggestions?.counts?.checking||0);
   return `<div class="runtime-app runtime-app--${esc(state.page)} platform-center">
     <header class="platform-center__header">
@@ -338,7 +339,7 @@ function renderManagementCenter(state) {
           ${renderPlatformRailItem(state,'pass-requests','이용권 신청','feedback',passQueue)}
           ${renderPlatformRailItem(state,'modbooks','개조서 검수','info',modbookQueue)}
           ${renderPlatformRailItem(state,'contents','콘텐츠 관리','assets')}
-          ${renderPlatformRailItem(state,'inbox','고객 문의','feedback',queue)}
+          ${renderPlatformRailItem(state,'inbox','문의 · 제보','feedback',queue)}
           <span class="platform-center__nav-divider" role="presentation"></span>
           <span class="platform-center__nav-caption">시스템</span>
           <button type="button" class="platform-center__nav-item ${state.page==='layout'?'is-active':''}" data-action="open-layout-studio" ${state.page==='layout'?'aria-current="page"':''}>${icon('settings')}<span>표 글씨 크기</span></button>
@@ -899,11 +900,43 @@ function renderPlatformSuggestionQueue(state){
   return `<section class="platform-support-board platform-suggestion-board"><header><div><span>PRIVATE FEEDBACK</span><h2>기존 회사 건의 · 제보</h2></div><div class="platform-support-counts"><b>${Number(counts.pending||0)} 대기</b><b>${Number(counts.checking||0)} 확인중</b>${Number(counts.unread||0)?`<em>${Number(counts.unread||0)} NEW</em>`:''}</div></header><div class="platform-support-list">${rows}</div></section>`;
 }
 
+function renderPlatformUnifiedInbox(state){
+  const siteTickets=Array.isArray(state.hubBoard?.tickets)?state.hubBoard.tickets:[];
+  const legacyQuestions=Array.isArray(state.platformSupport?.items)?state.platformSupport.items:[];
+  const legacySuggestions=Array.isArray(state.platformSuggestions?.items)?state.platformSuggestions.items:[];
+  const buildReports=Array.isArray(state.platformBuildReports?.items)?state.platformBuildReports.items:[];
+  const contentNames={company:'회사 관리',game_info:'게임 정보',build:'개조서 세팅',cook:'요리 계산기',hub:'LAC HUB'};
+  const categoryNames={question:'질문',suggestion:'건의',bug:'오류 신고'};
+  const statusNames={pending:'대기',checking:'확인 중',complete:'완료',approved:'승인',rejected:'반려'};
+  const normalized=[];
+  for(const item of siteTickets){
+    const isContent=String(item.content_key||'hub')!=='hub';
+    normalized.push({kind:'site',group:isContent?'content':'site',id:item.id,title:item.title||'문의',source:contentNames[item.content_key]||'LAC HUB',type:categoryNames[item.category]||'문의',status:item.status||'pending',author:item.author_name||'작성자',at:item.updated_at||item.created_at||'',open:item.status!=='complete',action:'platform-open-site-ticket',actionKey:'ticket-id'});
+  }
+  for(const item of buildReports){
+    normalized.push({kind:'build',group:'content',id:item.id,title:item.name||'개조서 제보',source:'개조서 세팅',type:item.report_type==='correction'?'정보 수정':'누락 제보',status:item.status||'pending',author:'BUILD 제보',at:item.created_at||'',open:String(item.status||'pending')==='pending',action:'open-platform-build-report',actionKey:'report-id'});
+  }
+  for(const item of legacyQuestions){
+    normalized.push({kind:'legacy-question',group:'company',id:item.id,title:item.title||'회사 질문',source:'회사 관리',type:'기존 질문',status:item.status||'pending',author:`${item.company_name||'회사'} · ${item.author_name||'사용자'}`,at:item.last_message_at||item.created_at||'',open:item.status!=='complete',unread:item.unread,action:'open-question',actionKey:'question-id'});
+  }
+  for(const item of legacySuggestions){
+    normalized.push({kind:'legacy-suggestion',group:'company',id:item.id,title:item.title||'회사 건의',source:'회사 관리',type:'기존 건의 · 제보',status:item.status||'pending',author:`${item.company_name||'회사'} · ${item.author_name||'사용자'}`,at:item.last_message_at||item.created_at||'',open:item.status!=='complete',unread:item.unread,action:'open-suggestion',actionKey:'suggestion-id'});
+  }
+  normalized.sort((a,b)=>Number(b.open)-Number(a.open)||String(b.at).localeCompare(String(a.at)));
+  const filter=['all','content','site','company'].includes(String(state.platformInboxFilter||''))?String(state.platformInboxFilter):'all';
+  const visible=normalized.filter(item=>filter==='all'||item.group===filter);
+  const counts={all:normalized.filter(item=>item.open).length,content:normalized.filter(item=>item.group==='content'&&item.open).length,site:normalized.filter(item=>item.group==='site'&&item.open).length,company:normalized.filter(item=>item.group==='company'&&item.open).length};
+  const errors=[state.hubBoard?.error,state.platformSupport?.error,state.platformSuggestions?.error,state.platformBuildReports?.error].filter(Boolean);
+  const filters=[['all','전체'],['content','콘텐츠 제보'],['site','사이트 문의'],['company','회사 문의']].map(([key,label])=>`<button type="button" class="${filter===key?'is-active':''}" data-action="platform-inbox-filter" data-inbox-filter="${key}"><span>${label}</span><em>${counts[key]}</em></button>`).join('');
+  const rows=visible.slice(0,120).map(item=>`<article class="platform-inbox-row ${item.open?'is-open':'is-complete'} ${item.unread?'is-unread':''}"><div class="platform-inbox-source"><span>${esc(item.source)}</span><small>${esc(item.type)}</small></div><div class="platform-inbox-copy"><strong>${esc(item.title)}</strong><span>${esc(item.author)} · ${esc(fmtDate(item.at,true))}</span></div><span class="platform-inbox-status is-${esc(item.status)}">${esc(statusNames[item.status]||item.status||'대기')}</span><button type="button" class="ops-mgmt-action" data-action="${item.action}" data-${item.actionKey}="${esc(item.id)}">${item.kind==='build'?'검수':'열기'}</button></article>`).join('');
+  return `<section class="platform-inbox"><div class="platform-inbox__toolbar"><nav class="platform-service-tabs" aria-label="문의 제보 분류">${filters}</nav><button type="button" class="ops-mgmt-action" data-action="refresh-platform-inbox">새로고침</button></div>${errors.length?`<div class="platform-inbox__warning">일부 자료를 불러오지 못했습니다. ${esc(errors[0])}</div>`:''}<div class="platform-inbox__list">${rows||'<div class="platform-support-empty"><strong>표시할 문의 · 제보가 없습니다.</strong><span>새로운 접수 건은 이곳에 한 번에 모입니다.</span></div>'}</div></section>`;
+}
+
 // This screen displays stored policy intentions, NOT enforced authorization.
 // Do not add new permission toggles here until DB/RPC and server-side access gates exist.
 function renderPlatformContentSettings(state) {
   const rows = state.platformContentSettings;
-  const note = '<div class="lac-content-warning"><strong>웹 콘텐츠 진입 정책 연동 단계</strong><span>공개·무료 설정은 HUB의 카드와 게임 정보·요리 계산기 진입 화면에 반영됩니다. 실제 회사별 데이터는 기존 멤버/RLS 권한으로 별도 보호됩니다. BUILD 독립 주소와 요리 계산기 정적 파일의 직접 주소 및 개별 콘텐츠 이용권은 아직 서버 차단과 연결되지 않았으므로, 이 화면의 설정만으로 완전한 접근 차단을 보장할 수 없습니다.</span></div>';
+  const note = '<div class="lac-content-warning"><strong>웹 콘텐츠 진입 정책 연동 단계</strong><span>공개·무료 설정은 HUB의 카드와 게임 정보·LAC COOK 진입 화면에 반영됩니다. 실제 회사별 데이터는 기존 멤버/RLS 권한으로 별도 보호됩니다. BUILD 독립 주소와 COOK 정적 파일의 직접 주소 및 개별 콘텐츠 이용권은 아직 서버 차단과 연결되지 않았으므로, 이 화면의 설정만으로 완전한 접근 차단을 보장할 수 없습니다.</span></div>';
   if (state.platformContentError) return `<section class="lac-content-admin">${note}<p class="lac-content-error">${esc(state.platformContentError)}</p><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">다시 불러오기</button></section>`;
   if (!Array.isArray(rows)) return `<section class="lac-content-admin">${note}<p>콘텐츠 설정을 불러오는 중입니다.</p></section>`;
   const descriptions = {
@@ -912,14 +945,11 @@ function renderPlatformContentSettings(state) {
     lac_cook:'요리 제작 계산 · 작업 저장 기능을 제공하는 서비스',
     game_info:'공통 게임 정보와 운영자 승인 개조서 카탈로그를 한곳에서 열람',
   };
-  const items = rows.map(row => {
-    const displayName=row.content_key==='lac_cook'?'요리 계산기':row.display_name;
-    return `<article class="lac-content-admin-row">
-    <div class="lac-content-admin-name"><strong>${esc(displayName)}</strong><span class="lac-content-admin-description">${esc(descriptions[row.content_key]||'등록된 콘텐츠의 공개 및 무료 운영 설정')}</span><small>설정 키: ${esc(row.content_key)} · 메인 진입 정책 연결</small></div>
-    <div class="lac-content-admin-actions"><label><span>공개 설정 <small>HUB 카드 표시 및 진입 정책</small></span><button type="button" class="lac-content-toggle ${row.is_published?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_published" aria-label="${esc(displayName)} 공개 설정 ${row.is_published?'켜짐':'꺼짐'}" aria-pressed="${row.is_published?'true':'false'}">${row.is_published?'켜짐':'꺼짐'}</button></label>
-    <label><span>무료 설정 <small>회사 미등록 로그인 사용자의 이용 기준</small></span><button type="button" class="lac-content-toggle ${row.is_free?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_free" aria-label="${esc(displayName)} 무료 설정 ${row.is_free?'켜짐':'꺼짐'}" aria-pressed="${row.is_free?'true':'false'}">${row.is_free?'켜짐':'꺼짐'}</button></label></div>
-  </article>`;
-  }).join('');
+  const items = rows.map(row => `<article class="lac-content-admin-row">
+    <div class="lac-content-admin-name"><strong>${esc(row.display_name)}</strong><span class="lac-content-admin-description">${esc(descriptions[row.content_key]||'등록된 콘텐츠의 공개 및 무료 운영 설정')}</span><small>설정 키: ${esc(row.content_key)} · 메인 진입 정책 연결</small></div>
+    <div class="lac-content-admin-actions"><label><span>공개 설정 <small>HUB 카드 표시 및 진입 정책</small></span><button type="button" class="lac-content-toggle ${row.is_published?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_published" aria-label="${esc(row.display_name)} 공개 설정 ${row.is_published?'켜짐':'꺼짐'}" aria-pressed="${row.is_published?'true':'false'}">${row.is_published?'켜짐':'꺼짐'}</button></label>
+    <label><span>무료 설정 <small>회사 미등록 로그인 사용자의 이용 기준</small></span><button type="button" class="lac-content-toggle ${row.is_free?'is-on':'is-off'}" data-action="toggle-platform-content" data-content-key="${esc(row.content_key)}" data-field="is_free" aria-label="${esc(row.display_name)} 무료 설정 ${row.is_free?'켜짐':'꺼짐'}" aria-pressed="${row.is_free?'true':'false'}">${row.is_free?'켜짐':'꺼짐'}</button></label></div>
+  </article>`).join('');
   // The menu may contain more content than the current legacy policy RPC returns.
   // Show missing entries explicitly instead of pretending they are configurable.
   const knownKeys = new Set(rows.map(row => String(row.content_key)));
@@ -928,7 +958,7 @@ function renderPlatformContentSettings(state) {
   ].filter(item => !item.keys.some(key => knownKeys.has(key)));
   const awaiting = unlinked.length ? `<section class="lac-content-admin-unlinked"><h3>정책 연결 대기 중인 웹 콘텐츠</h3>${unlinked.map(item => `<article class="lac-content-admin-row lac-content-admin-row--pending"><div class="lac-content-admin-name"><strong>${esc(item.name)}</strong><span class="lac-content-admin-description">${esc(item.detail)}</span></div><span class="lac-content-admin-phase">설정 준비 중</span></article>`).join('')}</section>` : '';
   const bot = `<section class="lac-content-admin-unlinked"><h3>회사별 Discord BOT 기능</h3><p>공금 · 총알 · 무법지대 · 개조서 · 핀볼 · 요리 주문 · 계좌조회 · AI 질문(BETA)은 회사 설정에서 각각 관리합니다. AI 질문의 실제 활성화 및 콘텐츠별 이용 권한은 별도 연동 작업이 필요합니다.</p></section>`;
-  return `<section class="lac-content-admin">${note}<header><div><h2>콘텐츠 운영</h2><p class="lac-content-admin-intro">웹 콘텐츠 진입 조건을 관리합니다. 회사 통합 이용권은 회사 관리 → 관리에서 부여·회수합니다. 요리 계산기 정적 파일 직접 주소의 서버 차단은 별도 작업이 필요합니다.</p></div><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div>${awaiting}${bot}</section>`;
+  return `<section class="lac-content-admin">${note}<header><div><h2>콘텐츠 운영</h2><p class="lac-content-admin-intro">웹 콘텐츠 진입 조건을 관리합니다. 회사 통합 이용권은 회사 관리 → 관리에서 부여·회수합니다. COOK 정적 파일 직접 주소의 서버 차단은 별도 작업이 필요합니다.</p></div><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div>${awaiting}${bot}</section>`;
 }
 
 function renderPlatformPassRequests(state){
@@ -942,12 +972,16 @@ function renderPlatform(state){
   const all=state.platformSnapshot||[];
   const q=String(state.platformQuery||'').trim().toLowerCase();
   const filter=String(state.platformStatus||'all');
-  const view=['overview','companies','pass-requests','modbooks','support','suggestions','contents'].includes(String(state.platformView||''))?String(state.platformView):'companies';
+  const requestedView=String(state.platformView||'');
+  const view=requestedView==='suggestions'?'support':['overview','companies','pass-requests','modbooks','support','contents'].includes(requestedView)?requestedView:'companies';
   let rows=all.filter(r=>filter==='all'||String(r.effective_status||r.subscription_status)===filter);
   if(q)rows=rows.filter(r=>`${r.company_name||''} ${r.owner_name||''} ${r.guild_name||''} ${r.plan||''} ${platformPlanLabel(r.plan)}`.toLowerCase().includes(q));
   const active=all.filter(r=>!['expired','paused'].includes(String(r.effective_status||r.subscription_status))).length;
   const questionOpen=Number(state.platformSupport?.counts?.pending||0)+Number(state.platformSupport?.counts?.checking||0);
   const suggestionOpen=Number(state.platformSuggestions?.counts?.pending||0)+Number(state.platformSuggestions?.counts?.checking||0);
+  const siteOpen=(state.hubBoard?.tickets||[]).filter(item=>item.status!=='complete').length;
+  const buildReportOpen=(state.platformBuildReports?.items||[]).filter(item=>String(item.status||'pending')==='pending').length;
+  const inboxOpen=questionOpen+suggestionOpen+siteOpen+buildReportOpen;
   const paged=pageRows(rows,state.platformPage,OPS_PAGE_SIZE.platform);
   const body=paged.rows.length?paged.rows.map(r=>{
     const period=companySubscriptionPeriod(r, value => fmtDate(value, true));
@@ -955,17 +989,16 @@ function renderPlatform(state){
   }).join(''):empty('조건에 맞는 회사가 없습니다.');
   const platformFiltered=Boolean(q||filter!=='all');
   const companyBoard=`<section class="platform-board"><div class="ops-mgmt-toolbar"><div class="ops-mgmt-filters"><label class="ops-mgmt-search">${icon('search')}<input data-platform-query value="${esc(state.platformQuery||'')}" placeholder="회사 · OWNER · Discord 검색"></label><select class="ops-mgmt-select" data-platform-status><option value="all" ${filter==='all'?'selected':''}>상태 전체</option><option value="trial" ${filter==='trial'?'selected':''}>체험</option><option value="active" ${filter==='active'?'selected':''}>사용중</option><option value="paused" ${filter==='paused'?'selected':''}>정지</option><option value="expired" ${filter==='expired'?'selected':''}>만료</option></select></div></div>${platformFiltered?`<div class="ops-mgmt-meta platform-company-meta"><span><strong>${rows.length}</strong>개 검색 결과</span></div>`:''}<div class="platform-company-head"><span>회사</span><span>Discord</span><span>멤버</span><span>상태</span><span>플랜</span><span>이용 종료</span><span>OWNER</span><span>관리</span></div><div class="platform-company-list">${body}</div>${renderDataPager('platform',paged,'개')}</section>`;
-  const supportTabs=`<nav class="platform-service-tabs" aria-label="고객 문의 종류"><button type="button" class="${view==='support'?'is-active':''}" data-action="platform-view" data-platform-view="support"><span>사이트 문의 · 기존 질문</span><em>${questionOpen}</em></button><button type="button" class="${view==='suggestions'?'is-active':''}" data-action="platform-view" data-platform-view="suggestions"><span>기존 회사 건의 · 제보</span><em>${suggestionOpen}</em></button></nav>`;
-  const content=view==='support'?renderPlatformSiteTickets(state)+renderPlatformSupportQueue(state):view==='suggestions'?renderPlatformSuggestionQueue(state):view==='contents'?renderPlatformContentSettings(state):view==='pass-requests'?renderPlatformPassRequests(state):view==='modbooks'?renderPlatformModbookReview(state):companyBoard;
+  const content=view==='support'?renderPlatformUnifiedInbox(state):view==='contents'?renderPlatformContentSettings(state):view==='pass-requests'?renderPlatformPassRequests(state):view==='modbooks'?renderPlatformModbookReview(state):companyBoard;
   const overview=`<section class="platform-overview" aria-label="운영 대시보드">
-    ${summary([['전체 회사',`${all.length}개`,'',''],['이용 가능',`${active}개`,'','is-positive'],['고객 질문',`${questionOpen}건`,'','is-warning'],['건의 · 제보',`${suggestionOpen}건`,'','is-warning']])}
+    ${summary([['전체 회사',`${all.length}개`,'',''],['이용 가능',`${active}개`,'','is-positive'],['처리 필요',`${inboxOpen}건`,'','is-warning'],['콘텐츠 제보',`${buildReportOpen+(state.hubBoard?.tickets||[]).filter(item=>item.status!=='complete'&&String(item.content_key||'hub')!=='hub').length}건`,'','is-warning']])}
     <div class="platform-overview__columns">
       <section class="platform-overview__section"><div class="platform-overview__section-heading"><span>QUICK ACTION</span><h2>바로 관리</h2><p>필요한 운영 화면으로 바로 이동합니다.</p></div>
         <div class="platform-overview__actions">
           <button type="button" data-action="platform-view" data-platform-view="companies">${icon('platform')}<span><strong>이용권 관리</strong><small>회사 구독 확인 · 연장 · 상태 관리</small></span><b aria-hidden="true">→</b></button>
           <button type="button" data-action="platform-view" data-platform-view="modbooks">${icon('info')}<span><strong>개조서 검수</strong><small>승인 대기 ${Array.isArray(state.gameAdmin?.requests)?state.gameAdmin.requests.length:0}건 · 원본 사진 확인</small></span><b aria-hidden="true">→</b></button>
           <button type="button" data-action="platform-view" data-platform-view="contents">${icon('assets')}<span><strong>콘텐츠 관리</strong><small>공개 및 무료 개방 정책 조회</small></span><b aria-hidden="true">→</b></button>
-          <button type="button" data-action="platform-view" data-platform-view="support">${icon('feedback')}<span><strong>고객 문의</strong><small>질문 ${questionOpen}건 · 건의·제보 ${suggestionOpen}건 처리 대기</small></span><b aria-hidden="true">→</b></button>
+          <button type="button" data-action="platform-view" data-platform-view="support">${icon('feedback')}<span><strong>문의 · 제보</strong><small>사이트 · 콘텐츠 · 회사 문의 ${inboxOpen}건 처리 필요</small></span><b aria-hidden="true">→</b></button>
         </div>
       </section>
       <section class="platform-overview__section"><div class="platform-overview__section-heading"><span>SUBSCRIPTION</span><h2>회사 이용권 현황</h2><p>기존 회사 구독 데이터를 조회합니다.</p></div>
@@ -975,10 +1008,10 @@ function renderPlatform(state){
       </section>
     </div>
   </section>`;
-  const heading=view==='overview'?'운영 대시보드':view==='companies'?'이용권 관리':view==='pass-requests'?'이용권 신청':view==='modbooks'?'개조서 검수':view==='contents'?'콘텐츠 관리':'고객 문의';
-  const description=view==='overview'?'현재 운영 상태를 확인하고 필요한 작업으로 바로 이동하세요.':view==='companies'?'회사별 구독 관리와 기존 이용권 조회를 한곳에서 처리합니다.':view==='pass-requests'?'회사별 신청을 확인하고 이용권을 발급합니다.':view==='modbooks'?'Discord에서 접수된 개조서 신청을 원본 사진과 비교해 검수하고 공통 정보로 승인합니다.':view==='contents'?'콘텐츠 공개와 무료 개방 설정을 확인합니다.':'접수된 질문과 건의·제보를 확인하고 응답합니다.';
+  const heading=view==='overview'?'운영 대시보드':view==='companies'?'이용권 관리':view==='pass-requests'?'이용권 신청':view==='modbooks'?'개조서 검수':view==='contents'?'콘텐츠 관리':'문의 · 제보 관리';
+  const description=view==='overview'?'현재 운영 상태를 확인하고 필요한 작업으로 바로 이동하세요.':view==='companies'?'회사별 구독 관리와 기존 이용권 조회를 한곳에서 처리합니다.':view==='pass-requests'?'회사별 신청을 확인하고 이용권을 발급합니다.':view==='modbooks'?'Discord에서 접수된 개조서 신청을 원본 사진과 비교해 검수하고 공통 정보로 승인합니다.':view==='contents'?'콘텐츠 공개와 무료 개방 설정을 확인합니다.':'사이트 문의부터 콘텐츠 제보와 기존 회사 문의까지 한곳에서 확인하고 처리합니다.';
   const actions=view==='overview'||view==='companies'?`<button class="ops-action-secondary" data-action="open-issue-company-code">+ 회사 개설 코드</button><button class="ops-action-secondary" data-action="refresh-platform">${icon('refresh')}<span>새로고침</span></button>`:'';
-  return `<div class="platform-page platform-page--${view}">${pageHeader('PLATFORM OWNER',heading,description,actions)}${view==='overview'?overview:`${['support','suggestions'].includes(view)?supportTabs:''}<div class="platform-service-view">${content}</div>`}</div>`;
+  return `<div class="platform-page platform-page--${view}">${pageHeader('PLATFORM OWNER',heading,description,actions)}${view==='overview'?overview:`<div class="platform-service-view">${content}</div>`}</div>`;
 }
 // ============================================================
 // SETTINGS
@@ -1116,7 +1149,13 @@ function testCenterModal(state){
   </section></div>`;
 }
 
-function renderModal(state){ const m=state.modal; if(!m)return ''; if(m.type==='test-center')return testCenterModal(state); if(m.type==='setup-guide')return setupGuideLive(state); if(m.type==='setup-demo')return setupGuidePreview(state); if(m.type==='support-question-create')return supportQuestionCreateModal(state); if(m.type==='support-question')return supportQuestionModal(state,m); if(m.type==='suggestion-create')return suggestionCreateModal(state); if(m.type==='suggestion-thread')return suggestionThreadModal(state,m); if(m.type==='ledger')return ledgerModal(state,m); if(m.type==='ledger-correction')return ledgerCorrectionModal(state,m); if(m.type==='ledger-evidence')return ledgerEvidenceModal(state,m); if(m.type==='platform-subscription')return platformSubscriptionModal(state,m); if(m.type==='company-delete')return companyDeleteModal(state,m); if(m.type==='member-register')return memberRegisterModal(state); if(m.type==='member')return memberModal(state,m); if(m.type==='asset')return assetModal(state,m); if(m.type==='account')return accountModal(state); if(m.type==='account-detail')return accountDetailModal(state,m); if(m.type==='create-company')return companyModal(state); if(m.type==='issue-company-code')return issueCompanyCodeModal(state); if(m.type==='discord-reconnect')return discordReconnectModal(state); if(m.type==='cooking-menu')return cookingMenuModal(state,m); return ''; }
+function platformBuildReportModal(state,m){
+  const r=m?.report||{};
+  const kind=r.report_type==='correction'?'정보 수정':'누락 제보';
+  const evidence=r.evidenceUrl?`<a class="platform-build-report__evidence" href="${esc(r.evidenceUrl)}" target="_blank" rel="noopener noreferrer"><img src="${esc(r.evidenceUrl)}" alt="개조서 제보 첨부 이미지"><span>원본 이미지 크게 보기 ↗</span></a>`:'<div class="platform-build-report__no-evidence">첨부 이미지 없음</div>';
+  return modalShell('개조서 세팅 제보',`${kind} · BUILD에서 접수된 제보입니다.`,`<div class="platform-build-report"><div class="platform-build-report__meta"><span>${esc(kind)}</span><span>${esc(r.status||'pending')}</span><span>${esc(fmtDate(r.created_at,true))}</span></div><h3>${esc(r.name||'이름 없음')}</h3><dl><div><dt>유형</dt><dd>${esc(r.mod_type||'—')}</dd></div><div><dt>분류</dt><dd>${esc(r.category||'—')}</dd></div><div><dt>부위</dt><dd>${esc(r.parts||'—')}</dd></div><div class="is-full"><dt>옵션</dt><dd>${esc(r.options_text||'—')}</dd></div><div class="is-full"><dt>메모</dt><dd>${esc(r.note||'—')}</dd></div></dl>${evidence}<footer><button type="button" class="runtime-btn-ghost" data-action="review-platform-build-report" data-report-id="${esc(r.id)}" data-review="reject">반려</button><div><button type="button" class="runtime-btn-ghost" data-action="close-modal">닫기</button><button type="button" class="runtime-btn-primary" data-action="review-platform-build-report" data-report-id="${esc(r.id)}" data-review="approve">승인</button></div></footer></div>`,true);
+}
+function renderModal(state){ const m=state.modal; if(!m)return ''; if(m.type==='platform-build-report')return platformBuildReportModal(state,m); if(m.type==='test-center')return testCenterModal(state); if(m.type==='setup-guide')return setupGuideLive(state); if(m.type==='setup-demo')return setupGuidePreview(state); if(m.type==='support-question-create')return supportQuestionCreateModal(state); if(m.type==='support-question')return supportQuestionModal(state,m); if(m.type==='suggestion-create')return suggestionCreateModal(state); if(m.type==='suggestion-thread')return suggestionThreadModal(state,m); if(m.type==='ledger')return ledgerModal(state,m); if(m.type==='ledger-correction')return ledgerCorrectionModal(state,m); if(m.type==='ledger-evidence')return ledgerEvidenceModal(state,m); if(m.type==='platform-subscription')return platformSubscriptionModal(state,m); if(m.type==='company-delete')return companyDeleteModal(state,m); if(m.type==='member-register')return memberRegisterModal(state); if(m.type==='member')return memberModal(state,m); if(m.type==='asset')return assetModal(state,m); if(m.type==='account')return accountModal(state); if(m.type==='account-detail')return accountDetailModal(state,m); if(m.type==='create-company')return companyModal(state); if(m.type==='issue-company-code')return issueCompanyCodeModal(state); if(m.type==='discord-reconnect')return discordReconnectModal(state); if(m.type==='cooking-menu')return cookingMenuModal(state,m); return ''; }
 function modalShell(title,desc,body,wide=false){return `<div class="runtime-modal-backdrop" data-modal-backdrop><section class="runtime-modal ${wide?'is-wide':''}" role="dialog" aria-modal="true"><header><div><h2>${esc(title)}</h2><p>${esc(desc)}</p></div><button type="button" data-action="close-modal">×</button></header>${body}</section></div>`;}
 
 function supportText(value){return esc(value||'').replaceAll('\n','<br>');}

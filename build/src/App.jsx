@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
+async function notifyHubOperatorOfBuildReport(reportId){
+  try{
+    const {data:{session}}=await supabase.auth.getSession();
+    if(!session?.access_token||!reportId)return;
+    await fetch('/api/inbox/notify',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({kind:'build_report',record_id:String(reportId)})});
+  }catch{}
+}
+
 
 const SLOT_META = [
   { key: "outer", label: "겉옷", icon: "01", image: "/build/assets/equipment/outer-team.webp", keywords: ["겉옷", "단독상의"] },
@@ -3365,7 +3373,7 @@ function ReportEditor({ user, modbooks, onClose, onSaved }) {
         if (uploadError) throw uploadError;
       }
 
-      const { error: insertError } = await supabase.from("modbook_reports").insert({
+      const { data: insertedReport, error: insertError } = await supabase.from("modbook_reports").insert({
         reporter_id: user.id,
         report_type: form.report_type,
         target_modbook_id: form.target_modbook_id ? Number(form.target_modbook_id) : null,
@@ -3376,7 +3384,7 @@ function ReportEditor({ user, modbooks, onClose, onSaved }) {
         options_text: form.options_text.trim() || null,
         note: form.note.trim() || null,
         evidence_path
-      });
+      }).select("id").single();
 
       if (insertError) {
         if (evidence_path) {
@@ -3387,6 +3395,7 @@ function ReportEditor({ user, modbooks, onClose, onSaved }) {
         throw insertError;
       }
 
+      notifyHubOperatorOfBuildReport(insertedReport?.id);
       onSaved();
     } catch (e) {
       setError(e.message || "제보 등록 중 오류가 발생했습니다.");

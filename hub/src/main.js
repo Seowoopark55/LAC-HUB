@@ -2,7 +2,7 @@ import './styles.css';
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
 import { memberChanges } from './lib/memberChanges.js';
-import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,updateHubNotice,deleteHubNotice,deleteHubTicket,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl,checkHubNoticeImages,uploadHubNoticeImage,hubNoticeImageUrl,removeHubNoticeImages} from './lib/hubBoardApi.js';
+import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTicketStatus,publishHubNotice,updateHubNotice,deleteHubNotice,deleteHubTicket,checkHubBoardFiles,uploadHubBoardFiles,hubBoardImageUrl,checkHubNoticeImages,uploadHubNoticeImage,hubNoticeImageUrl,removeHubNoticeImages,notifyPlatformInbox} from './lib/hubBoardApi.js';
 import {noticeBodyForEditor,serializeNoticeEditorBody,noticeImagePaths,markerForNoticeImage} from './lib/hubNoticeMedia.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
@@ -18,7 +18,7 @@ import {
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
   getWebAccountsSnapshot, submitWebAccountRequest, reviewWebAccountRequest, getCombatOverview, getCombatMember,
   getSuggestionBoard, createSuggestion, getSuggestion, addSuggestionMessage, updateSuggestionStatus, markSuggestionSeen,
-  getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl,
+  getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl, getPlatformBuildReports, reviewPlatformBuildReport, getPlatformBuildReportEvidenceUrl,
   removeSuggestionAttachments, deleteSuggestion, getGameInformation, getGlobalModbooks, getMyCompanyAccess, listPlatformCompanyAccess,
   saveGameInfoAdminRow, getGameInfoAdminHistory, uploadGameInfoAdminImage, cleanupUnlinkedGameInfoAdminImage, listPlatformModbookRequests, reviewPlatformModbookRequest, deleteModbookMaster,
   createCompanyPassRequest, getCompanyPassRequest, listAdminPassRequests, reviewCompanyPassRequest, notifyPassRequestOwner,
@@ -254,6 +254,32 @@ window.addEventListener('message', event => {
   window.scrollTo(0, 0);
 });
 
+// COOK report bridge. The iframe never receives HUB credentials; the authenticated
+// parent creates the private HUB ticket and returns only success/failure.
+window.addEventListener('message', async event => {
+  if (!cookFrame || !isCookRoute() || event.origin !== window.location.origin ||
+      event.source !== cookFrame.contentWindow || !event.data || typeof event.data !== 'object' ||
+      Array.isArray(event.data) || event.data.type !== 'lac-cook:report:request:v1') return;
+  const requestId=String(event.data.requestId||'');
+  const payload=event.data.payload;
+  if(!requestId || requestId.length>80 || !payload || typeof payload!=='object' || Array.isArray(payload))return;
+  const reply=result=>{ if(event.source===cookFrame?.contentWindow)event.source.postMessage({type:'lac-cook:report:response:v1',requestId,...result},event.origin); };
+  try{
+    if(!state.session?.user)throw new Error('제보하려면 HUB 로그인이 필요합니다.');
+    const reportType=['edit','add','report'].includes(String(payload.type||''))?String(payload.type):'report';
+    const name=String(payload.name||'').trim();
+    const detail=String(payload.detail||'').trim();
+    if(name.length<1||name.length>90||detail.length<2||detail.length>2500)throw new Error('요리명과 제보 내용을 확인해 주세요.');
+    const labels={edit:'레시피 수정 제안',add:'레시피 추가 제안',report:'요리 제보'};
+    const title=`${labels[reportType]} · ${name}`.slice(0,120);
+    const body=`요리명: ${name}\n\n${detail}`;
+    const ticketId=await createHubTicket({contentKey:'cook',category:reportType==='edit'?'bug':'suggestion',title,body});
+    notifyPlatformInbox('hub_ticket',ticketId).catch(()=>({sent:false}));
+    if(state.platformAdmin){await Promise.all([loadHubBoard(),loadPlatformBuildReports()]);}
+    reply({ok:true,ticketId});
+  }catch(error){reply({ok:false,error:String(error?.message||'요리 제보를 접수하지 못했습니다.')});}
+});
+
 // COOK recipe editor bridge. The iframe receives no session, token or service key.
 // This UI guard is additional only: Supabase RLS independently validates admin rights.
 window.addEventListener('message', async event => {
@@ -419,7 +445,7 @@ const state = {
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
   combat:{overview:null,detail:null,selectedMembershipId:'',period:'30d',rankMode:'kd',loading:false,detailLoading:false,error:''},
-  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', platformContentSettings:null, platformContentError:'', contentPolicies:[], contentPoliciesLoaded:false, contentPolicyError:'', currentSubscription:null, companyAccess:null, companyAccessError:'', companyAccessStatus:'idle', companyAccessCheckedAt:0, companyDataCompanyId:'', companyDataLoadedAt:0, companyDataLoading:false, platformCompanyAccess:[], companyPassRequest:null, companyPassRequestError:'', adminPassRequests:[], adminPassRequestsError:'',
+  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformBuildReports:{items:[],error:''}, platformInboxFilter:'all', platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', platformContentSettings:null, platformContentError:'', contentPolicies:[], contentPoliciesLoaded:false, contentPolicyError:'', currentSubscription:null, companyAccess:null, companyAccessError:'', companyAccessStatus:'idle', companyAccessCheckedAt:0, companyDataCompanyId:'', companyDataLoadedAt:0, companyDataLoading:false, platformCompanyAccess:[], companyPassRequest:null, companyPassRequestError:'', adminPassRequests:[], adminPassRequestsError:'',
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
@@ -1271,6 +1297,24 @@ async function loadPlatformSuggestions() {
   }
 }
 
+async function loadPlatformBuildReports(){
+  if(!state.platformAdmin){state.platformBuildReports={items:[],error:''};return;}
+  try{
+    const rows=await getPlatformBuildReports(160);
+    state.platformBuildReports={items:Array.isArray(rows)?rows:[],error:''};
+  }catch(error){
+    state.platformBuildReports={items:[],error:String(error?.message||error||'개조서 세팅 제보를 불러오지 못했습니다.')};
+  }
+}
+
+function platformInboxOpenCount(){
+  const siteOpen=(state.hubBoard?.tickets||[]).filter(item=>item.status!=='complete').length;
+  const buildOpen=(state.platformBuildReports?.items||[]).filter(item=>String(item.status||'pending')==='pending').length;
+  const questionOpen=Number(state.platformSupport?.counts?.pending||0)+Number(state.platformSupport?.counts?.checking||0);
+  const suggestionOpen=Number(state.platformSuggestions?.counts?.pending||0)+Number(state.platformSuggestions?.counts?.checking||0);
+  return siteOpen+buildOpen+questionOpen+suggestionOpen;
+}
+
 async function loadPlatformCompanyAccessAfterReview(){
   state.platformCompanyAccess=await listPlatformCompanyAccess();
 }
@@ -1573,7 +1617,7 @@ async function refreshAll() {
     if(state.page==='company-start' && state.companies.length)state.page='hub';
     state.platformSnapshot=state.platformAdmin?await getPlatformCompanies().catch(()=>[]):[];
     state.platformCompanyAccess=state.platformAdmin?await listPlatformCompanyAccess().catch(()=>null):[];
-    await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadAdminPassRequests(),...(state.platformAdmin?[gameAdminLoadModbookRequests()]:[])]);
+    await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports(),loadAdminPassRequests(),...(state.platformAdmin?[gameAdminLoadModbookRequests()]:[])]);
     applyPlatformCompanyVisibility();
     const modbookReviewId=pendingModbookReviewId();
     if(state.platformAdmin&&modbookReviewId){state.page='platform';state.platformView='modbooks';}
@@ -2311,7 +2355,7 @@ root.addEventListener('click', async event => {
   const gameAdminButton=event.target.closest('[data-game-admin-action]');
   if(gameAdminButton){event.preventDefault();try{await gameAdminAction(gameAdminButton);}catch(error){setError(error);}return;}
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ if(state.page==='hub-board'&&['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft(); if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='combat'&&!state.combat.overview) await loadCombatOverview(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);} render(); return; }
+  if(pageBtn){ if(state.page==='hub-board'&&['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft(); if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='combat'&&!state.combat.overview) await loadCombatOverview(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
   if(infoTab){if(!canOpenWebContent(state,'game_info'))return;state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
@@ -2423,7 +2467,7 @@ root.addEventListener('click', async event => {
     await loadAdminPassRequests();
     render();return;
   }
-  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;if(state.page!=='platform'&&state.page!=='layout')state.platformView='overview';navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[]),...(state.platformView==='modbooks'?[loadPlatformModbookReviewCenter()]:[])]);render();return;}
+  if(action==='open-platform-admin'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;if(state.page!=='platform'&&state.page!=='layout')state.platformView='overview';navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[]),...(state.platformView==='modbooks'?[loadPlatformModbookReviewCenter()]:[])]);render();return;}
   if(action==='info-refresh'){await loadGameInfo();return;}
   if(action==='open-test-center'){if(!state.platformAdmin){state.accountMenuOpen=false;render();return;}state.accountMenuOpen=false;state.testCenter=createTestCenterState();state.modal={type:'test-center'};render();return;}
   if(action==='test-center-exit'){state.testCenter=null;state.modal=null;render();return;}
@@ -2759,6 +2803,22 @@ root.addEventListener('click', async event => {
   }
   if(action==='setup-demo-skip-members'){if(!state.setupDemo)return;state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=true;render();return;}
   if(action==='refresh-questions'){await withMutation(loadQuestionBoard);return;}
+  if(action==='platform-inbox-filter'){state.platformInboxFilter=String(actionEl.dataset.inboxFilter||'all');render();return;}
+  if(action==='refresh-platform-inbox'){await withMutation(async()=>{await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);});return;}
+  if(action==='open-platform-build-report'){
+    const id=Number(actionEl.dataset.reportId||0);
+    const report=(state.platformBuildReports?.items||[]).find(item=>Number(item.id)===id);
+    if(!report){setError('개조서 세팅 제보를 찾을 수 없습니다.');return;}
+    let evidenceUrl='';
+    if(report.evidence_path)evidenceUrl=await getPlatformBuildReportEvidenceUrl(report.evidence_path).catch(()=> '');
+    state.modal={type:'platform-build-report',report:{...report,evidenceUrl}};render();return;
+  }
+  if(action==='review-platform-build-report'){
+    const id=Number(actionEl.dataset.reportId||state.modal?.report?.id||0);
+    const approve=String(actionEl.dataset.review||'')==='approve';
+    if(!id||!state.platformAdmin){setError('제보 검수 권한을 확인해 주세요.');return;}
+    await withMutation(async()=>{await reviewPlatformBuildReport(id,approve);state.modal=null;await loadPlatformBuildReports();setNotice(approve?'개조서 세팅 제보를 승인했습니다.':'개조서 세팅 제보를 반려했습니다.');});return;
+  }
   if(action==='refresh-platform-support'){await withMutation(loadPlatformSupport);return;}
   if(action==='open-question-create'){clearQuestionPendingFiles();state.modal={type:'support-question-create'};render();return;}
   if(action==='open-question'){
@@ -2861,7 +2921,7 @@ root.addEventListener('click', async event => {
     if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts);
     if(state.page==='questions') await withMutation(loadQuestionBoard);
     if(state.page==='suggestions') await withMutation(loadSuggestionBoard);
-    if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);}
+    if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);}
     render();return;
   }
   if(action==='open-ledger'){clearLedgerPendingFiles();state.modal={type:'ledger',entryId:null};render();return;}
@@ -2956,8 +3016,7 @@ root.addEventListener('click', async event => {
     if(!['overview','companies','pass-requests','modbooks','support','suggestions','contents'].includes(view))return;
     if(state.page!=='platform'){navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');}
     state.platformView=view;
-    if(view==='support')await withMutation(async()=>{await Promise.all([loadPlatformSupport(),loadHubBoard()]);});
-    else if(view==='suggestions')await withMutation(loadPlatformSuggestions);
+    if(view==='support'||view==='suggestions')await withMutation(async()=>{state.platformView='support';await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);});
     else if(view==='contents')await withMutation(loadPlatformContentSettings);
     else if(view==='pass-requests')await withMutation(loadAdminPassRequests);
     else if(view==='modbooks')await withMutation(()=>loadPlatformModbookReviewCenter());
@@ -3002,7 +3061,7 @@ root.addEventListener('click', async event => {
     if(action==='logout'){state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
     if(action==='refresh-company-subscription'){const companyId=state.companyId; if(!companyId || !(state.companies||[]).some(company=>company.id===companyId))return; const [subscription, access]=await Promise.all([getCompanySubscription(companyId),getMyCompanyAccess(companyId)]); if(state.companyId!==companyId)return;state.companyAccess=access||null;state.companyAccessError='';state.companyAccessStatus='ready';state.companyAccessCheckedAt=Date.now(); state.currentSubscription=subscription||null; render(); if(state.page==='hub')root.querySelector('.hub-account__profile')?.setAttribute('open',''); return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
-    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();state.platformCompanyAccess=await listPlatformCompanyAccess().catch(()=>null);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
+    if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();state.platformCompanyAccess=await listPlatformCompanyAccess().catch(()=>null);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
     if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();setNotice('공금 데이터를 새로고침했습니다.');return;}
     if(action==='connect-discord'){if(!canAdmin(state))throw new Error('관리자 권한이 필요합니다.');if(['reset_requested','resetting'].includes(String(state.onboardingStatus?.status||'')))throw new Error('기존 Discord 연결을 정리 중입니다. 완료 후 다시 연결해 주세요.');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);return;}
     if(action==='toggle-module'){
@@ -3493,7 +3552,7 @@ root.addEventListener('submit', async event => {
       state.modal=null; state.platformPage=1;
       await loadCompanies();
       state.platformSnapshot=await getPlatformCompanies();
-      await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard()]);
+      await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);
       if(deletingCurrent) await loadCompanyData();
       setNotice(`회사 ${expectedName}을(를) 삭제했습니다.`);
       return;
@@ -3570,9 +3629,13 @@ setInterval(async()=>{
   try{
     if(state.platformAdmin){
       const before=JSON.stringify(state.adminPassRequests||[]);
+      const inboxBefore=platformInboxOpenCount();
       await loadAdminPassRequests();
-      if(before!==JSON.stringify(state.adminPassRequests||[]) &&
-        (state.page==='hub'||(state.page==='platform'&&state.platformView==='pass-requests')))render();
+      await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);
+      const inboxAfter=platformInboxOpenCount();
+      if(inboxAfter>inboxBefore)setNotice(`새 문의 · 제보 ${inboxAfter-inboxBefore}건이 접수되었습니다.`);
+      else if(state.page==='platform')render();
+      else if(before!==JSON.stringify(state.adminPassRequests||[]) && state.page==='hub')render();
     }
     if(hasCompany(state) && state.companyPassRequest?.status==='pending'){
       const companyId=state.companyId;

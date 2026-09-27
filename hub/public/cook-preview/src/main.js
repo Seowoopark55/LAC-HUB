@@ -476,10 +476,8 @@ function openIdea(type){
   if(dialog.open)return;
   $('cook-idea-title').textContent=idea.title;
   $('cook-idea-detail').placeholder=idea.placeholder;
-  let data={};
-  try{data=JSON.parse(localStorage.getItem(IDEA_DRAFT_KEY)||'{}')||{};}catch{}
-  $('cook-idea-food').value=data[type]?.name|| (type==='edit' && state.orders.size?getFood(state.orders.keys().next().value)?.food_name||'':'');
-  $('cook-idea-detail').value=data[type]?.detail||'';
+  $('cook-idea-food').value=type==='edit' && state.orders.size?getFood(state.orders.keys().next().value)?.food_name||'':'';
+  $('cook-idea-detail').value='';
   $('cook-idea-result').textContent='';
   dialog.showModal();$('cook-idea-food').focus();
 }
@@ -495,15 +493,27 @@ function ideaValid(){
   }
   return true;
 }
-function saveIdeaDraft(){
-  if(!ideaValid())return;
-  try{
-    let drafts={};
-    try{drafts=JSON.parse(localStorage.getItem(IDEA_DRAFT_KEY)||'{}')||{};}catch{}
-    drafts[currentIdeaType]={name:$('cook-idea-food').value.trim(),detail:$('cook-idea-detail').value.trim()};
-    localStorage.setItem(IDEA_DRAFT_KEY,JSON.stringify(drafts));
-    $('cook-idea-result').textContent='초안을 이 브라우저에 보관했습니다. 실제 등록·제보는 아직 전송되지 않습니다.';
-  }catch{$('cook-idea-result').textContent='초안을 저장하지 못했습니다. 브라우저 저장 설정을 확인해 주세요.';}
+function submitIdeaToHub(){
+  if(!ideaValid())return Promise.resolve(false);
+  if(window.parent===window){$('cook-idea-result').textContent='LAC HUB에서 접속한 뒤 제보해 주세요.';return Promise.resolve(false);}
+  const requestId=crypto.randomUUID();
+  const payload={type:currentIdeaType,name:$('cook-idea-food').value.trim(),detail:$('cook-idea-detail').value.trim()};
+  const result=$('cook-idea-result');
+  const submit=$('cook-idea-submit');
+  submit.disabled=true;result.textContent='제보를 접수하고 있습니다…';
+  return new Promise(resolve=>{
+    let finished=false;
+    const cleanup=()=>{window.removeEventListener('message',onMessage);clearTimeout(timer);submit.disabled=false;};
+    const onMessage=event=>{
+      if(event.origin!==window.location.origin||event.source!==window.parent||event.data?.type!=='lac-cook:report:response:v1'||event.data?.requestId!==requestId)return;
+      finished=true;cleanup();
+      if(event.data.ok){result.textContent='제보가 접수되었습니다.';setTimeout(()=>{$('cook-idea').close();result.textContent='';},500);resolve(true);}
+      else{result.textContent=String(event.data.error||'제보를 접수하지 못했습니다.');resolve(false);}
+    };
+    const timer=setTimeout(()=>{if(finished)return;cleanup();result.textContent='제보 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.';resolve(false);},10000);
+    window.addEventListener('message',onMessage);
+    window.parent.postMessage({type:'lac-cook:report:request:v1',requestId,payload},window.location.origin);
+  });
 }
 
 async function start(){
@@ -537,13 +547,8 @@ $('clear').addEventListener('click',async()=>{
 $('load-workspace-legacy').addEventListener('click',restoreLegacyWorkspace);
 document.querySelectorAll('[data-idea]').forEach(button=>button.addEventListener('click',()=>openIdea(button.dataset.idea)));
 $('cook-idea-close').addEventListener('click',()=>$('cook-idea').close());
-$('cook-idea-save').addEventListener('click',saveIdeaDraft);
-$('cook-idea-copy').addEventListener('click',async()=>{
-  if(!ideaValid())return;
-  try{await navigator.clipboard.writeText(ideaText());
-    $('cook-idea-result').textContent='내용을 복사했습니다. 실제 제보나 등록은 전송되지 않았습니다.';
-  }catch{$('cook-idea-result').textContent='내용을 복사하지 못했습니다. 직접 선택해 복사해 주세요.';}
-});
+$('cook-idea-cancel').addEventListener('click',()=>$('cook-idea').close());
+$('cook-idea-submit').addEventListener('click',()=>{submitIdeaToHub();});
 start();
 
 
@@ -554,7 +559,7 @@ start();
  */
 let detachCookHost = null;
 export function attachCookHubHost({supabase, onHubReturn, cloudWorkspaceEnabled = false} = {}) {
-  if (detachCookHost) throw Error('요리 계산기는 이미 HUB에 연결되어 있습니다.');
+  if (detachCookHost) throw Error('LAC COOK은 이미 HUB에 연결되어 있습니다.');
   if (typeof onHubReturn !== 'function') throw Error('HUB 복귀 기능이 준비되지 않았습니다.');
   const previous = $('cook-return-preview');
   const back = document.createElement('button');
@@ -616,5 +621,5 @@ if (new URLSearchParams(window.location.search).get('lacCookHostPreview') === '1
     onHubReturn:() => requestHostReturn({selfWindow:window,parentWindow:window.parent}),
     cloudWorkspaceEnabled:false
   });
-  $('cook-mode-note').textContent = '요리 계산기는 현재 데이터 스냅샷을 사용하며, 작업은 이 브라우저에만 자동 저장됩니다. 클라우드 저장과 계정별 동기화는 지원하지 않습니다. 기존 AXE COOK·Google Sheets·HUB 데이터는 변경하지 않습니다.';
+  $('cook-mode-note').textContent = 'COOK은 현재 데이터 스냅샷을 사용하며, 작업은 이 브라우저에만 자동 저장됩니다. 클라우드 저장과 계정별 동기화는 지원하지 않습니다. 기존 AXE COOK·Google Sheets·HUB 데이터는 변경하지 않습니다.';
 }

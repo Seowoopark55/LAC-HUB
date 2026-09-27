@@ -1844,3 +1844,29 @@ export async function cleanupUnlinkedGameInfoAdminImage(path){
   if(!path)return;
   await supabase.storage.from('lac-game-info').remove([path]);
 }
+
+
+// LAC HUB unified operator inbox: surface existing LAC BUILD modbook reports
+// without changing BUILD's storage or approval workflow.
+export async function getPlatformBuildReports(limit=120){
+  assertClient();
+  const safeLimit=Math.max(1,Math.min(200,Number(limit)||120));
+  const result=await supabase.schema('public').from('modbook_reports')
+    .select('*').order('created_at',{ascending:false}).limit(safeLimit);
+  return unwrap(result,'개조서 세팅 제보를 불러오지 못했습니다.')||[];
+}
+export async function reviewPlatformBuildReport(reportId,approve){
+  assertClient();
+  const id=Number(reportId);
+  if(!Number.isSafeInteger(id)||id<1)throw new Error('개조서 제보 ID가 올바르지 않습니다.');
+  const fn=approve?'approve_modbook_report':'reject_modbook_report';
+  return unwrap(await supabase.schema('public').rpc(fn,{p_report_id:id}),approve?'개조서 제보 승인에 실패했습니다.':'개조서 제보 반려에 실패했습니다.');
+}
+export async function getPlatformBuildReportEvidenceUrl(storagePath){
+  assertClient();
+  const path=String(storagePath||'').trim();
+  if(!path)return '';
+  const result=await supabase.storage.from('modbook-evidence').createSignedUrl(path,600);
+  if(result.error)return '';
+  return result.data?.signedUrl||'';
+}
