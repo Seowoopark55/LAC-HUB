@@ -22,4 +22,10 @@ expect('journey UI has five stages',render.includes('회사 생성')&&render.inc
 expect('reset path exists',main.includes("action==='test-center-reset'")&&render.includes('처음부터 다시'));
 expect('new test center styles exist',css.includes('.test-center-journey')&&css.includes('.test-center-gate-card')&&css.includes('.test-center-content-grid'));
 expect('no real pass API used inside test actions',!main.match(/if\(action==='test-center-request-pass'\)[\s\S]{0,700}(request|create).*Pass/i));
+expect('setup preview uses installer wizard shell',render.includes('class="setup-wizard-shell"')&&render.includes('class="setup-wizard-progress"'));
+expect('wizard has six visible milestones',render.includes("['DISCORD','Discord']")&&render.includes("['ROLES','역할']")&&render.includes("['MODULES','기능']")&&render.includes("['CHANNELS','채널']")&&render.includes("['MEMBERS','멤버']")&&render.includes("['READY','완료']"));
+expect('wizard removed quest wording from preview function',!render.slice(render.indexOf('function setupGuidePreview'),render.indexOf('function setupGuideLive')).includes('QUEST 0'));
+expect('wizard keeps previous next navigation',render.includes('›')||render.includes('다음'));
+expect('wizard finishes into company management',render.includes('회사 관리 시작'));
+expect('wizard styles exist',css.includes('.setup-wizard-shell')&&css.includes('.setup-wizard-progress-item')&&css.includes('.setup-wizard-footer'));
 console.log(`Test Center Journey: ${passed}/${passed+failed} PASS`);if(failed)process.exit(1);
