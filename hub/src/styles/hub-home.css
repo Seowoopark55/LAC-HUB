@@ -400,3 +400,80 @@
   .hub-features--categorized[data-hub-content-category]{animation:none}
   .hub-contents__tab{transition:none}
 }
+
+/* Phase 27: move the legal notice into the right decorative rail on wide desktop.
+   The notice falls back into the normal footer when side space is not available. */
+.hub-footer{
+  position:relative;
+  overflow:visible;
+}
+.hub-footer__brand strong{font-size:10.5px}
+.hub-footer__brand span{font-size:9px}
+.hub-footer__legal{gap:4px;line-height:1.5}
+.hub-footer__legal p,.hub-footer__legal small{
+  font-size:10px;
+  line-height:1.5;
+}
+
+@media (min-width:1700px) and (min-height:741px){
+  .hub-footer{
+    display:block;
+    min-height:25px;
+    margin-top:9px;
+    padding:8px 0 2px;
+  }
+  .hub-footer__brand{
+    justify-content:flex-start;
+  }
+  .hub-footer__legal{
+    position:absolute;
+    left:calc(100% + 14px);
+    bottom:0;
+    width:min(250px,calc((100vw - 1440px)/2 + 20px));
+    min-width:0;
+    display:grid;
+    gap:6px;
+    padding:9px 10px 9px 13px;
+    border-left:1px solid rgba(205,159,92,.34);
+    border-radius:0 8px 8px 0;
+    background:linear-gradient(90deg,rgba(8,11,15,.76),rgba(8,11,15,.38) 72%,rgba(8,11,15,.08));
+    text-align:left;
+    text-shadow:0 1px 2px rgba(0,0,0,.72);
+  }
+  .hub-footer__legal p,.hub-footer__legal small{
+    font-size:10.4px;
+    line-height:1.55;
+    overflow-wrap:anywhere;
+  }
+  .hub-footer__legal p{color:#a6b0ba}
+  .hub-footer__legal small{color:#838e99}
+}
+
+/* Medium desktop: keep the notice inside the content footer, but improve readability. */
+@media (min-width:601px) and (max-width:1699px){
+  .hub-footer__legal{
+    max-width:760px;
+    justify-self:end;
+  }
+  .hub-footer__legal p,.hub-footer__legal small{
+    font-size:10px;
+    line-height:1.52;
+  }
+}
+
+/* Mobile/tablet fallback keeps the legal notice in normal document flow. */
+@media (max-width:600px){
+  .hub-footer__legal{
+    position:static;
+    width:auto;
+    padding:0;
+    border-left:0;
+    border-radius:0;
+    background:none;
+    text-shadow:none;
+  }
+  .hub-footer__legal p,.hub-footer__legal small{
+    font-size:10px;
+    line-height:1.55;
+  }
+}
