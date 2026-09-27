@@ -718,6 +718,19 @@ function createTestCenterState(){
     fakeCompanyName:'LAC TEST',
     fakeRepresentativeName:'테스트 대표',
     passStatus:'none',
+    passEditMode:false,
+    passCancelled:false,
+    passApplication:{
+      applicationId:'PASS-TEST-0001',
+      requesterRole:'representative',
+      ingameNickname:'',
+      representativeIngameNickname:'',
+      ingamePhone:'',
+      availableTime:'',
+      note:'',
+      submittedAt:null,
+      updatedAt:null
+    },
     setupComplete:false
   };
 }
@@ -2481,7 +2494,29 @@ root.addEventListener('click', async event => {
   if(action==='test-center-request-pass'){
     if(!state.platformAdmin||!state.testCenter||!state.testCenter.companyCreated)return;
     if(state.testCenter.passStatus==='active')return;
-    state.testCenter.passStatus='pending';
+    state.testCenter.passEditMode=false;
+    state.testCenter.screen='pass-form';
+    render();return;
+  }
+  if(action==='test-center-pass-back'){
+    if(!state.platformAdmin||!state.testCenter)return;
+    state.testCenter.passEditMode=false;
+    state.testCenter.screen='content';
+    render();return;
+  }
+  if(action==='test-center-edit-pass'){
+    if(!state.platformAdmin||!state.testCenter||state.testCenter.passStatus!=='pending')return;
+    state.testCenter.passEditMode=true;
+    state.testCenter.screen='pass-form';
+    render();return;
+  }
+  if(action==='test-center-cancel-pass'){
+    if(!state.platformAdmin||!state.testCenter||state.testCenter.passStatus!=='pending')return;
+    if(!window.confirm('현재 이용권 신청을 취소할까요? 취소 후 다시 신청할 수 있습니다.'))return;
+    state.testCenter.passStatus='none';
+    state.testCenter.passEditMode=false;
+    state.testCenter.passCancelled=true;
+    state.testCenter.screen='content';
     render();return;
   }
   if(action==='test-center-approve-pass'){
@@ -3439,9 +3474,46 @@ root.addEventListener('submit', async event => {
       state.testCenter.fakeRepresentativeName=representative;
       state.testCenter.companyCreated=true;
       state.testCenter.passStatus='none';
+      state.testCenter.passEditMode=false;
+      state.testCenter.passCancelled=false;
+      state.testCenter.passApplication={...createTestCenterState().passApplication};
       state.testCenter.setupComplete=false;
       state.testCenter.screen='hub';
       state.testCenter.content=null;
+      render();
+      return;
+    }
+    if(type==='test-center-pass-application'){
+      if(!state.platformAdmin||!state.testCenter||!state.testCenter.companyCreated)throw new Error('테스트 회사가 먼저 필요합니다.');
+      if(state.testCenter.passStatus==='active')throw new Error('이미 승인된 이용권은 수정할 수 없습니다.');
+      const requesterRole=String(data.get('requester_role')||'representative');
+      const ingameNickname=String(data.get('ingame_nickname')||'').trim();
+      const representativeIngameNickname=String(data.get('representative_ingame_nickname')||'').trim();
+      const ingamePhone=String(data.get('ingame_phone')||'').trim();
+      const availableTime=String(data.get('available_time')||'').trim();
+      const note=String(data.get('note')||'').trim();
+      const consent=String(data.get('consent')||'');
+      if(!['representative','admin','member'].includes(requesterRole))throw new Error('회사에서의 역할을 선택해 주세요.');
+      if(!ingameNickname)throw new Error('인게임 닉네임을 입력해 주세요.');
+      if(requesterRole!=='representative'&&!representativeIngameNickname)throw new Error('대표가 아닌 경우 대표자 인게임 닉네임을 입력해 주세요.');
+      if(consent!=='on')throw new Error('인게임 인증 절차 확인에 동의해 주세요.');
+      const now=new Date().toISOString();
+      const prev=state.testCenter.passApplication||{};
+      state.testCenter.passApplication={
+        applicationId:prev.applicationId||'PASS-TEST-0001',
+        requesterRole,
+        ingameNickname,
+        representativeIngameNickname,
+        ingamePhone,
+        availableTime,
+        note,
+        submittedAt:prev.submittedAt||now,
+        updatedAt:now
+      };
+      state.testCenter.passStatus='pending';
+      state.testCenter.passEditMode=false;
+      state.testCenter.passCancelled=false;
+      state.testCenter.screen='content';
       render();
       return;
     }

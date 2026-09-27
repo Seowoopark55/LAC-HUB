@@ -1123,10 +1123,19 @@ function testCenterCompanyForm(state){
   return `<div class="test-center-company-form"><div class="test-center-company-form__head"><span>NEW COMPANY</span><h3>새 회사 만들기</h3><p>회사 기본 정보만 먼저 등록합니다. 이 단계에서는 BOT 설치나 Discord 권한 요청이 없습니다.</p></div><form data-form="test-center-company" class="runtime-modal-form"><label class="is-full">회사 이름<input name="name" maxlength="80" value="${esc(name)}" autocomplete="off" required></label><label class="is-full">대표명<input name="representative_name" maxlength="120" value="${esc(representative)}" autocomplete="off" required></label><div class="runtime-modal-hint is-full">회사 생성 코드 없이 등록하는 새 흐름입니다. 실제 데이터는 생성되지 않습니다.</div><footer><button type="button" class="runtime-btn-ghost" data-action="test-center-company-back">취소</button><button class="runtime-btn-primary" type="submit">회사 만들기</button></footer></form></div>`;
 }
 
+function testCenterPassApplicationForm(state){
+  const tc=state.testCenter||{};
+  const app=tc.passApplication||{};
+  const editing=Boolean(tc.passEditMode&&tc.passStatus==='pending');
+  const role=String(app.requesterRole||'representative');
+  const roleLabel=role==='admin'?'관리자 · 간부':role==='member'?'팀원':'대표';
+  return `<div class="test-center-pass-application"><div class="test-center-pass-application__head"><span>UNIFIED PASS APPLICATION</span><h3>${editing?'이용권 신청 수정':'회사 이용권 신청'}</h3><p>이용권 발급 전 LAC 운영자가 개인 Discord DM과 인게임 만남을 통해 회사와 신청자를 확인합니다.</p></div><div class="test-center-pass-identity"><div><span>회사</span><strong>${esc(tc.fakeCompanyName||'LAC TEST')}</strong></div><div><span>등록 대표명</span><strong>${esc(tc.fakeRepresentativeName||'테스트 대표')}</strong></div><div><span>신청 번호</span><strong>${esc(app.applicationId||'PASS-TEST-0001')}</strong></div></div><form data-form="test-center-pass-application" class="runtime-modal-form test-center-pass-form"><label>회사에서의 역할<select name="requester_role" required><option value="representative" ${role==='representative'?'selected':''}>대표</option><option value="admin" ${role==='admin'?'selected':''}>관리자 · 간부</option><option value="member" ${role==='member'?'selected':''}>팀원</option></select><small>팀원이나 관리자가 대신 신청할 수 있지만 인게임 인증 때 대표 권한을 함께 확인합니다.</small></label><label>인게임 닉네임<input name="ingame_nickname" maxlength="80" value="${esc(app.ingameNickname||'')}" placeholder="운영자가 인게임에서 확인할 닉네임" required><small>직접 만남과 신청자 확인에 사용합니다.</small></label><label>대표자 인게임 닉네임<input name="representative_ingame_nickname" maxlength="80" value="${esc(app.representativeIngameNickname||'')}" placeholder="대표가 아닌 경우 필수"><small>대표 본인이면 비워두고, 관리자·간부·팀원 신청이면 대표자 닉네임을 입력해 주세요.</small></label><label>인게임 전화번호 <em>선택</em><input name="ingame_phone" maxlength="40" value="${esc(app.ingamePhone||'')}" placeholder="게임 내 연락 가능한 번호"><small>실제 휴대전화 번호가 아니라 게임 안의 전화번호만 입력합니다.</small></label><label class="is-full">인증 가능한 시간 <em>선택</em><input name="available_time" maxlength="120" value="${esc(app.availableTime||'')}" placeholder="예: 오늘 21시 이후 / 평일 20~24시"></label><label class="is-full">운영자에게 전달할 내용 <em>선택</em><textarea name="note" maxlength="1000" rows="4" placeholder="대표 대신 신청합니다, 접속 가능한 시간 등 필요한 내용을 적어주세요.">${esc(app.note||'')}</textarea></label><label class="is-full test-center-pass-consent"><input type="checkbox" name="consent" required><span>이용권 발급 전 운영자와의 개인 Discord DM 및 인게임 인증이 진행되는 것을 확인했습니다.</span></label><div class="runtime-modal-hint is-full">신청 후 운영자가 인증하기 전까지는 내용을 수정하거나 신청을 취소할 수 있습니다. 승인 후에는 변경할 수 없습니다.</div><footer><button type="button" class="runtime-btn-ghost" data-action="test-center-pass-back">돌아가기</button><button class="runtime-btn-primary" type="submit">${editing?'수정사항 저장':'이용권 신청'}</button></footer></form></div>`;
+}
+
 function testCenterJourney(tc){
   let current=0;
   if(tc.companyCreated)current=1;
-  if(tc.passStatus==='pending')current=2;
+  if(tc.screen==='pass-form'||tc.passStatus==='pending')current=2;
   if(tc.passStatus==='active')current=tc.setupComplete?4:3;
   const steps=[['회사 생성','회사명 · 대표명'],['콘텐츠 확인','메뉴 미리보기'],['이용권','신청 · 승인'],['초기 설정','회사 관리'],['사용 시작','정상 이용']];
   return `<div class="test-center-flowbar" aria-label="신규 회사 체험 진행 단계">${steps.map(([title,desc],i)=>`<div class="test-center-flowbar__step ${i<current?'is-done':i===current?'is-current':''}"><span>${i<current?'✓':i+1}</span><div><strong>${title}</strong><small>${desc}</small></div></div>${i<steps.length-1?`<i class="${i<current?'is-done':''}"></i>`:''}`).join('')}</div>`;
@@ -1152,8 +1161,10 @@ function testCenterHubPreview(state){
 
 function testCenterPassGate(tc,contentKey){
   const title=contentKey==='cook'?'요리 계산기':'회사 관리';
-  if(tc.passStatus==='none')return `<div class="test-center-gate-card"><span>UNIFIED PASS</span><h3>${esc(title)} 이용권이 필요합니다.</h3><p>메뉴와 화면 구성은 미리 볼 수 있지만 실제 기능과 세부 데이터는 이용권 승인 후 사용할 수 있습니다.</p><button type="button" data-action="test-center-request-pass">이용권 신청</button></div>`;
-  if(tc.passStatus==='pending')return `<div class="test-center-gate-card is-pending"><span>APPROVAL PENDING</span><h3>이용권 승인 대기 중입니다.</h3><p>신청은 완료되었습니다. 승인 전까지는 현재 미리보기 상태가 유지됩니다.</p><div class="test-center-pending-state"><i></i><strong>운영자 확인 대기</strong></div><div class="test-center-sim-control"><span>TEST CONTROL · 실제 이용자에게는 보이지 않음</span><button type="button" data-action="test-center-approve-pass">운영자 승인 발생시키기</button></div></div>`;
+  const app=tc.passApplication||{};
+  const roleLabel=app.requesterRole==='admin'?'관리자 · 간부':app.requesterRole==='member'?'팀원':'대표';
+  if(tc.passStatus==='none')return `<div class="test-center-gate-card"><span>UNIFIED PASS</span><h3>${esc(title)} 이용권이 필요합니다.</h3><p>메뉴와 화면 구성은 미리 볼 수 있지만 실제 기능과 세부 데이터는 이용권 승인 후 사용할 수 있습니다.</p>${tc.passCancelled?'<div class="test-center-pass-cancelled">이전 신청을 취소했습니다. 내용을 확인한 뒤 언제든 다시 신청할 수 있습니다.</div>':''}<button type="button" data-action="test-center-request-pass">${tc.passCancelled?'다시 신청':'이용권 신청'}</button></div>`;
+  if(tc.passStatus==='pending')return `<div class="test-center-gate-card is-pending"><span>IN-GAME VERIFICATION</span><h3>인게임 인증 대기 중입니다.</h3><p>신청은 접수되었습니다. 운영자가 개인 Discord DM으로 연락한 뒤 인게임에서 회사와 신청자를 확인합니다.</p><div class="test-center-pending-state"><i></i><strong>운영자 인증 대기</strong><small>${esc(app.applicationId||'PASS-TEST-0001')}</small></div><div class="test-center-pass-summary"><span><small>신청 역할</small><strong>${esc(roleLabel)}</strong></span><span><small>인게임 닉네임</small><strong>${esc(app.ingameNickname||'-')}</strong></span><span><small>인게임 전화</small><strong>${esc(app.ingamePhone||'미입력')}</strong></span><span><small>인증 가능 시간</small><strong>${esc(app.availableTime||'별도 협의')}</strong></span></div><div class="test-center-pass-user-actions"><button type="button" data-action="test-center-edit-pass">신청 수정</button><button type="button" class="is-danger" data-action="test-center-cancel-pass">신청 취소</button></div><div class="test-center-sim-control"><span>TEST CONTROL · 실제 이용자에게는 보이지 않음</span><button type="button" data-action="test-center-approve-pass">인게임 인증 완료 · 승인 발생</button></div></div>`;
   return '';
 }
 
@@ -1177,15 +1188,16 @@ function testCenterModal(state){
   const tc=state.testCenter||{};
   let body='';
   if(tc.screen==='company-form')body=testCenterCompanyForm(state);
+  else if(tc.screen==='pass-form')body=testCenterPassApplicationForm(state);
   else if(tc.screen==='content')body=tc.content==='cook'?testCenterCookContent(state):testCenterCompanyContent(state);
   else body=testCenterHubPreview(state);
-  const status=tc.passStatus==='active'?(tc.setupComplete?'사용 준비 완료':'이용권 승인'):tc.passStatus==='pending'?'승인 대기':tc.companyCreated?'회사 생성 완료':'체험 시작';
+  const status=tc.screen==='pass-form'?(tc.passEditMode?'신청 수정':'신청서 작성'):tc.passStatus==='active'?(tc.setupComplete?'사용 준비 완료':'이용권 승인'):tc.passStatus==='pending'?'인증 대기':tc.companyCreated?'회사 생성 완료':'체험 시작';
   return `<div class="test-center-backdrop"><section class="test-center-shell test-center-shell--flow-r3" role="dialog" aria-modal="true" aria-label="신규 회사 온보딩 테스트 센터">
-    <header class="test-center-header test-center-header--flow-r3"><div><span>PLATFORM OWNER · FLOW LAB R4</span><h2>신규 회사 온보딩 테스트</h2><p>실제 신규 대표처럼 회사 생성부터 이용권 승인, 초기 설정까지 순서대로 체험합니다.</p></div><div class="test-center-header__actions"><em>${esc(status)}</em><button type="button" data-action="test-center-exit" aria-label="테스트 센터 닫기">×</button></div></header>
+    <header class="test-center-header test-center-header--flow-r3"><div><span>PLATFORM OWNER · FLOW LAB R5</span><h2>신규 회사 온보딩 테스트</h2><p>회사 생성부터 이용권 신청·인게임 인증, 초기 설정까지 실제 이용자 흐름처럼 체험합니다.</p></div><div class="test-center-header__actions"><em>${esc(status)}</em><button type="button" data-action="test-center-exit" aria-label="테스트 센터 닫기">×</button></div></header>
     <div class="test-center-safe test-center-safe--flow-r3"><div><i></i><strong>SAFE SIMULATION</strong><span>회사 · 이용권 · Discord · BOT · 설정 데이터에 아무것도 저장하지 않습니다.</span></div><button type="button" data-action="test-center-reset">처음부터 다시</button></div>
     <div class="test-center-flow-progress">${testCenterJourney(tc)}</div>
     <main class="test-center-flow-stage"><div class="test-center-flow-stage__head"><div><strong>신규 회사 대표 시점</strong><span>아래 화면 안의 버튼을 직접 눌러 다음 단계로 진행하세요.</span></div><em>SIMULATION</em></div><div class="test-center-stage test-center-stage--flow-r3">${body}</div></main>
-    <footer class="test-center-footer test-center-footer--flow-r3"><span>요리 계산기는 이용권 승인 즉시 개방되고, 회사 관리는 승인 후 초기 설정 마법사를 진행합니다.</span><button type="button" class="runtime-btn-ghost" data-action="test-center-exit">테스트 종료</button></footer>
+    <footer class="test-center-footer test-center-footer--flow-r3"><span>이용권 신청은 인증 전까지 수정·취소할 수 있고, 승인 후 회사 관리는 초기 설정 마법사를 진행합니다.</span><button type="button" class="runtime-btn-ghost" data-action="test-center-exit">테스트 종료</button></footer>
   </section></div>`;
 }
 

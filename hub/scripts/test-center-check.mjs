@@ -12,7 +12,7 @@ expect('retired company-create-code imports stay removed',!main.includes('issueC
 expect('company creation asks only core identity',render.includes('data-form="test-center-company"')&&render.includes('대표명')&&render.includes('회사 생성 코드 없이'));
 expect('test company creation is local only',main.includes("if(type==='test-center-company')")&&!main.match(/if\(type==='test-center-company'\)[\s\S]{0,900}createCompany\(/));
 expect('hub preview exposes company and cook cards',render.includes('data-content-key="company"')&&render.includes('data-content-key="cook"'));
-expect('pass request is simulated locally',main.includes("action==='test-center-request-pass'")&&main.includes("state.testCenter.passStatus='pending'"));
+expect('pass request opens application form locally',main.includes("action==='test-center-request-pass'")&&main.includes("state.testCenter.screen='pass-form'"));
 expect('pass approval is simulated locally',main.includes("action==='test-center-approve-pass'")&&main.includes("state.testCenter.passStatus='active'"));
 expect('company preview shows pass gate',render.includes("testCenterPassGate(tc,'company')")&&render.includes('메뉴와 화면 구성은 미리 볼 수 있지만'));
 expect('cook preview shows pass gate and instant open',render.includes("testCenterPassGate(tc,'cook')")&&render.includes('별도의 초기 설정 없이 바로 사용할 수 있습니다.'));
@@ -31,7 +31,12 @@ expect('wizard keeps previous next navigation',render.includes('›')||render.in
 expect('wizard finishes into company management',render.includes('회사 관리 시작'));
 expect('wizard styles exist',css.includes('.setup-wizard-shell')&&css.includes('.setup-wizard-progress-item')&&css.includes('.setup-wizard-footer'));
 
-expect('R4 flow lab marker is present',render.includes('PLATFORM OWNER · FLOW LAB R4')&&render.includes('신규 회사 온보딩 테스트'));
-expect('R4 removes the legacy left scenario rail',render.includes('test-center-shell--flow-r3')&&!render.includes('<span>체험 흐름</span>${testCenterJourney(tc)}'));
-expect('R4 uses top horizontal customer journey',render.includes('class="test-center-flowbar"')&&css.includes('.test-center-flowbar__step'));
+expect('R5 flow lab marker is present',render.includes('PLATFORM OWNER · FLOW LAB R5')&&render.includes('신규 회사 온보딩 테스트'));
+expect('pass application collects verification identity',render.includes('data-form="test-center-pass-application"')&&render.includes('인게임 닉네임')&&render.includes('인게임 전화번호')&&render.includes('인증 가능한 시간'));
+expect('pass application supports edit and cancel before approval',render.includes('data-action="test-center-edit-pass"')&&render.includes('data-action="test-center-cancel-pass"')&&main.includes("action==='test-center-edit-pass'")&&main.includes("action==='test-center-cancel-pass'"));
+expect('pass application submit validates ingame identity',main.includes("if(type==='test-center-pass-application')")&&main.includes('인게임 닉네임을 입력해 주세요.')&&main.includes('대표가 아닌 경우 대표자 인게임 닉네임을 입력해 주세요.'));
+expect('cancelled request can be submitted again',render.includes("tc.passCancelled?'다시 신청':'이용권 신청'")&&main.includes("state.testCenter.passStatus='none'"));
+expect('pass application R5 styles exist',css.includes('FLOW LAB R5 · PASS APPLICATION')&&css.includes('.test-center-pass-form')&&css.includes('.test-center-pass-user-actions')); 
+expect('R5 removes the legacy left scenario rail',render.includes('test-center-shell--flow-r3')&&!render.includes('<span>체험 흐름</span>${testCenterJourney(tc)}'));
+expect('R5 uses top horizontal customer journey',render.includes('class="test-center-flowbar"')&&css.includes('.test-center-flowbar__step'));
 console.log(`Test Center Journey: ${passed}/${passed+failed} PASS`);if(failed)process.exit(1);
