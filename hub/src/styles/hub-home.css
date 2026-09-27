@@ -427,13 +427,13 @@
   }
   .hub-footer__legal{
     position:absolute;
-    left:calc(100% + 16px);
+    left:calc(100% + 8px);
     bottom:4px;
-    width:min(292px,calc((100vw - 1440px)/2 + 48px));
+    width:min(280px,calc((100vw - 1440px)/2 + 36px));
     min-width:0;
     display:grid;
     gap:8px;
-    padding:11px 13px 11px 16px;
+    padding:11px 16px 11px 16px;
     border-left:1px solid rgba(205,159,92,.36);
     border-radius:0 10px 10px 0;
     background:linear-gradient(90deg,rgba(7,10,14,.88),rgba(7,10,14,.58) 70%,rgba(7,10,14,.18));
