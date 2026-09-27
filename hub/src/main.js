@@ -68,12 +68,12 @@ function showEmbeddedBuild({ push = false } = {}) {
   if (!embeddedHost) {
     embeddedHost = document.createElement('section');
     embeddedHost.id = 'lac-build-host';
-    embeddedHost.setAttribute('aria-label', 'LAC BUILD');
+    embeddedHost.setAttribute('aria-label', '개조서 세팅');
     root.insertAdjacentElement('afterend', embeddedHost);
   }
   switchVisibleApp(true);
   if (!embedLoadPromise) {
-    embeddedHost.textContent = 'LAC BUILD 화면을 준비하고 있습니다…';
+    embeddedHost.textContent = '개조서 세팅 화면을 준비하고 있습니다…';
     embedLoadPromise = import('./buildEmbed.jsx')
       .then(({ mountEmbeddedBuild }) => {
         embeddedHost.textContent = '';
@@ -2548,7 +2548,7 @@ root.addEventListener('click', async event => {
     const key=String(actionEl.dataset.contentKey||'');
     if(!hasCompany(state)) {navigatePrimaryScreen('company-start');render();return;}
     if(!['game_info','lac_build'].includes(key))return;
-    state.requestedContent=key==='game_info'?'게임 정보':'LAC BUILD';
+    state.requestedContent=key==='game_info'?'게임 정보':'개조서 세팅';
     navigatePrimaryScreen('paid-content-guide');render();return;
   }
   if(action==='open-hub-game-info'){

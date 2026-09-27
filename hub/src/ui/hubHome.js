@@ -84,7 +84,7 @@ export function renderHubHome(state) {
       <div class="hub-account">${accountMenu}${owner?`<span class="hub-account__admin-divider" aria-hidden="true"></span><button type="button" class="hub-admin-link" data-action="open-platform-admin" title="플랫폼 운영자 관리 센터" aria-label="플랫폼 운영자 관리 센터">${settingsIcon}</button>`:''}</div>
     </div></header>
     <main class="hub-body">
-      <section class="hub-hero" aria-labelledby="hub-headline"><div class="hub-hero__shade"></div><div class="hub-hero__copy"><span class="hub-kicker">LAC HUB</span><h1 id="hub-headline">LAC를 즐기는<br><em>더 편리한 방법</em></h1><p>게임 정보와 다양한 편의 기능을<br>LAC HUB에서 만나보세요.</p><div class="hub-hero__actions"><button type="button" class="hub-cta hub-cta--primary" data-action="${companyAction}">${companyLabel} <span aria-hidden="true">→</span></button></div></div></section>
+      <section class="hub-hero" aria-labelledby="hub-headline"><div class="hub-hero__shade"></div><div class="hub-hero__copy"><h1 id="hub-headline">LAC를 즐기는<br><em>더 편리한 방법</em></h1><p>게임 정보와 다양한 편의 기능을<br>LAC HUB에서 만나보세요.</p><div class="hub-hero__actions"><button type="button" class="hub-cta hub-cta--primary" data-action="${companyAction}">${companyLabel} <span aria-hidden="true">→</span></button></div></div></section>
       ${renderHubNewsStrip(state)}
       <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><h2 id="hub-contents-title">LAC 콘텐츠</h2></div></div>
         ${!state.contentPoliciesLoaded?'<p class="hub-content-policy-note" role="status">콘텐츠 이용 조건을 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>':''}
