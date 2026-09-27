@@ -1119,8 +1119,8 @@ function testCenterJourney(tc){
   if(tc.companyCreated)current=1;
   if(tc.passStatus==='pending')current=2;
   if(tc.passStatus==='active')current=tc.setupComplete?4:3;
-  const steps=[['1','회사 생성','기본 정보만 등록'],['2','콘텐츠 확인','기능을 눈으로 확인'],['3','이용권 승인','신청 후 운영자 승인'],['4','초기 설정','회사 관리만 진행'],['5','사용 시작','콘텐츠 정상 이용']];
-  return `<div class="test-center-journey">${steps.map(([no,title,desc],i)=>`<div class="${i<current?'is-done':i===current?'is-current':''}"><b>${i<current?'✓':no}</b><span><strong>${title}</strong><small>${desc}</small></span></div>`).join('')}<p>요리 계산기는 이용권 승인 후 초기 설정 없이 바로 열립니다.</p></div>`;
+  const steps=[['회사 생성','회사명 · 대표명'],['콘텐츠 확인','메뉴 미리보기'],['이용권','신청 · 승인'],['초기 설정','회사 관리'],['사용 시작','정상 이용']];
+  return `<div class="test-center-flowbar" aria-label="신규 회사 체험 진행 단계">${steps.map(([title,desc],i)=>`<div class="test-center-flowbar__step ${i<current?'is-done':i===current?'is-current':''}"><span>${i<current?'✓':i+1}</span><div><strong>${title}</strong><small>${desc}</small></div></div>${i<steps.length-1?`<i class="${i<current?'is-done':''}"></i>`:''}`).join('')}</div>`;
 }
 
 function testCenterHubPreview(state){
@@ -1170,12 +1170,13 @@ function testCenterModal(state){
   if(tc.screen==='company-form')body=testCenterCompanyForm(state);
   else if(tc.screen==='content')body=tc.content==='cook'?testCenterCookContent(state):testCenterCompanyContent(state);
   else body=testCenterHubPreview(state);
-  const status=tc.passStatus==='active'?'이용권 승인':tc.passStatus==='pending'?'승인 대기':tc.companyCreated?'회사 생성 완료':'체험 시작';
-  return `<div class="test-center-backdrop"><section class="test-center-shell test-center-shell--journey" role="dialog" aria-modal="true" aria-label="PLATFORM OWNER 테스트 센터">
-    <header class="test-center-header"><div><span>PLATFORM OWNER · CUSTOMER JOURNEY LAB</span><h2>신규 회사 체험 센터</h2><p>현재 기획한 회사 생성 → 이용권 → 초기 설정 흐름을 실제 데이터 변경 없이 처음부터 체험합니다.</p></div><button type="button" data-action="test-center-exit" aria-label="테스트 센터 닫기">×</button></header>
-    <div class="test-center-safe"><i></i><strong>SAFE SIMULATION</strong><span>회사 · 이용권 · Discord · BOT · 설정 데이터에 아무것도 저장하지 않습니다.</span><em>${esc(status)}</em></div>
-    <div class="test-center-layout test-center-layout--journey"><aside class="test-center-nav test-center-nav--journey"><span>체험 흐름</span>${testCenterJourney(tc)}<div class="test-center-nav-actions"><button type="button" data-action="test-center-go-hub">HUB 메인 보기</button><button type="button" data-action="test-center-reset">처음부터 다시</button></div></aside><main class="test-center-preview"><div class="test-center-preview__head"><div><strong>신규 회사 대표 시점</strong><span>화면 안 버튼을 직접 눌러 순서대로 진행해 보세요.</span></div><em>SIMULATION</em></div><div class="test-center-stage">${body}</div></main></div>
-    <footer class="test-center-footer"><span>이 체험 센터는 UX 확인용입니다. 실제 Supabase·Discord 동작 검증은 배포 후 별도 확인합니다.</span><div><button type="button" class="runtime-btn-ghost" data-action="test-center-reset">초기화</button><button type="button" class="runtime-btn-ghost" data-action="test-center-exit">테스트 종료</button></div></footer>
+  const status=tc.passStatus==='active'?(tc.setupComplete?'사용 준비 완료':'이용권 승인'):tc.passStatus==='pending'?'승인 대기':tc.companyCreated?'회사 생성 완료':'체험 시작';
+  return `<div class="test-center-backdrop"><section class="test-center-shell test-center-shell--flow-r3" role="dialog" aria-modal="true" aria-label="신규 회사 온보딩 테스트 센터">
+    <header class="test-center-header test-center-header--flow-r3"><div><span>PLATFORM OWNER · FLOW LAB R3</span><h2>신규 회사 온보딩 테스트</h2><p>실제 신규 대표처럼 회사 생성부터 이용권 승인, 초기 설정까지 순서대로 체험합니다.</p></div><div class="test-center-header__actions"><em>${esc(status)}</em><button type="button" data-action="test-center-exit" aria-label="테스트 센터 닫기">×</button></div></header>
+    <div class="test-center-safe test-center-safe--flow-r3"><div><i></i><strong>SAFE SIMULATION</strong><span>회사 · 이용권 · Discord · BOT · 설정 데이터에 아무것도 저장하지 않습니다.</span></div><button type="button" data-action="test-center-reset">처음부터 다시</button></div>
+    <div class="test-center-flow-progress">${testCenterJourney(tc)}</div>
+    <main class="test-center-flow-stage"><div class="test-center-flow-stage__head"><div><strong>신규 회사 대표 시점</strong><span>아래 화면 안의 버튼을 직접 눌러 다음 단계로 진행하세요.</span></div><em>SIMULATION</em></div><div class="test-center-stage test-center-stage--flow-r3">${body}</div></main>
+    <footer class="test-center-footer test-center-footer--flow-r3"><span>요리 계산기는 이용권 승인 즉시 개방되고, 회사 관리는 승인 후 초기 설정 마법사를 진행합니다.</span><button type="button" class="runtime-btn-ghost" data-action="test-center-exit">테스트 종료</button></footer>
   </section></div>`;
 }
 

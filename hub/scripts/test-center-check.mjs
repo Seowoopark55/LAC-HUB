@@ -28,4 +28,8 @@ expect('wizard removed quest wording from preview function',!render.slice(render
 expect('wizard keeps previous next navigation',render.includes('›')||render.includes('다음'));
 expect('wizard finishes into company management',render.includes('회사 관리 시작'));
 expect('wizard styles exist',css.includes('.setup-wizard-shell')&&css.includes('.setup-wizard-progress-item')&&css.includes('.setup-wizard-footer'));
+
+expect('R3 flow lab marker is present',render.includes('PLATFORM OWNER · FLOW LAB R3')&&render.includes('신규 회사 온보딩 테스트'));
+expect('R3 removes the legacy left scenario rail',render.includes('test-center-shell--flow-r3')&&!render.includes('<span>체험 흐름</span>${testCenterJourney(tc)}'));
+expect('R3 uses top horizontal customer journey',render.includes('class="test-center-flowbar"')&&css.includes('.test-center-flowbar__step'));
 console.log(`Test Center Journey: ${passed}/${passed+failed} PASS`);if(failed)process.exit(1);
