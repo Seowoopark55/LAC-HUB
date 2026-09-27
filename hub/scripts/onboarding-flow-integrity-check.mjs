@@ -39,7 +39,7 @@ expect('first-run stays registration-gated with no company search/join code',ren
 expect('registration verification still claims before company listing',main.indexOf('await claimDiscordMemberships();',main.indexOf("if(action==='check-member-registration')"))<main.indexOf('await loadCompanies();',main.indexOf("if(action==='check-member-registration')")));
 expect('server re-verifies selected Discord members before registration',registerMembers.includes('// Re-scan on the server so the browser cannot submit arbitrary Discord IDs.')&&registerMembers.includes('findSelectedRoleMembers(guildId, roleId, selectedIds)'));
 expect('inactive historical members are not silently reactivated',registerMembers.includes('requires_manual_reactivation')&&main.includes('퇴사/정지 이력으로 멤버 관리에서 상태 확인 필요'));
-expect('test center remains non-writing for member registration check',main.includes("if(action==='test-center-member-check')")&&!main.match(/if\(action==='test-center-member-check'\)[\s\S]{0,500}claimDiscordMemberships\(/));
+expect('flow lab test center remains non-writing',main.includes("if(action==='test-center-request-pass')")&&main.includes("state.testCenter.passStatus='pending'")&&!main.match(/if\(action==='test-center-request-pass'\)[\s\S]{0,700}(createCompanyPassRequest|createCompany|claimDiscordMemberships)\(/));
 
 
 expect('company creation is offered only in onboarding, not an existing company console',!render.includes('state.canCreateCompany===true?`<div class="company-quick-actions')&&render.includes('canCreateCompany?`<button')&&api.includes("supabase.rpc('lac_can_create_company')"));

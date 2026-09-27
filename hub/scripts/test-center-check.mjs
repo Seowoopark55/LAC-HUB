@@ -2,11 +2,13 @@ import fs from 'node:fs';
 const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
 const render=fs.readFileSync(new URL('../src/ui/render.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+const api=fs.readFileSync(new URL('../src/lib/productApi.js',import.meta.url),'utf8');
 let passed=0,failed=0;const expect=(label,ok)=>{if(ok){passed++;console.log(`PASS ${label}`)}else{failed++;console.error(`FAIL ${label}`)}};
 expect('platform account menu keeps test center',render.includes('data-action="open-test-center"')&&render.includes('테스트 센터'));
 expect('test center remains platform owner only',render.includes("if(!state.platformAdmin)return ''"));
 expect('new journey state exists',main.includes("screen:'hub'")&&main.includes("companyCreated:false")&&main.includes("passStatus:'none'")&&main.includes('setupComplete:false'));
 expect('legacy scenario selector removed',!render.includes("['member-waiting','미등록 팀원'")&&!main.includes("action==='test-center-select'"));
+expect('retired company-create-code imports stay removed',!main.includes('issueCompanyCreateCode')&&!main.includes('redeemCompanyCreateCode')&&!api.includes('export async function issueCompanyCreateCode')&&!api.includes('export async function redeemCompanyCreateCode'));
 expect('company creation asks only core identity',render.includes('data-form="test-center-company"')&&render.includes('대표명')&&render.includes('회사 생성 코드 없이'));
 expect('test company creation is local only',main.includes("if(type==='test-center-company')")&&!main.match(/if\(type==='test-center-company'\)[\s\S]{0,900}createCompany\(/));
 expect('hub preview exposes company and cook cards',render.includes('data-content-key="company"')&&render.includes('data-content-key="cook"'));
@@ -29,7 +31,7 @@ expect('wizard keeps previous next navigation',render.includes('›')||render.in
 expect('wizard finishes into company management',render.includes('회사 관리 시작'));
 expect('wizard styles exist',css.includes('.setup-wizard-shell')&&css.includes('.setup-wizard-progress-item')&&css.includes('.setup-wizard-footer'));
 
-expect('R3 flow lab marker is present',render.includes('PLATFORM OWNER · FLOW LAB R3')&&render.includes('신규 회사 온보딩 테스트'));
-expect('R3 removes the legacy left scenario rail',render.includes('test-center-shell--flow-r3')&&!render.includes('<span>체험 흐름</span>${testCenterJourney(tc)}'));
-expect('R3 uses top horizontal customer journey',render.includes('class="test-center-flowbar"')&&css.includes('.test-center-flowbar__step'));
+expect('R4 flow lab marker is present',render.includes('PLATFORM OWNER · FLOW LAB R4')&&render.includes('신규 회사 온보딩 테스트'));
+expect('R4 removes the legacy left scenario rail',render.includes('test-center-shell--flow-r3')&&!render.includes('<span>체험 흐름</span>${testCenterJourney(tc)}'));
+expect('R4 uses top horizontal customer journey',render.includes('class="test-center-flowbar"')&&css.includes('.test-center-flowbar__step'));
 console.log(`Test Center Journey: ${passed}/${passed+failed} PASS`);if(failed)process.exit(1);

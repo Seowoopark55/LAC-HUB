@@ -6,7 +6,7 @@ import {loadHubBoardList,createHubTicket,loadHubTicket,replyHubTicket,setHubTick
 import {noticeBodyForEditor,serializeNoticeEditorBody,noticeImagePaths,markerForNoticeImage} from './lib/hubNoticeMedia.js';
 import {
   getSession, refreshSession, signInWithDiscord, signOut, onAuthStateChange,
-  listCompanies, createCompany, redeemCompanyCreateCode, issueCompanyCreateCode, claimDiscordMemberships, getMemberships, updateMembershipDetails, updateCompanyName,
+  listCompanies, createCompany, claimDiscordMemberships, getMemberships, updateMembershipDetails, updateMembershipAlias, updateCompanyName,
   getModuleCatalog, getCompanyModules, setCompanyModule, updateCompanyModuleSettings,
   getCookingOrderTypes, saveCookingOrderType, setCookingOrderTypeEnabled, getCookingDiscordConfig, saveCookingDiscordGuide,
   getCompanySettings, updateCompanySettings,
@@ -26,7 +26,7 @@ import {
 import { renderShell, renderCookRegistration, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
 import { renderInfoPage, setGameInfoImageMap } from './ui/infoPage.js';
 import { GAME_ADMIN_SCHEMAS, GAME_ADMIN_TABLES, GAME_ADMIN_IMAGE_TABLES, renderGameInfoAdmin } from './ui/gameInfoAdmin.js';
-import {canOpenWebContent,contentIsVisible,hasCompany,hasUnifiedPass} from './platform/contentPolicy.js';
+import {canOpenWebContent,contentIsVisible,hasCompany,hasUnifiedPass,companySetupComplete} from './platform/contentPolicy.js';
 import {renderCompanyPassNotice} from './platform/unifiedPassGuide.js';
 import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen } from './platform/screenHistory.js';
 
@@ -415,7 +415,6 @@ const validPages = ['paid-content-guide','hub','hub-board','dashboard','fund','m
 
 const state = {
   envReady,
-  loginCreateCode: sessionStorage.getItem('lac_one_pending_create_code') || '',
   session: null,
   companies: [],
   companyId: localStorage.getItem('axe_product_company_id') || null,
@@ -1329,6 +1328,7 @@ async function loadAdminPassRequests(){
 // A request belongs to the current company. Only the server-side RPC may create it.
 async function submitUnifiedPassRequest(){
   if(!hasCompany(state)||!state.session?.user)throw new Error('먼저 회사 소속을 확인해 주세요.');
+  if(!canAdmin(state))throw new Error('이용권 신청은 회사 대표 또는 관리자만 할 수 있습니다.');
   if(state.companyAccessError||state.companyPassRequestError)throw new Error('이용권 상태를 확인하지 못했습니다. 다시 접속해 주세요.');
   if(state.companyAccess?.entitlement_enabled && state.companyAccess?.subscription_status!=='expired')throw new Error('아직 이용 중인 이용권이 있습니다. 구독 상태를 확인해 주세요.');
   const id=state.companyId;
@@ -1632,12 +1632,6 @@ async function refreshAll() {
     if(state.page==='platform' && state.platformView==='contents' && state.platformAdmin) await loadPlatformContentSettings();
     state.ready=true;
     if(isCookRoute())showCookPreview();
-    const saved=savedSetupGuideProgress();
-    if(currentMembership(state)?.role==='owner' && saved && !saved.completed && !state.setupGuideDismissed && !state.modal){
-      const step=resolveSetupGuideResumeStep(Math.max(1,Math.min(6,Number(saved.step||1))));
-      state.setupGuide=createSetupGuideState(step);
-      state.modal={type:'setup-guide'};
-    }
   }
   catch(error){ state.error=String(error?.message||error); }
   finally { state.loading=false; render(); }
@@ -2627,13 +2621,11 @@ root.addEventListener('click', async event => {
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
   if(action==='close-modal'){closeModal();return;}
   if(action==='open-member-register'){if(!canAdmin(state)){setError('멤버 등록은 OWNER 또는 관리자만 할 수 있습니다.');return;}if(state.discordConnection?.status!=='connected'){setError('먼저 회사 설정에서 Discord 서버를 연결해 주세요.');return;}state.modal={type:'member-register',discordUserId:'',role:'member',error:'',pending:false};render();return;}
-  if(action==='open-issue-company-code'){if(!state.platformAdmin){setError('서비스 운영자만 코드를 발급할 수 있습니다.');return;}state.issuedCompanyCode='';state.modal={type:'issue-company-code'};render();return;}
-  if(action==='copy-company-code'){if(!state.platformAdmin||!state.issuedCompanyCode)return;try{await navigator.clipboard.writeText(state.issuedCompanyCode);setNotice('개설 코드를 복사했습니다.');}catch{setError('코드를 복사하지 못했습니다. 직접 복사해 주세요.');}return;}
   if(action==='open-create-company'){
     // UI and direct-action guard: a user with an assigned company cannot
     // create another one from the HUB/company console, even when the RPC
     // reports eligibility because this account has never been the creator.
-    if(state.companies.length){setError('이미 소속 회사가 설정되어 있어 새 회사를 만들 수 없습니다.');return;}
+    if(state.companies.length&&!state.platformAdmin){setError('이미 소속 회사가 설정되어 있어 새 회사를 만들 수 없습니다.');return;}
     // Recheck at click time so an old tab or a stale UI cannot open the form.
     try { state.canCreateCompany=await canCreateCompany(); state.companyCreatePermissionError=false; }
     catch(error){state.canCreateCompany=false;state.companyCreatePermissionError=true;setError(error);return;}
@@ -2676,6 +2668,7 @@ root.addEventListener('click', async event => {
   }
   if(action==='go-dashboard'){state.accountMenuOpen=false;state.requestedContent='회사 관리';navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');render();if(!hasUnifiedPass(state))return;if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
   if(action==='open-setup-guide'){
+    if(!hasUnifiedPass(state)){setError('회사 관리 이용권 승인 후 초기설정을 진행할 수 있습니다.');return;}
     if(!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     const saved=savedSetupGuideProgress();
     const requestedStep=saved&&!saved.completed?Math.max(0,Math.min(6,Number(saved.step||0))):0;
@@ -3054,7 +3047,7 @@ root.addEventListener('click', async event => {
   if(action==='open-discord-reconnect'){if(!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}if(state.discordConnection?.status!=='connected'){setError('현재 연결된 Discord 서버가 없습니다.');return;}state.modal={type:'discord-reconnect'};render();return;}
   await withMutation(async()=>{
     if(action==='discord-login'){await signInWithDiscord();return;}
-    if(action==='logout'){state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
+    if(action==='logout'){clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
     if(action==='refresh-company-subscription'){const companyId=state.companyId; if(!companyId || !(state.companies||[]).some(company=>company.id===companyId))return; const [subscription, access]=await Promise.all([getCompanySubscription(companyId),getMyCompanyAccess(companyId)]); if(state.companyId!==companyId)return;state.companyAccess=access||null;state.companyAccessError='';state.companyAccessStatus='ready';state.companyAccessCheckedAt=Date.now(); state.currentSubscription=subscription||null; render(); if(state.page==='hub')root.querySelector('.hub-account__profile')?.setAttribute('open',''); return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
     if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();state.platformCompanyAccess=await listPlatformCompanyAccess().catch(()=>null);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
@@ -3297,7 +3290,6 @@ root.addEventListener('input', event => {
   if(event.target?.matches?.(liveSearchSelector) && (event.isComposing || composingSearchInputs.has(event.target))) return;
   if(event.target.matches('[data-hub-board-search]')){state.hubBoard.searchQuery=String(event.target.value||'');const pos=event.target.selectionStart;render();const el=root.querySelector('[data-hub-board-search]');el?.focus();el?.setSelectionRange?.(pos,pos);return;}
   if(event.target.matches('[data-hub-notice-body]')){state.hubBoard.noticeEditorBody=String(event.target.value||'');state.hubBoard.noticeCaret=event.target.selectionStart??event.target.value.length;return;}
-  if(event.target.matches('[data-login-create-code]')){state.loginCreateCode=String(event.target.value||'').trim();if(state.loginCreateCode)sessionStorage.setItem('lac_one_pending_create_code',state.loginCreateCode);else sessionStorage.removeItem('lac_one_pending_create_code');return;}
   if(event.target.matches('[data-layout-scale]')&&state.platformAdmin&&state.page==='layout'){state.layoutDraft={fontScale:Number(event.target.value)};state.layoutDirty=true;applyLayoutStudioProfile(state.layoutDraft);const label=root.querySelector('[data-layout-scale-label]');if(label)label.textContent=`${state.layoutDraft.fontScale}%`;const saved=root.querySelector('.layout-studio-saved');if(saved){saved.textContent='저장되지 않은 변경 사항';saved.classList.add('is-dirty');}return;}
   if(event.target.matches('[data-info-query]')){state.info.query=event.target.value;state.info.selectedId='';refreshGameInfoSearchResults(event.target);return;}
   if(event.target.matches('[data-member-query]')){state.memberQuery=event.target.value;state.memberPage=1;refreshMemberSearchResults(event.target);return;}
@@ -3453,37 +3445,32 @@ root.addEventListener('submit', async event => {
       render();
       return;
     }
-    if(type==='issue-company-code'){
-      if(!state.platformAdmin)throw new Error('서비스 운영자만 개설 코드를 발급할 수 있습니다.');
-      state.issuedCompanyCode=await issueCompanyCreateCode(String(data.get('company_name')||'').trim(),Number(data.get('hours')||24));
-      render();return;
-    }
     if(type==='create-company'){
-      if(state.companies.length)throw new Error('이미 소속 회사가 설정되어 있어 새 회사를 만들 수 없습니다.');
-      // Check again before reserving a code; the DB checks once more at INSERT.
+      if(state.companies.length&&!state.platformAdmin)throw new Error('이미 소속 회사가 설정되어 있어 새 회사를 만들 수 없습니다.');
+      // Recheck immediately before creation. The DB migration also enforces the
+      // ordinary-account one-company rule, so stale tabs cannot bypass it.
       state.canCreateCompany=await canCreateCompany();
-      if(!state.canCreateCompany)throw new Error('이미 회사를 생성한 계정은 추가 회사를 등록할 수 없습니다.');
+      if(!state.canCreateCompany)throw new Error('이미 소속 회사가 있는 계정은 새 회사를 추가로 만들 수 없습니다.');
       const requestedName=String(data.get('name')||'').trim();
-      const createCode=String(data.get('create_code')||'').trim();
-      if(!requestedName||!createCode)throw new Error('회사 이름과 개설 코드를 입력해 주세요.');
-      await redeemCompanyCreateCode(createCode,requestedName);
+      const representativeName=String(data.get('representative_name')||'').trim();
+      if(!requestedName||!representativeName)throw new Error('회사 이름과 대표명을 입력해 주세요.');
       const created=await createCompany(requestedName);
-      // Admin stays eligible; a regular account has now used its one creation.
       state.canCreateCompany=await canCreateCompany().catch(()=>false);
-      state.loginCreateCode='';sessionStorage.removeItem('lac_one_pending_create_code');
       if(!created?.id)throw new Error('회사 등록 상태를 확인하지 못했습니다. 새로고침 후 회사 목록을 확인해 주세요.');
       state.companyId=created.id;
       localStorage.setItem('axe_product_company_id',created.id);
-      await claimDiscordMemberships();
-      state.modal=null;state.page='settings';state.settingsTab='basic';
-      localStorage.setItem('axe_product_page','settings');localStorage.setItem('axe_product_settings_tab','basic');
+      await claimDiscordMemberships().catch(()=>null);
+      const ownerRows=await getMemberships(created.id).catch(()=>[]);
+      const owner=ownerRows.find(row=>row.role==='owner' && String(row.user_id||'')===String(state.session?.user?.id||'')) || ownerRows.find(row=>row.role==='owner');
+      if(owner?.id) await updateMembershipAlias(owner.id,representativeName).catch(()=>null);
+      state.modal=null;
+      navigatePrimaryScreen('hub');
+      localStorage.setItem('axe_product_page','dashboard');
       await loadCompanies();await loadCompanyData();
       state.ready=true;
       if(!isCurrentCompanyOwner())throw new Error('회사 등록은 확인됐지만 OWNER 권한 연결을 확인하지 못했습니다. 새로고침 후에도 같다면 관리자에게 문의해 주세요.');
-      state.setupGuideDismissed=false;
-      await persistSetupGuideProgress(1);
-      state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'};
-      setNotice('회사 등록이 완료되었습니다. 이어서 초기설정을 시작합니다.');
+      state.setupGuide=null;state.setupGuideDismissed=false;
+      setNotice('회사를 만들었습니다. 콘텐츠를 둘러보고 필요한 이용권을 신청해 주세요.');
       return;
     }
     if(type==='reconnect-discord'){clearCatalogPoll();if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}

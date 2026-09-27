@@ -17,7 +17,7 @@ const supabase=read('src/lib/supabase.js');
 const server=read('server/supabaseUser.js');
 if(!html.includes('<title>LAC HUB</title>')) failures.push('browser title is not LAC HUB');
 if(!render.includes('<strong>LAC HUB</strong>') || !render.includes("platformScreen?'서비스 관리':'회사 관리'")) failures.push('app shell brand is not LAC HUB');
-if(!main.includes('회사 관리 멤버 등록 요청')) failures.push('registration copy is not company management');
+if(!main.includes('대표·관리자에게 멤버 등록 요청')) failures.push('registration copy is not company management');
 if(!/schema:\s*['\"]axe_product['\"]/.test(supabase)) failures.push('internal Supabase schema changed unexpectedly');
 if(!server.includes("'Accept-Profile': 'axe_product'")) failures.push('internal API schema profile changed unexpectedly');
 if(!html.includes('/icons/lac-one.svg')) failures.push('legacy browser icon is still linked');
