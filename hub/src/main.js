@@ -404,7 +404,7 @@ const state = {
   discordRoles: [],
   discordCompanyConfig: null,
   onboardingStatus: null,
-  page: 'hub', requestedContent:'회사 관리',
+  page: 'hub', requestedContent:'회사 관리', hubContentCategory:'main',
   fundTab: localStorage.getItem('axe_product_fund_tab') || 'ledger',
   fundMonth: currentMonth,
   fundWeeklyMonth: currentMonth,
@@ -2391,6 +2391,15 @@ root.addEventListener('click', async event => {
   if(action==='question-scope'){state.questionScope=String(actionEl.dataset.questionScope||'all')==='mine'?'mine':'all';state.questionPage=1;render();return;}
   if(action==='suggestion-filter'){state.suggestionStatus=String(actionEl.dataset.suggestionStatus||'all');state.suggestionPage=1;render();return;}
   if(action==='suggestion-category'){state.suggestionCategory=String(actionEl.dataset.suggestionCategory||'all');state.suggestionPage=1;render();return;}
+  if(action==='switch-hub-content-category'){
+    const category=String(actionEl.dataset.contentCategory||'main');
+    if(!/^[a-z0-9_-]{1,32}$/i.test(category))return;
+    if(state.hubContentCategory===category)return;
+    state.hubContentCategory=category;
+    render();
+    requestAnimationFrame(()=>root.querySelector(`[data-action="switch-hub-content-category"][data-content-category="${CSS.escape(category)}"]`)?.focus({preventScroll:true}));
+    return;
+  }
   if(action==='close-account-menu'){
     const profile=actionEl.closest('.hub-account__profile');
     if(profile){profile.open=false;profile.querySelector('.hub-account__trigger')?.focus();}

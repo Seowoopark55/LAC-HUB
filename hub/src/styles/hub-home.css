@@ -344,3 +344,59 @@
   transform:translateY(1px);
   background:linear-gradient(180deg,rgba(34,30,26,.98),rgba(25,23,21,1));
 }
+
+
+/* Phase 26: category-ready LAC contents foundation. Hidden while only one category exists. */
+.hub-contents__tabs{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:4px;
+  margin-left:auto;
+  min-width:0;
+}
+.hub-contents__tab{
+  position:relative;
+  min-height:30px;
+  padding:5px 10px 6px;
+  border:0;
+  background:transparent;
+  color:#8794a1;
+  font-size:11px;
+  font-weight:730;
+  letter-spacing:-.01em;
+  cursor:pointer;
+  transition:color .16s ease;
+}
+.hub-contents__tab::after{
+  content:"";
+  position:absolute;
+  left:10px;
+  right:10px;
+  bottom:1px;
+  height:1px;
+  background:transparent;
+  transition:background .16s ease,box-shadow .16s ease;
+}
+.hub-contents__tab:hover{color:#c6d0d9}
+.hub-contents__tab.is-active{color:#e7c891}
+.hub-contents__tab.is-active::after{
+  background:rgba(231,200,145,.78);
+  box-shadow:0 0 8px rgba(231,200,145,.12);
+}
+.hub-features--categorized[data-hub-content-category]{
+  animation:hub-content-category-in .16s ease-out both;
+}
+@keyframes hub-content-category-in{
+  from{opacity:.72;transform:translateY(2px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media (max-width:600px){
+  .hub-contents__tabs{width:100%;justify-content:flex-start;overflow-x:auto;scrollbar-width:none}
+  .hub-contents__tabs::-webkit-scrollbar{display:none}
+  .hub-contents__tab{flex:0 0 auto}
+}
+@media (prefers-reduced-motion:reduce){
+  .hub-features--categorized[data-hub-content-category]{animation:none}
+  .hub-contents__tab{transition:none}
+}

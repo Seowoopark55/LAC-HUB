@@ -11,6 +11,11 @@ function esc(value) {
 // HUB and BUILD are served under the same origin; keep the independent BUILD deployment unchanged.
 const BUILD_PUBLIC_URL = '/build/';
 const ASSETS = '/hub/';
+const HUB_CONTENT_PAGE_SIZE = 4;
+const HUB_CONTENT_CATEGORIES = [
+  { key:'main', label:'메인', order:10 },
+];
+
 const chevron = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const settingsIcon = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 3.3 13.9 4l1.5-.6 2.5 2.5-.6 1.5.7 1.9 1.5.6v3.5l-1.5.6-.7 1.9.6 1.5-2.5 2.5-1.5-.6-1.9.7-.6 1.5h-3.5l-.6-1.5-1.9-.7-1.5.6-2.5-2.5.6-1.5-.7-1.9-1.5-.6V9.9l1.5-.6.7-1.9-.6-1.5L6.4 3.4l1.5.6 1.9-.7.6-1.5h3.5z" transform="translate(1 1) scale(.85)" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
 function accountName(state) {
@@ -50,6 +55,37 @@ function contentCard({title,description,image,tag,tagType='',action='',href='',d
     <span class="hub-feature__content"><span><strong class="hub-feature__name">${esc(title)}</strong><span class="hub-feature__description">${esc(description)}</span></span>${active?'<span class="hub-feature__enter" aria-hidden="true">→</span>':'<span class="hub-feature__pending" aria-hidden="true">준비 중</span>'}</span>${close}`;
 }
 
+function hubContentDefinitions(state,{current,companyAction}) {
+  const status = key => contentCardStatus(state,key);
+  const tagType = key => {
+    const value=status(key);
+    return value==='자유 이용'?'free':value==='이용 가능'?'available':value==='이용 신청'?'request':value==='이용 제한'?'restricted':'company';
+  };
+  return [
+    { key:'game_info', category:'main', order:10, visible:contentIsVisible(state,'game_info'), card:()=>contentCard({title:'게임 정보',description:'게임 관련 정보와 자료를 한곳에서 확인하세요.',image:'game.webp',tag:status('game_info'),tagType:tagType('game_info'),action:canOpenWebContent(state,'game_info')?'open-hub-game-info':current?'open-paid-content-guide':'open-company-start-game',contentKey:'game_info'}) },
+    { key:'lac_build', category:'main', order:20, visible:contentIsVisible(state,'lac_build'), card:()=>contentCard({title:HUB_CONTENT.build.name,description:'개조서를 미리 조합하고 구성을 살펴보세요.',image:'build.webp',tag:status('lac_build'),tagType:tagType('lac_build'),href:canOpenWebContent(state,'lac_build')?BUILD_PUBLIC_URL:'',action:canOpenWebContent(state,'lac_build')?'':current?'open-paid-content-guide':'open-company-start',contentKey:'lac_build'}) },
+    { key:'company_management', category:'main', order:30, visible:contentIsVisible(state,'company_management'), card:()=>contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산, 회사 운영을 한곳에서.',image:'company.webp',tag:status('company_management'),tagType:tagType('company_management'),action:companyAction}) },
+    { key:'lac_cook', category:'main', order:40, visible:contentIsVisible(state,'lac_cook'), card:()=>contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:status('lac_cook'),tagType:tagType('lac_cook'),href:'/cook/'}) },
+  ];
+}
+
+function renderHubContentSection(state,{current,companyAction}) {
+  const items=hubContentDefinitions(state,{current,companyAction})
+    .filter(item=>item.visible)
+    .sort((a,b)=>a.order-b.order);
+  const categories=HUB_CONTENT_CATEGORIES
+    .filter(category=>items.some(item=>item.category===category.key))
+    .sort((a,b)=>a.order-b.order);
+  const requested=String(state.hubContentCategory||'main');
+  const active=categories.some(category=>category.key===requested)?requested:(categories[0]?.key||'main');
+  const cards=items.filter(item=>item.category===active).slice(0,HUB_CONTENT_PAGE_SIZE);
+  const tabs=categories.length>1?`<nav class="hub-contents__tabs" aria-label="LAC 콘텐츠 카테고리">${categories.map(category=>`<button type="button" class="hub-contents__tab${category.key===active?' is-active':''}" data-action="switch-hub-content-category" data-content-category="${esc(category.key)}" ${category.key===active?'aria-current="true"':''}>${esc(category.label)}</button>`).join('')}</nav>`:'';
+  return `<section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><h2 id="hub-contents-title">LAC 콘텐츠</h2></div>${tabs}</div>
+    ${!state.contentPoliciesLoaded?'<p class="hub-content-policy-note" role="status">콘텐츠 이용 조건을 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>':''}
+    <div class="hub-features${categories.length>1?' hub-features--categorized':''}" data-hub-content-category="${esc(active)}">${cards.map(item=>item.card()).join('')}</div>
+  </section>`;
+}
+
 export function renderHubHome(state) {
   const companies = state.companies || [];
   const current = companies.find(company => company.id === state.companyId) || null;
@@ -86,15 +122,7 @@ export function renderHubHome(state) {
     <main class="hub-body">
       <section class="hub-hero" aria-labelledby="hub-headline"><div class="hub-hero__shade"></div><div class="hub-hero__copy"><h1 id="hub-headline">LAC를 즐기는<br><em>더 편리한 방법</em></h1><p>게임 정보와 다양한 편의 기능을<br>LAC HUB에서 만나보세요.</p><div class="hub-hero__actions"><button type="button" class="hub-cta hub-cta--primary" data-action="${companyAction}">${companyLabel} <span aria-hidden="true">→</span></button></div></div></section>
       ${renderHubNewsStrip(state)}
-      <section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><h2 id="hub-contents-title">LAC 콘텐츠</h2></div></div>
-        ${!state.contentPoliciesLoaded?'<p class="hub-content-policy-note" role="status">콘텐츠 이용 조건을 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>':''}
-        <div class="hub-features">
-          ${contentIsVisible(state,'game_info')?contentCard({title:'게임 정보',description:'게임 관련 정보와 자료를 한곳에서 확인하세요.',image:'game.webp',tag:contentCardStatus(state,'game_info'),tagType:contentCardStatus(state,'game_info')==='자유 이용'?'free':contentCardStatus(state,'game_info')==='이용 가능'?'available':contentCardStatus(state,'game_info')==='이용 신청'?'request':contentCardStatus(state,'game_info')==='이용 제한'?'restricted':'company',action:canOpenWebContent(state,'game_info')?'open-hub-game-info':current?'open-paid-content-guide':'open-company-start-game',contentKey:'game_info'}):''}
-          ${contentIsVisible(state,'lac_build')?contentCard({title:HUB_CONTENT.build.name,description:'개조서를 미리 조합하고 구성을 살펴보세요.',image:'build.webp',tag:contentCardStatus(state,'lac_build'),tagType:contentCardStatus(state,'lac_build')==='자유 이용'?'free':contentCardStatus(state,'lac_build')==='이용 가능'?'available':contentCardStatus(state,'lac_build')==='이용 신청'?'request':contentCardStatus(state,'lac_build')==='이용 제한'?'restricted':'company',href:canOpenWebContent(state,'lac_build')?BUILD_PUBLIC_URL:'',action:canOpenWebContent(state,'lac_build')?'':current?'open-paid-content-guide':'open-company-start',contentKey:'lac_build'}):''}
-          ${contentIsVisible(state,'company_management')?contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산, 회사 운영을 한곳에서.',image:'company.webp',tag:contentCardStatus(state,'company_management'),tagType:contentCardStatus(state,'company_management')==='이용 가능'?'available':contentCardStatus(state,'company_management')==='이용 신청'?'request':contentCardStatus(state,'company_management')==='이용 제한'?'restricted':'company',action:companyAction}):''}
-          ${contentIsVisible(state,'lac_cook')?contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:contentCardStatus(state,'lac_cook'),tagType:contentCardStatus(state,'lac_cook')==='자유 이용'?'free':contentCardStatus(state,'lac_cook')==='이용 가능'?'available':contentCardStatus(state,'lac_cook')==='이용 신청'?'request':contentCardStatus(state,'lac_cook')==='이용 제한'?'restricted':'company',href:'/cook/'}):''}
-        </div>
-      </section>
+      ${renderHubContentSection(state,{current,companyAction})}
       <footer class="hub-footer" aria-label="저작권 및 콘텐츠 안내">
         <div class="hub-footer__brand"><strong>© 2026 LAC HUB</strong><span>PLAY TOGETHER</span></div>
         <div class="hub-footer__legal">
