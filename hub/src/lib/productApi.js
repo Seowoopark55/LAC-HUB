@@ -207,21 +207,6 @@ async function findCompanyBySlug(slug) {
   return result.data || null;
 }
 
-// The database trigger remains the authority; neither a hidden button nor
-// a browser-side validation can authorize a company creation.
-export async function issueCompanyCreateCode(name,hours=24){
-  assertClient();
-  const normalized=String(name||'').trim();
-  if(!normalized)throw new Error('회사 이름을 입력해 주세요.');
-  const result=await supabase.rpc('lac_issue_company_create_code',{p_company_name:normalized,p_expires_hours:hours});
-  return String(unwrap(result,'회사 개설 코드를 발급하지 못했습니다.')||'');
-}
-export async function redeemCompanyCreateCode(code,name){
-  assertClient();
-  const result=await supabase.rpc('lac_redeem_company_create_code',{p_code:String(code||'').trim(),p_company_name:String(name||'').trim()});
-  return Boolean(unwrap(result,'개설 코드를 확인하지 못했습니다.'));
-}
-
 export async function createCompany(name, slug = '') {
   assertClient();
   const normalizedName = String(name || '').trim();

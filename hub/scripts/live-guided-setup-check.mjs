@@ -22,6 +22,6 @@ check(register.includes('requireCompanyAdmin')&&register.includes('getCompanyDis
 check(register.includes('findSelectedRoleMembers')&&register.includes('selectedIds'),'member IDs are revalidated against Discord role server-side');
 check(server.includes('insertCompanyMembershipRows')&&server.includes("Authorization: `Bearer ${token}`"),'member inserts keep user token and DB RLS');
 check(members.includes('Server Members Intent')&&members.includes('role_id'),'member endpoint supports role filtering and intent guidance');
-check(main.includes("state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'}"),'new company opens live guide automatically');
+check(main.includes("if(!hasUnifiedPass(state)){setError('회사 관리 이용권 승인 후 초기설정을 진행할 수 있습니다.');return;}")&&render.includes('renderCompanySetupRequired(state)'),'new company waits for pass approval before live guide');
 if(process.exitCode)process.exit(process.exitCode);
 console.log('Live Guided Setup: 15/15 PASS');

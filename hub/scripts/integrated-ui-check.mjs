@@ -58,7 +58,7 @@ expect('Onboarding status RPC binding', api.includes("'web_get_company_onboardin
 expect('Reconnect request RPC binding', api.includes("'request_company_discord_reconnect'") && api.includes('function requestCompanyDiscordReconnect'));
 expect('Reconnect confirmation modal', render.includes("data-form=\"reconnect-discord\"") && render.includes('그대로 보존되는 항목'));
 expect('Reconnect poll lifecycle', main.includes('startReconnectStatusPoll') && main.includes("['reset_requested','resetting']"));
-expect('New company enters settings onboarding', main.includes("state.page='settings';state.settingsTab='basic'"));
+expect('New company returns to HUB before pass-gated setup', main.includes("setNotice('회사를 만들었습니다. 콘텐츠를 둘러보고 필요한 이용권을 신청해 주세요.')") && !main.includes("state.setupGuide=createSetupGuideState(1);state.modal={type:'setup-guide'};"));
 expect('Onboarding role forward navigation auto-saves', main.includes("nextTab==='modules' && state.settingsTab==='basic' && isOnboardingStep('roles')") && main.includes("saveBasicSettingsData(activeData,{requireOnboardingRoles:true})"));
 expect('Onboarding role validation', main.includes('관리자 역할을 선택해 주세요.') && main.includes('일반 멤버 역할을 선택해 주세요.'));
 expect('Onboarding dynamic save CTA', render.includes("return '저장하고 다음'") && render.includes("return '설정 완료'"));
