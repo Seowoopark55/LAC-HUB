@@ -479,3 +479,102 @@
     line-height:1.55;
   }
 }
+
+
+/* Phase 28 TEST: company-only beta content lock treatment.
+   Visual only: access rules remain controlled by the existing content policy/pass checks. */
+.hub-feature--locked{
+  position:relative;
+  border-color:#39424c;
+  background:#151b22;
+}
+.hub-feature--locked:hover{
+  border-color:#56616c;
+  transform:translateY(-1px);
+}
+.hub-feature--locked .hub-feature__visual img{
+  filter:grayscale(.78) saturate(.32) brightness(.58) contrast(.96);
+  transform:scale(1.012);
+  transition:filter .2s ease,transform .2s ease;
+}
+.hub-feature--locked:hover .hub-feature__visual img{
+  filter:grayscale(.68) saturate(.38) brightness(.63) contrast(.98);
+}
+.hub-feature--locked .hub-feature__visual::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:2;
+  background:linear-gradient(180deg,rgba(8,11,15,.24),rgba(8,11,15,.62));
+  pointer-events:none;
+}
+.hub-feature--locked .hub-feature__tag{z-index:5}
+.hub-feature--locked .hub-feature__tag--beta{
+  color:#cbd1d7;
+  border-color:#5b646e;
+  background:rgba(24,29,35,.9);
+  box-shadow:none;
+}
+.hub-feature__lock{
+  position:absolute;
+  inset:0;
+  z-index:4;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  padding:28px 16px 12px;
+  color:#d4d9de;
+  text-align:center;
+  pointer-events:none;
+  text-shadow:0 1px 4px rgba(0,0,0,.8);
+}
+.hub-feature__lock-icon{
+  width:60px;
+  height:60px;
+  display:grid;
+  place-items:center;
+  margin-bottom:3px;
+  color:#d8dde2;
+  border:1px solid rgba(203,211,218,.26);
+  border-radius:50%;
+  background:rgba(8,12,16,.48);
+  box-shadow:0 8px 24px rgba(0,0,0,.28),inset 0 0 18px rgba(255,255,255,.025);
+  backdrop-filter:blur(2px);
+}
+.hub-feature__lock strong{
+  font-size:12px;
+  line-height:1.35;
+  font-weight:800;
+  letter-spacing:-.015em;
+}
+.hub-feature__lock small{
+  display:block;
+  margin:0;
+  color:#aeb7c0;
+  font-size:9.5px;
+  line-height:1.4;
+}
+.hub-feature--locked .hub-feature__content{background:linear-gradient(180deg,#151c24,#141a21)}
+.hub-feature--locked .hub-feature__name{color:#d7dce1}
+.hub-feature--locked .hub-feature__description{color:#929da8}
+.hub-feature--locked .hub-feature__enter{
+  color:#aeb7c0;
+  border-color:#525b64;
+  background:#1a2027;
+}
+.hub-feature--locked:hover .hub-feature__enter{
+  color:#d6dde3;
+  border-color:#69737d;
+  background:#20272f;
+}
+@media(max-width:600px){
+  .hub-feature__lock{padding-top:32px}
+  .hub-feature__lock-icon{width:58px;height:58px}
+  .hub-feature__lock strong{font-size:12px}
+  .hub-feature__lock small{font-size:9.5px}
+}
+@media(prefers-reduced-motion:reduce){
+  .hub-feature--locked .hub-feature__visual img{transition:none}
+}

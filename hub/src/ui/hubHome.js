@@ -42,16 +42,19 @@ function accountAvatar(state, displayName) {
     : `<span aria-hidden="true">${esc(Array.from(displayName)[0] || 'L')}</span>`;
 }
 
-function contentCard({title,description,image,tag,tagType='',action='',href='',disabled=false,footnote='',contentKey=''}) {
+function contentCard({title,description,image,tag,tagType='',action='',href='',disabled=false,footnote='',contentKey='',locked=false}) {
   const stateClass=tagType ? ` hub-feature__tag--${tagType}` : '';
+  const lockedClass=locked?' hub-feature--locked':'';
   // Internal content uses the existing delegated button actions. External BUILD
   // has one native anchor with new-tab semantics, without navigating away from HUB.
   const active=Boolean((action || href) && !disabled);
-  const open=!active ? `<article class="hub-feature hub-feature--pending">`
-    : href ? `<a class="hub-feature hub-feature--interactive" href="${esc(href)}" ${href.startsWith("/build/") || href.startsWith("/cook/") ? "" : 'target="_blank" rel="noopener noreferrer"'} aria-label="${esc(title)} 열기">`
-    : `<button type="button" class="hub-feature hub-feature--interactive" data-action="${esc(action)}" ${contentKey?`data-content-key="${esc(contentKey)}"`:''} aria-label="${esc(title)} ${action==='open-company-start'?'이용 안내':'열기'}">`;
+  const cardLabel=locked?`${title} 회사 이용 승인 안내`:`${title} ${action==='open-company-start'?'이용 안내':'열기'}`;
+  const open=!active ? `<article class="hub-feature hub-feature--pending${lockedClass}">`
+    : href ? `<a class="hub-feature hub-feature--interactive${lockedClass}" href="${esc(href)}" ${href.startsWith("/build/") || href.startsWith("/cook/") ? "" : 'target="_blank" rel="noopener noreferrer"'} aria-label="${esc(cardLabel)}">`
+    : `<button type="button" class="hub-feature hub-feature--interactive${lockedClass}" data-action="${esc(action)}" ${contentKey?`data-content-key="${esc(contentKey)}"`:''} aria-label="${esc(cardLabel)}">`;
   const close=!active ? '</article>' : href ? '</a>' : '</button>';
-  return `${open}<span class="hub-feature__visual"><img src="${ASSETS}${image}" alt="" loading="eager" decoding="async"><span class="hub-feature__tag${stateClass}">${esc(tag)}</span></span>
+  const lockLayer=locked?`<span class="hub-feature__lock" aria-hidden="true"><span class="hub-feature__lock-icon"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M15.5 21v-5.2C15.5 10.4 19.2 7 24 7s8.5 3.4 8.5 8.8V21" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><rect x="11" y="20" width="26" height="21" rx="5" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="30" r="2.2" fill="currentColor"/><path d="M24 32.2v4" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></span><strong>회사 이용 승인 필요</strong><small>승인된 회사만 이용할 수 있습니다.</small></span>`:'';
+  return `${open}<span class="hub-feature__visual"><img src="${ASSETS}${image}" alt="" loading="eager" decoding="async"><span class="hub-feature__tag${stateClass}">${esc(tag)}</span>${lockLayer}</span>
     <span class="hub-feature__content"><span><strong class="hub-feature__name">${esc(title)}</strong><span class="hub-feature__description">${esc(description)}</span></span>${active?'<span class="hub-feature__enter" aria-hidden="true">→</span>':'<span class="hub-feature__pending" aria-hidden="true">준비 중</span>'}</span>${close}`;
 }
 
@@ -64,8 +67,8 @@ function hubContentDefinitions(state,{current,companyAction}) {
   return [
     { key:'game_info', category:'main', order:10, visible:contentIsVisible(state,'game_info'), card:()=>contentCard({title:'게임 정보',description:'게임 관련 정보와 자료를 한곳에서 확인하세요.',image:'game.webp',tag:status('game_info'),tagType:tagType('game_info'),action:canOpenWebContent(state,'game_info')?'open-hub-game-info':current?'open-paid-content-guide':'open-company-start-game',contentKey:'game_info'}) },
     { key:'lac_build', category:'main', order:20, visible:contentIsVisible(state,'lac_build'), card:()=>contentCard({title:HUB_CONTENT.build.name,description:'개조서를 미리 조합하고 구성을 살펴보세요.',image:'build.webp',tag:status('lac_build'),tagType:tagType('lac_build'),href:canOpenWebContent(state,'lac_build')?BUILD_PUBLIC_URL:'',action:canOpenWebContent(state,'lac_build')?'':current?'open-paid-content-guide':'open-company-start',contentKey:'lac_build'}) },
-    { key:'company_management', category:'main', order:30, visible:contentIsVisible(state,'company_management'), card:()=>contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산, 회사 운영을 한곳에서.',image:'company.webp',tag:status('company_management'),tagType:tagType('company_management'),action:companyAction}) },
-    { key:'lac_cook', category:'main', order:40, visible:contentIsVisible(state,'lac_cook'), card:()=>contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:status('lac_cook'),tagType:tagType('lac_cook'),href:'/cook/'}) },
+    { key:'company_management', category:'main', order:30, visible:contentIsVisible(state,'company_management'), card:()=>{const locked=!canOpenWebContent(state,'company_management');return contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산, 회사 운영을 한곳에서.',image:'company.webp',tag:locked?'회사 전용 · BETA':status('company_management'),tagType:locked?'beta':tagType('company_management'),action:companyAction,contentKey:'company_management',locked});} },
+    { key:'lac_cook', category:'main', order:40, visible:contentIsVisible(state,'lac_cook'), card:()=>{const locked=!canOpenWebContent(state,'lac_cook');return contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:locked?'회사 전용 · BETA':status('lac_cook'),tagType:locked?'beta':tagType('lac_cook'),href:'/cook/',contentKey:'lac_cook',locked});} },
   ];
 }
 
