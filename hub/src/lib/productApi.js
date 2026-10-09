@@ -1,3 +1,4 @@
+import { AUTH_RETURN_STORAGE_KEY, safeInternalReturnPath } from '../platform/screenHistory.js';
 import { supabase } from './supabase.js';
 
 // Shared, read-only information catalogue. The six existing axe_product tables
@@ -114,6 +115,12 @@ export async function signInWithDiscord() {
   assertClient();
   const configuredProvider = String(import.meta.env.VITE_SUPABASE_DISCORD_AUTH_PROVIDER || 'discord').trim();
   const provider = configuredProvider || 'discord';
+  // Keep the route the user intended to open, but continue using the already
+  // approved site root as the OAuth callback. PKCE returns only a one-time code.
+  try {
+    const returnPath = safeInternalReturnPath(`${window.location.pathname}${window.location.search}`);
+    sessionStorage.setItem(AUTH_RETURN_STORAGE_KEY, JSON.stringify({ path: returnPath, createdAt: Date.now() }));
+  } catch {}
   const options = { redirectTo: `${window.location.origin}/` };
   if (provider.startsWith('custom:')) options.scopes = 'identify';
   const result = await supabase.auth.signInWithOAuth({ provider, options });

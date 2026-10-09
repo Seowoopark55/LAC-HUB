@@ -28,7 +28,7 @@ import { renderInfoPage, setGameInfoImageMap } from './ui/infoPage.js';
 import { GAME_ADMIN_SCHEMAS, GAME_ADMIN_TABLES, GAME_ADMIN_IMAGE_TABLES, renderGameInfoAdmin } from './ui/gameInfoAdmin.js';
 import {canOpenWebContent,contentIsVisible,hasCompany,hasUnifiedPass,companySetupComplete} from './platform/contentPolicy.js';
 import {renderCompanyPassNotice} from './platform/unifiedPassGuide.js';
-import { initializePrimaryScreenHistory, readPrimaryScreen, recordPrimaryScreen } from './platform/screenHistory.js';
+import { readPrimaryScreen, recordPrimaryScreen, replacePrimaryScreen, routeForPathname, routePathForScreen, AUTH_RETURN_STORAGE_KEY, safeInternalReturnPath } from './platform/screenHistory.js';
 
 const root = document.querySelector('#app');
 const MODBOOK_REVIEW_STORAGE_KEY='lac_hub_pending_modbook_review_v1';
@@ -133,7 +133,6 @@ function showCookPreview({ push = false } = {}) {
       if(!state.session?.user){showCookRegistrationFeedback('먼저 Discord로 로그인해 주세요.',true);return;}
       if(action==='open-pass-application'||action==='edit-pass-application'){
         state.requestedContent='요리 계산기';
-        window.history.pushState({lac_hub_primary_screen_v1:'paid-content-guide'},'','/');
         navigatePrimaryScreen('paid-content-guide');
         state.modal={type:'pass-application',editing:action==='edit-pass-application'};
         switchVisibleApp(false);render();window.scrollTo(0,0);
@@ -172,7 +171,6 @@ function showCookPreview({ push = false } = {}) {
           if(!state.canCreateCompany){showCookRegistrationFeedback('회사 생성 권한이 없습니다. 운영자에게 문의해 주세요.',true);return;}
           // Opening the real company-creation form is an explicit action;
           // the registration instructions themselves always stay within COOK.
-          window.history.pushState({lac_hub_primary_screen_v1:'company-start'},'','/');
           state.companyStartSource='company';
           navigatePrimaryScreen('company-start');
           state.modal={type:'create-company'};
@@ -259,8 +257,7 @@ window.addEventListener('message', event => {
       event.source !== cookFrame.contentWindow ||
       !event.data || typeof event.data !== 'object' || Array.isArray(event.data) ||
       event.data.type !== 'lac-cook:hub-return:v1') return;
-  window.history.pushState({ lac_hub_primary_screen_v1: 'hub' }, '', '/');
-  state.page = 'hub';
+  navigatePrimaryScreen('hub');
   switchVisibleApp(false);
   render();
   window.scrollTo(0, 0);
@@ -415,8 +412,7 @@ root.addEventListener('click', async (event) => {
 }, true);
 window.addEventListener('lac:navigate-hub', () => {
   if (!isBuildRoute()) return;
-  window.history.pushState({ lac_hub_primary_screen_v1: 'hub' }, '', '/');
-  state.page = 'hub';
+  navigatePrimaryScreen('hub');
   switchVisibleApp(false);
   render();
   window.scrollTo(0, 0);
@@ -926,9 +922,96 @@ function suppressBrowserFormHistory() {
     field.setAttribute('spellcheck','false');
   });
 }
-function navigatePrimaryScreen(page) {
-  recordPrimaryScreen(window.history, page);
+function routePathMatches(path) {
+  const clean=value=>{const raw=String(value||'/').split('?')[0].split('#')[0]||'/';return raw.length>1?raw.replace(/\/+$/,''):raw;};
+  return clean(window.location.pathname)===clean(path);
+}
+
+function applyRouteContext(route) {
+  if (!route || route.kind !== 'app') return;
+  if (route.platformView) state.platformView = route.platformView;
+  if (route.hubBoardTab) state.hubBoard.tab = route.hubBoardTab;
+}
+
+function routePathForCurrentState(page = state.page) {
+  return routePathForScreen(page, {
+    platformView: state.platformView,
+    hubBoardTab: state.hubBoard?.tab,
+  });
+}
+
+function navigatePrimaryScreen(page, { replace = false } = {}) {
+  const path = routePathForCurrentState(page);
+  const sameEntry = readPrimaryScreen(window.history.state) === page && routePathMatches(path);
+  if (!sameEntry) {
+    if (replace) replacePrimaryScreen(window.history, page, path);
+    else recordPrimaryScreen(window.history, page, path);
+  }
   state.page = page;
+}
+
+function syncPrimaryScreenRoute({ replace = false } = {}) {
+  if (isBuildRoute() || isCookRoute()) return;
+  const path = routePathForCurrentState();
+  if (routePathMatches(path) && readPrimaryScreen(window.history.state) === state.page) return;
+  if (replace) replacePrimaryScreen(window.history, state.page, path);
+  else recordPrimaryScreen(window.history, state.page, path);
+}
+
+function pendingAuthReturnPath() {
+  try {
+    const raw=sessionStorage.getItem(AUTH_RETURN_STORAGE_KEY);
+    if(!raw)return '';
+    let path=raw,createdAt=Date.now();
+    try{const parsed=JSON.parse(raw);path=String(parsed?.path||'/');createdAt=Number(parsed?.createdAt||0)||0;}catch{}
+    if(createdAt&&Date.now()-createdAt>20*60*1000){sessionStorage.removeItem(AUTH_RETURN_STORAGE_KEY);return '';}
+    return safeInternalReturnPath(path);
+  } catch { return ''; }
+}
+function consumeAuthReturnPath() {
+  const value=pendingAuthReturnPath()||'/';
+  try { sessionStorage.removeItem(AUTH_RETURN_STORAGE_KEY); } catch {}
+  return value;
+}
+
+function cleanLegacySupabaseAuthFragment() {
+  const raw=String(window.location.hash||'').replace(/^#/,'');
+  if(!raw)return;
+  const params=new URLSearchParams(raw);
+  const authKeys=['access_token','refresh_token','expires_in','expires_at','token_type','provider_token','provider_refresh_token','type'];
+  if(!authKeys.some(key=>params.has(key)))return;
+  authKeys.forEach(key=>params.delete(key));
+  const fragment=params.toString();
+  window.history.replaceState(window.history.state,'',`${window.location.pathname}${window.location.search}${fragment?`#${fragment}`:''}`);
+}
+
+function finalizeSupabaseAuthNavigation() {
+  cleanLegacySupabaseAuthFragment();
+  const params=new URLSearchParams(window.location.search);
+  const oauthSignal=params.has('code')||params.has('error')||params.has('error_code')||params.has('error_description');
+  // Supabase may already have exchanged and removed ?code before getSession()
+  // resolves. The short-lived sessionStorage marker lets us still restore the
+  // intended route without depending on the auth query remaining visible.
+  const currentRoute=routeForPathname(window.location.pathname);
+  const autoExchangedReturn=Boolean(pendingAuthReturnPath()&&state.session?.user&&currentRoute.kind==='app'&&currentRoute.canonicalPath==='/');
+  if(!oauthSignal&&!autoExchangedReturn)return null;
+  const authError=params.get('error_description')||params.get('error');
+  if(authError&&!state.error)state.error=`Discord 로그인에 실패했습니다. ${authError}`;
+  const returnPath=consumeAuthReturnPath();
+  const url=new URL(returnPath,window.location.origin);
+  const route=routeForPathname(url.pathname);
+  if(route.kind==='build'||route.kind==='cook'){
+    state.page='hub';
+    replacePrimaryScreen(window.history,'hub',`${route.canonicalPath}${url.search}`);
+    if(route.kind==='build')showEmbeddedBuild();
+    else showCookPreview();
+    return route;
+  }
+  const target=route.kind==='app'?route:{kind:'app',page:'hub',canonicalPath:'/'};
+  applyRouteContext(target);
+  state.page=target.page;
+  replacePrimaryScreen(window.history,state.page,`${target.canonicalPath}${url.search}`);
+  return target;
 }
 
 function allowedHistoryPage(target) {
@@ -943,17 +1026,30 @@ function allowedHistoryPage(target) {
 }
 
 function installPrimaryScreenHistory() {
-  // Restore the target before the first authenticated render, so a restored
-  // company route is never briefly painted and then replaced by HUB (or vice versa).
-  const initial = (isBuildRoute() || isCookRoute()) ? 'hub' : initializePrimaryScreenHistory(window.history);
-  state.page = initial;
+  // The URL is now the source of truth for the first screen. Build and COOK keep
+  // their dedicated mounts, while all other paths map to a HUB primary screen.
+  const route=routeForPathname(window.location.pathname);
+  if(route.kind==='build'||route.kind==='cook'){
+    state.page='hub';
+    replacePrimaryScreen(window.history,'hub');
+  }else{
+    const initial=route.kind==='app'?route:{kind:'app',page:'hub',canonicalPath:'/'};
+    applyRouteContext(initial);
+    state.page=initial.page;
+    // Preserve callback/query/hash material until the owning auth handler has
+    // consumed it. Only the pathname is canonicalized here.
+    replacePrimaryScreen(window.history,state.page,`${initial.canonicalPath}${window.location.search}${window.location.hash}`);
+  }
   window.addEventListener('popstate', event => {
-    if (isBuildRoute()) { showEmbeddedBuild(); return; }
-    if (isCookRoute()) { showCookPreview(); return; }
+    const route=routeForPathname(window.location.pathname);
+    if (route.kind==='build') { showEmbeddedBuild(); return; }
+    if (route.kind==='cook') { showCookPreview(); return; }
     switchVisibleApp(false);
-    const target = readPrimaryScreen(event.state);
-    if (!target) return; // An unrelated browser entry remains the browser's responsibility.
+    const target = route.kind==='app' ? route.page : readPrimaryScreen(event.state);
+    if (!target) return;
+    applyRouteContext(route);
     state.page = allowedHistoryPage(target);
+    if(state.page!==target)syncPrimaryScreenRoute({replace:true});
     state.accountMenuOpen = false;
     state.companyMenuOpen = false;
     state.modal = null;
@@ -962,8 +1058,6 @@ function installPrimaryScreenHistory() {
     }
     render();
     if (state.page === 'hub-board') void loadHubBoard();
-    // Existing page loaders remain scoped to the selected company. Only lazy
-    // loading for the restored view is needed; never re-run OAuth on Back/Forward.
     if (state.page==='game-info' && !state.info.loaded && !state.info.loading) void loadGameInfo();
     if (state.page==='combat' && !state.combat.overview && !state.combat.loading) void loadCombatOverview();
   });
@@ -1663,6 +1757,7 @@ async function refreshAll() {
     const modbookReviewId=pendingModbookReviewId();
     if(state.platformAdmin&&modbookReviewId){state.page='platform';state.platformView='modbooks';}
     state.page = allowedHistoryPage(state.page);
+    if(!isBuildRoute()&&!isCookRoute())syncPrimaryScreenRoute({replace:true});
     await loadCompanyData();
     if(state.page==='game-info' && canOpenWebContent(state,'game_info'))await loadGameInfo();
     if(state.platformAdmin&&modbookReviewId){
@@ -1779,7 +1874,7 @@ async function handleDiscordOAuthReturn() {
   if(!token&&!error)return; history.replaceState(history.state,'',`${location.pathname}${location.search}`);
   if(error) throw new Error(discordOAuthErrorMessage(error));
   if(!state.session?.user) throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
-  const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.page='settings'; state.settingsTab='basic'; localStorage.setItem('axe_product_page','settings'); localStorage.setItem('axe_product_settings_tab','basic');
+  const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); navigatePrimaryScreen('settings',{replace:true}); state.settingsTab='basic'; localStorage.setItem('axe_product_page','settings'); localStorage.setItem('axe_product_settings_tab','basic');
   const resumeGuide=localStorage.getItem('axe_product_setup_resume')==='1';
   const resumeStepRaw=Number(localStorage.getItem('axe_product_setup_resume_step'));
   localStorage.removeItem('axe_product_setup_resume');
@@ -1839,7 +1934,9 @@ async function boot() {
   if (isCookRoute()) showCookPreview();
   // Keep the HUB startup screen until the session and the requested route are ready.
   render();
-  try{state.session=await getSession();if(state.session){const exp=Number(state.session.expires_at||0)*1000;if(!exp||exp-Date.now()<5*60*1000)state.session=await refreshSession()||state.session;}}catch(error){state.error=String(error?.message||error);} render(); await refreshAll();
+  try{state.session=await getSession();if(state.session){const exp=Number(state.session.expires_at||0)*1000;if(!exp||exp-Date.now()<5*60*1000)state.session=await refreshSession()||state.session;}}catch(error){state.error=String(error?.message||error);}
+  finalizeSupabaseAuthNavigation();
+  render(); await refreshAll();
   installSessionResumeRecovery();
   if(discordCatalogPending()) startCatalogStatusPoll();
   try{await handleDiscordOAuthReturn();}catch(error){setError(error);}
@@ -2559,20 +2656,21 @@ root.addEventListener('click', async event => {
     render();return;
   }
   if(action==='go-hub'){if(state.page==='hub-board'&&['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();state.accountMenuOpen=false;state.companyMenuOpen=false;navigatePrimaryScreen('hub');state.modal=null;render();return;}
-  if(action==='hub-board-notices'){if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode='list';navigatePrimaryScreen('hub-board');await loadHubBoard();state.hubBoard.tab='notices';render();return;}
+  if(action==='hub-board-notices'){if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode='list';state.hubBoard.tab='notices';navigatePrimaryScreen('hub-board');await loadHubBoard();render();return;}
   if(action==='hub-board-open'||action==='hub-board-compose'){
     if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();
     clearHubBoardFiles();state.hubBoard.ticket=null;state.hubBoard.mode=action==='hub-board-compose'?'compose':'list';state.hubBoard.tab='support';
     navigatePrimaryScreen('hub-board');render();if(action==='hub-board-open')await loadHubBoard();return;
   }
-  if(action==='hub-board-quick'){const category=String(actionEl.dataset.boardCategory||'all');state.hubBoard.filterCategory=state.hubBoard.filterCategory===category?'all':category;state.hubBoard.mode='list';state.hubBoard.tab='support';render();return;}
-  if(action==='hub-board-tab'){if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.tab=String(actionEl.dataset.boardTab||'support')==='notices'?'notices':'support';render();return;}
+  if(action==='hub-board-quick'){const category=String(actionEl.dataset.boardCategory||'all');state.hubBoard.filterCategory=state.hubBoard.filterCategory===category?'all':category;state.hubBoard.mode='list';state.hubBoard.tab='support';syncPrimaryScreenRoute();render();return;}
+  if(action==='hub-board-tab'){if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.tab=String(actionEl.dataset.boardTab||'support')==='notices'?'notices':'support';syncPrimaryScreenRoute();render();return;}
   if(action==='hub-board-cancel'){if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();clearHubBoardFiles();state.hubBoard.mode='list';state.hubBoard.ticket=null;render();return;}
   if(action==='hub-board-notice'){
     const id=String(actionEl.dataset.noticeId||'');
     if(['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();
-    if(state.page!=='hub-board')navigatePrimaryScreen('hub-board');
-    clearHubBoardFiles();state.hubBoard.tab='notices';state.hubBoard.noticeId=id;state.hubBoard.mode='notice';render();return;
+    clearHubBoardFiles();state.hubBoard.tab='notices';
+    if(state.page!=='hub-board')navigatePrimaryScreen('hub-board'); else syncPrimaryScreenRoute();
+    state.hubBoard.noticeId=id;state.hubBoard.mode='notice';render();return;
   }
   if(action==='hub-board-notice-compose'){if(!state.platformAdmin)return;await cleanupHubNoticeDraft();clearHubBoardFiles();initHubNoticeEditor(null);state.hubBoard.noticeId=null;state.hubBoard.mode='notice-compose';state.hubBoard.tab='notices';render();return;}
   if(action==='hub-board-notice-edit'){
@@ -2614,7 +2712,7 @@ root.addEventListener('click', async event => {
     if(!state.platformAdmin)return;
     const ticketId=String(actionEl.dataset.ticketId||'');
     if(!ticketId)return;
-    navigatePrimaryScreen('hub-board');state.hubBoard.tab='support';
+    state.hubBoard.tab='support';navigatePrimaryScreen('hub-board');
     await withMutation(async()=>{await openHubBoardTicket(ticketId);});return;
   }
   if(action==='hub-board-delete'){
@@ -2633,7 +2731,7 @@ root.addEventListener('click', async event => {
     return;
   }
   if(action==='hub-board-ticket'){
-    navigatePrimaryScreen('hub-board');await withMutation(async()=>{await openHubBoardTicket(actionEl.dataset.ticketId);});return;
+    state.hubBoard.tab='support';navigatePrimaryScreen('hub-board');await withMutation(async()=>{await openHubBoardTicket(actionEl.dataset.ticketId);});return;
   }
   if(action==='hub-board-image'){
     const imagePath=String(actionEl.dataset.imagePath||'');
@@ -2835,7 +2933,7 @@ root.addEventListener('click', async event => {
     });return;
   }
   if(action==='setup-guide-skip-members'){if(!state.setupGuide)return;state.setupGuide.memberImportDone=true;state.setupGuide.memberImportSkipped=true;await withMutation(async()=>{await persistSetupGuideProgress(6);});return;}
-  if(action==='setup-guide-finish'){if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 완료할 수 있습니다.');return;}await withMutation(async()=>{await persistSetupGuideProgress(6,{completed:true});state.setupGuide=null;state.modal=null;state.page='dashboard';localStorage.setItem('axe_product_page','dashboard');setNotice('초기설정이 완료됐습니다. 대시보드에서 현재 운영 상태를 확인하세요.');});return;}
+  if(action==='setup-guide-finish'){if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 완료할 수 있습니다.');return;}await withMutation(async()=>{await persistSetupGuideProgress(6,{completed:true});state.setupGuide=null;state.modal=null;navigatePrimaryScreen('dashboard',{replace:true});localStorage.setItem('axe_product_page','dashboard');setNotice('초기설정이 완료됐습니다. 대시보드에서 현재 운영 상태를 확인하세요.');});return;}
   if(action==='open-setup-demo'){state.setupDemo=createSetupDemoState();state.modal={type:'setup-demo'};render();return;}
   if(action==='setup-demo-connect'){if(!state.setupDemo)return;state.setupDemo.connected=true;render();return;}
   if(action==='setup-demo-next'){if(!state.setupDemo)return;if(state.setupDemo.step===1&&!state.setupDemo.connected){state.setupDemo.connected=true;render();return;}state.setupDemo.step=Math.min(6,Number(state.setupDemo.step||0)+1);render();return;}
@@ -3120,8 +3218,9 @@ root.addEventListener('click', async event => {
     if(!state.platformAdmin){setError('서비스 운영자 권한이 필요합니다.');return;}
     const view=String(actionEl.dataset.platformView||'companies');
     if(!['overview','companies','pass-requests','modbooks','support','suggestions','contents'].includes(view))return;
+    state.platformView=view==='suggestions'?'support':view;
     if(state.page!=='platform'){navigatePrimaryScreen('platform');localStorage.setItem('axe_product_page','platform');}
-    state.platformView=view;
+    else syncPrimaryScreenRoute();
     if(view==='support'||view==='suggestions')await withMutation(async()=>{state.platformView='support';await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);});
     else if(view==='contents')await withMutation(loadPlatformContentSettings);
     else if(view==='pass-requests')await withMutation(loadAdminPassRequests);

@@ -13,6 +13,8 @@ export const supabase = envReady
   ? createClient(url, publishableKey, {
       db: { schema: 'axe_product' },
       auth: {
+        // PKCE keeps access/refresh tokens out of the browser address bar.
+        flowType: 'pkce',
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
