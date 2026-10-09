@@ -456,7 +456,7 @@ const state = {
   assetTab: 'assets', assetQuery:'', assetCategory:'', assetStatus:'', assetPage:1, returnPage:1, assetsSnapshot:null,
   accountQuery:'', accountStatus:'', accountPage:1, accountsSnapshot:null,
   combat:{overview:null,detail:null,selectedMembershipId:'',period:'30d',rankMode:'kd',loading:false,detailLoading:false,error:''},
-  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformBuildReports:{items:[],error:''}, platformInboxFilter:'all', platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', platformContentSettings:null, platformContentError:'', contentPolicies:[], contentPoliciesLoaded:false, contentPolicyError:'', currentSubscription:null, companyAccess:null, companyAccessError:'', companyAccessStatus:'idle', companyAccessCheckedAt:0, companyDataCompanyId:'', companyDataLoadedAt:0, companyDataLoading:false, platformCompanyAccess:[], companyPassRequest:null, companyPassRequestError:'', adminPassRequests:[], adminPassRequestsError:'',
+  platformAdmin:false, canCreateCompany:false, companyCreatePermissionError:false, platformSnapshot:[], platformSupport:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformSuggestions:{counts:{pending:0,checking:0,complete:0,unread:0,total:0},items:[],error:''}, platformBuildReports:{items:[],error:''}, platformInboxFilter:'all', platformQuery:'', platformStatus:'all', platformPage:1, platformView:'companies', platformContentSettings:null, platformContentError:'', contentPolicies:[], contentPoliciesLoaded:false, contentPolicyError:'', currentSubscription:null, companyAccess:null, companyAccessError:'', companyAccessStatus:'idle', companyAccessCheckedAt:0, companyDataCompanyId:'', companyDataLoadedAt:0, companyDataLoading:false, platformCompanyAccess:[], companyPassRequest:null, companyPassRequestError:'', adminPassRequests:[], adminPassRequestsError:'', adminPassView:'pending', adminPassPage:1, adminPassQuery:'', adminPassExpandedCompanies:{},
   fundLedgerAttachments:[], ledgerPendingFiles:[],
   settingsTab: localStorage.getItem('axe_product_settings_tab') || 'basic',
   questionBoard: { configured:true, counts:{ pending:0, checking:0, complete:0, unread:0, mine:0, total:0 }, items:[], error:'' }, questionStatus:'all', questionScope:'all', questionPage:1,
@@ -3009,6 +3009,27 @@ root.addEventListener('click', async event => {
     catch(error){setError(error);}
     return;
   }
+  if(action==='pass-admin-tab'){
+    if(!state.platformAdmin)return;
+    const view=String(actionEl.dataset.view||'pending');
+    if(!['pending','recent','all'].includes(view))return;
+    state.adminPassView=view;state.adminPassPage=1;render();return;
+  }
+  if(action==='pass-admin-page'){
+    if(!state.platformAdmin)return;
+    const page=Math.max(1,Number(actionEl.dataset.page||1));
+    state.adminPassPage=page;render();return;
+  }
+  if(action==='pass-admin-toggle-company'){
+    if(!state.platformAdmin)return;
+    const companyId=String(actionEl.dataset.companyId||'');if(!companyId)return;
+    state.adminPassExpandedCompanies={...(state.adminPassExpandedCompanies||{}),[companyId]:!state.adminPassExpandedCompanies?.[companyId]};
+    render();return;
+  }
+  if(action==='pass-admin-clear-search'){
+    if(!state.platformAdmin)return;
+    state.adminPassQuery='';state.adminPassPage=1;render();return;
+  }
   if(action==='refresh-pass-requests'){
     if(!state.platformAdmin)return;
     await withMutation(loadAdminPassRequests);return;
@@ -3456,6 +3477,10 @@ root.addEventListener('submit', async event => {
   if(type==='game-admin-save'){try{await gameAdminSaveForm(form);}catch(error){gameAdminInlineError(error);}return;}
   if(type==='member-register') { await submitMemberRegistration(form,data); return; }
   if(type==='platform-subscription'){setError('이전 이용권 편집 방식은 지원하지 않습니다. 관리 화면에서 새로 발급하거나 즉시 만료해 주세요.');return;}
+  if(type==='pass-admin-search'){
+    if(!state.platformAdmin)return;
+    state.adminPassQuery=String(data.get('query')||'').trim();state.adminPassPage=1;render();return;
+  }
   if(type==='pass-application'){
     await withMutation(async()=>{
       const payload=passApplicationPayload(data);

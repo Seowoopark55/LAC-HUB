@@ -970,20 +970,83 @@ function renderPlatformContentSettings(state) {
   return `<section class="lac-content-admin">${note}<header><div><h2>콘텐츠 운영</h2><p class="lac-content-admin-intro">웹 콘텐츠 진입 조건을 관리합니다. 회사 통합 이용권은 회사 관리 → 관리에서 부여·회수합니다. COOK 정적 파일 직접 주소의 서버 차단은 별도 작업이 필요합니다.</p></div><button class="ops-mgmt-action" type="button" data-action="refresh-platform-contents">설정 새로고침</button></header><div class="lac-content-admin-list">${items||'<p>등록된 콘텐츠가 없습니다.</p>'}</div>${awaiting}${bot}</section>`;
 }
 
+function passAdminStatusMeta(value){
+  if(value==='pending')return {label:'승인 대기',className:'is-pending'};
+  if(value==='approved')return {label:'승인 완료',className:'is-approved'};
+  if(value==='rejected')return {label:'반려',className:'is-rejected'};
+  if(value==='canceled')return {label:'신청 취소',className:'is-canceled'};
+  return {label:'처리 완료',className:'is-done'};
+}
+function passAdminRoleName(value){return value==='representative'?'대표':value==='admin'?'관리자 · 간부':value==='member'?'팀원':'미입력';}
+function passAdminTimestamp(row){
+  const value=row.reviewed_at||row.cancelled_at||row.updated_at||row.requested_at;
+  const time=value?new Date(value).getTime():0;
+  return Number.isFinite(time)?time:0;
+}
+function passAdminRowMarkup(row,{showCompany=true}={}){
+  const meta=passAdminStatusMeta(row.status);
+  const company=showCompany?`<strong class="lac-pass-admin__company">${esc(row.company_name||'회사')}</strong>`:'';
+  const note=row.applicant_note?`<span class="lac-pass-admin__memo" title="${esc(row.applicant_note)}">메모 · ${esc(row.applicant_note)}</span>`:'';
+  const blocked=row.application_blocked?`<span class="lac-pass-admin__blocked" title="${esc(row.application_block_reason||'신규 신청 제한 중')}">신청 제한 중</span>`:'';
+  return `<article class="lac-pass-admin__item">
+    <div class="lac-pass-admin__item-main">${company}<span class="lac-pass-admin__meta">${esc(row.requester_name||'사용자')} · ${esc(passAdminRoleName(row.requester_role))} · ${esc(fmtDate(row.requested_at))}</span>${note}</div>
+    <div class="lac-pass-admin__facts"><span><small>닉네임</small><b>${esc(row.ingame_nickname||'미입력')}</b></span><span><small>대표</small><b>${esc(row.representative_ingame_nickname||'대표 본인')}</b></span><span><small>전화</small><b>${esc(row.ingame_phone||'미입력')}</b></span><span><small>인증 시간</small><b>${esc(row.available_time||'별도 협의')}</b></span></div>
+    <div class="lac-pass-admin__state"><span class="lac-pass-admin__status ${meta.className}">${esc(meta.label)}</span>${blocked}</div>
+    <div class="lac-pass-admin__actions lac-pass-admin__actions--compact"><button type="button" data-action="admin-edit-pass-application" data-request-id="${esc(row.id)}">정보 수정</button><button type="button" class="${row.application_blocked?'':'is-danger'}" data-action="toggle-pass-application-block" data-company-id="${esc(row.company_id)}">${row.application_blocked?'제한 해제':'신청 제한'}</button>${row.status==='pending'?`<button type="button" class="is-primary" data-action="approve-pass-request" data-request-id="${esc(row.id)}">승인</button><button type="button" class="is-danger" data-action="reject-pass-request" data-request-id="${esc(row.id)}">반려</button>`:''}</div>
+  </article>`;
+}
+function passAdminPager(page,totalPages,totalCount,pageSize){
+  if(totalPages<=1)return `<div class="lac-pass-admin__pager lac-pass-admin__pager--single"><span>${totalCount?`1–${Math.min(totalCount,pageSize)} / ${totalCount}건`:'0건'}</span></div>`;
+  const first=(page-1)*pageSize+1;
+  const last=Math.min(page*pageSize,totalCount);
+  const start=Math.max(1,Math.min(page-2,totalPages-4));
+  const end=Math.min(totalPages,start+4);
+  const nums=[];for(let i=start;i<=end;i++)nums.push(`<button type="button" class="${i===page?'is-active':''}" data-action="pass-admin-page" data-page="${i}" aria-label="${i}페이지">${i}</button>`);
+  return `<div class="lac-pass-admin__pager"><span>${first}–${last} / ${totalCount}건</span><div><button type="button" data-action="pass-admin-page" data-page="${Math.max(1,page-1)}" ${page<=1?'disabled':''}>‹</button>${nums.join('')}<button type="button" data-action="pass-admin-page" data-page="${Math.min(totalPages,page+1)}" ${page>=totalPages?'disabled':''}>›</button></div></div>`;
+}
 function renderPlatformPassRequests(state){
-  const rows=state.adminPassRequests||[];
-  const count=rows.filter(row=>row.status==='pending').length;
-  const roleName=value=>value==='representative'?'대표':value==='admin'?'관리자 · 간부':value==='member'?'팀원':'미입력';
-  const statusName=value=>value==='pending'?'⏳ 승인 대기':value==='approved'?'✓ 승인 완료':value==='rejected'?'반려 완료':value==='canceled'?'신청 취소':'처리 완료';
+  const rows=Array.isArray(state.adminPassRequests)?state.adminPassRequests:[];
+  const pendingRows=rows.filter(row=>row.status==='pending');
+  const now=Date.now();
+  const recentBoundary=now-(30*24*60*60*1000);
+  const recentRows=rows.filter(row=>row.status!=='pending'&&passAdminTimestamp(row)>=recentBoundary);
+  const view=['pending','recent','all'].includes(state.adminPassView)?state.adminPassView:'pending';
+  const query=String(state.adminPassQuery||'').trim().toLowerCase();
+  const source=view==='pending'?pendingRows:view==='recent'?recentRows:rows;
+  const filtered=query?source.filter(row=>`${row.company_name||''} ${row.requester_name||''} ${row.ingame_nickname||''} ${row.representative_ingame_nickname||''} ${row.ingame_phone||''}`.toLowerCase().includes(query)):source;
+  const pageSize=15;
+  const totalPages=Math.max(1,Math.ceil(filtered.length/pageSize));
+  const page=Math.min(Math.max(1,Number(state.adminPassPage||1)),totalPages);
+  const pageRows=filtered.slice((page-1)*pageSize,page*pageSize);
   if(state.adminPassRequestsError)return `<section class="lac-pass-admin"><h2>회사 이용 신청</h2><p role="alert">${esc(state.adminPassRequestsError)}</p><button type="button" data-action="refresh-pass-requests">다시 시도</button></section>`;
-  const cards=rows.map(row=>`<article class="lac-pass-admin__row lac-pass-admin__row--detail">
-    <div class="lac-pass-admin__summary"><strong>${esc(row.company_name)}</strong><span>신청자: ${esc(row.requester_name)} · ${esc(fmtDate(row.requested_at))}</span><small>${esc(statusName(row.status))}</small></div>
-    <div class="lac-pass-admin__verification"><span><small>회사 역할</small><strong>${esc(roleName(row.requester_role))}</strong></span><span><small>인게임 닉네임</small><strong>${esc(row.ingame_nickname||'미입력')}</strong></span><span><small>대표 닉네임</small><strong>${esc(row.representative_ingame_nickname||'대표 본인')}</strong></span><span><small>인게임 전화</small><strong>${esc(row.ingame_phone||'미입력')}</strong></span><span><small>인증 가능 시간</small><strong>${esc(row.available_time||'별도 협의')}</strong></span></div>
-    ${row.applicant_note?`<p class="lac-pass-admin__note">${esc(row.applicant_note)}</p>`:''}
-    ${row.application_blocked?`<p class="lac-pass-admin__block-note">신규 신청 제한 중${row.application_block_reason?` · ${esc(row.application_block_reason)}`:''}</p>`:''}
-    <div class="lac-pass-admin__actions"><button type="button" data-action="admin-edit-pass-application" data-request-id="${esc(row.id)}">인증정보 수정</button><button type="button" class="${row.application_blocked?'':'is-danger'}" data-action="toggle-pass-application-block" data-company-id="${esc(row.company_id)}">${row.application_blocked?'신청 제한 해제':'신청 제한'}</button>${row.status==='pending'?`<button type="button" data-action="approve-pass-request" data-request-id="${esc(row.id)}">✓ 승인 및 발급</button><button type="button" class="is-danger" data-action="reject-pass-request" data-request-id="${esc(row.id)}">반려</button>`:''}</div>
-  </article>`).join('');
-  return `<section class="lac-pass-admin"><header><div><span>COMPANY BETA ACCESS</span><h2>회사 이용 신청 <em>${count}건 대기</em></h2><p>회사 단위 베타 이용 신청을 확인합니다. 신청 정보는 승인 후에도 운영자가 정정할 수 있으며, 이용 기간은 승인 시점부터 시작됩니다.</p></div><button type="button" data-action="refresh-pass-requests">새로고침</button></header><div class="lac-pass-admin__list">${cards||'<p class="lac-pass-admin__empty">접수된 회사 이용 신청이 없습니다.</p>'}</div></section>`;
+
+  let content='';
+  if(view==='all'){
+    const companyCounts=new Map();
+    for(const row of filtered)companyCounts.set(String(row.company_id||''),(companyCounts.get(String(row.company_id||''))||0)+1);
+    const groups=[];const byCompany=new Map();
+    for(const row of pageRows){
+      const id=String(row.company_id||'unknown');
+      if(!byCompany.has(id)){const group={id,name:row.company_name||'회사',rows:[]};byCompany.set(id,group);groups.push(group);}
+      byCompany.get(id).rows.push(row);
+    }
+    content=groups.map(group=>{
+      const open=Boolean(state.adminPassExpandedCompanies?.[group.id]);
+      const companyTotal=companyCounts.get(group.id)||group.rows.length;
+      const pending=group.rows.filter(row=>row.status==='pending').length;
+      const latest=group.rows.reduce((best,row)=>passAdminTimestamp(row)>passAdminTimestamp(best||{})?row:best,null);
+      return `<section class="lac-pass-admin__company-group ${open?'is-open':''}"><button type="button" class="lac-pass-admin__company-head" data-action="pass-admin-toggle-company" data-company-id="${esc(group.id)}" aria-expanded="${open?'true':'false'}"><span class="lac-pass-admin__company-chevron" aria-hidden="true">›</span><strong>${esc(group.name)}</strong><span>${companyTotal}건${pending?` · 처리 필요 ${pending}`:''}</span><small>최근 ${esc(latest?fmtDate(latest.requested_at):'-')}</small></button>${open?`<div class="lac-pass-admin__company-rows">${group.rows.map(row=>passAdminRowMarkup(row,{showCompany:false})).join('')}</div>`:''}</section>`;
+    }).join('');
+  }else{
+    content=pageRows.map(row=>passAdminRowMarkup(row)).join('');
+  }
+
+  const empty=view==='pending'?'처리할 이용 신청이 없습니다.':view==='recent'?'최근 30일 동안 처리된 신청이 없습니다.':'저장된 이용 신청 기록이 없습니다.';
+  return `<section class="lac-pass-admin lac-pass-admin--compact"><header><div><span>COMPANY BETA ACCESS</span><h2>회사 이용 신청 <em>${pendingRows.length}건 처리 필요</em></h2><p>처리할 신청을 먼저 확인하고, 처리 완료 기록은 최근 기록 또는 회사별 전체 기록에서 관리합니다.</p></div><button type="button" data-action="refresh-pass-requests">새로고침</button></header>
+    <div class="lac-pass-admin__toolbar"><nav class="lac-pass-admin__tabs" aria-label="이용 신청 보기"><button type="button" class="${view==='pending'?'is-active':''}" data-action="pass-admin-tab" data-view="pending">처리 필요 <b>${pendingRows.length}</b></button><button type="button" class="${view==='recent'?'is-active':''}" data-action="pass-admin-tab" data-view="recent">최근 처리 <b>${recentRows.length}</b></button><button type="button" class="${view==='all'?'is-active':''}" data-action="pass-admin-tab" data-view="all">전체 기록 <b>${rows.length}</b></button></nav><form class="lac-pass-admin__search" data-form="pass-admin-search"><input name="query" value="${esc(state.adminPassQuery||'')}" placeholder="회사 · 신청자 · 인게임 닉네임 검색" autocomplete="off"><button type="submit">검색</button>${state.adminPassQuery?'<button type="button" class="is-clear" data-action="pass-admin-clear-search">지우기</button>':''}</form></div>
+    <div class="lac-pass-admin__view-note">${view==='pending'?'승인 대기 신청만 표시합니다.':view==='recent'?'최근 30일 내 처리된 신청을 표시합니다.':'회사별로 접어 두고 필요한 기록만 펼쳐볼 수 있습니다.'}</div>
+    <div class="lac-pass-admin__list">${content||`<p class="lac-pass-admin__empty">${empty}</p>`}</div>${passAdminPager(page,totalPages,filtered.length,pageSize)}
+  </section>`;
 }
 
 function renderPlatform(state){
