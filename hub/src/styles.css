@@ -1157,3 +1157,69 @@ body:has(.runtime-app--game-info.game-center)::before {
 .test-center-pass-footer{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin-top:18px!important;padding-top:18px!important;border-top:1px solid #202a31!important}
 .test-center-pass-footer button{min-width:112px;min-height:42px;padding:10px 16px!important;border-radius:9px!important;font-size:calc((10px)*var(--lac-type-scale,1))!important;font-weight:900!important}
 @media(max-width:760px){.test-center-pass-application{padding:20px}.test-center-pass-identity,.test-center-pass-grid{grid-template-columns:1fr}.test-center-pass-section{padding:16px}.test-center-pass-section__head{display:grid;gap:6px}.test-center-pass-section__head p{text-align:left}.test-center-pass-form label>small{min-height:0}.test-center-pass-footer button{min-width:0;flex:1}}
+
+/* 2026-10-09 · public beta company access application */
+.lac-pass-application__pending-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px}
+.lac-pass-application__secondary{min-height:36px;padding:8px 12px;border:1px solid #495764;border-radius:9px;background:#17212a;color:#d6dde3;font:inherit;font-size:11px;font-weight:800;cursor:pointer}
+.lac-pass-application__secondary:hover{border-color:#71808c;background:#1c2832}
+.lac-pass-application__secondary.is-danger{border-color:#6e4a4a;color:#e1b6b6;background:#25191b}
+.lac-pass-application__cooldown{display:inline-flex;width:fit-content;margin-top:4px;padding:9px 12px;border:1px solid #4f5962;border-radius:9px;background:#171d23;color:#aeb8c0;font-size:11px;font-weight:800}
+
+.lac-pass-form{display:grid;gap:18px}
+.lac-pass-form__identity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.lac-pass-form__identity>div{display:grid;gap:4px;padding:11px 12px;border:1px solid #2b353d;border-radius:10px;background:#0d1318}
+.lac-pass-form__identity span{color:#75818a;font-size:9px;font-weight:800;letter-spacing:.05em}
+.lac-pass-form__identity strong{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#e2e7ea;font-size:12px;white-space:nowrap}
+.lac-pass-form__body{display:grid;gap:14px}
+.lac-pass-form__section{display:grid;gap:14px;padding:18px;border:1px solid #27323a;border-radius:12px;background:#0b1015}
+.lac-pass-form__section>header{display:flex;align-items:end;justify-content:space-between;gap:18px;padding-bottom:12px;border-bottom:1px solid #202a31}
+.lac-pass-form__section>header>div{display:flex;align-items:center;gap:8px}
+.lac-pass-form__section>header>div>span{display:grid;place-items:center;width:24px;height:24px;border:1px solid #755f3f;border-radius:7px;background:#2b241b;color:#d7b67e;font-size:9px;font-weight:900}
+.lac-pass-form__section>header strong{color:#dbe1e5;font-size:13px}
+.lac-pass-form__section>header p{margin:0;color:#6f7b84;font-size:9px;line-height:1.5;text-align:right}
+.lac-pass-form__grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.lac-pass-form__grid--single{grid-template-columns:1fr}
+.lac-pass-form__grid label{display:grid;align-content:start;gap:7px;min-width:0;color:#aeb8be;font-size:10px;font-weight:850}
+.lac-pass-form__grid label>span{display:flex;align-items:center;gap:6px}
+.lac-pass-form__grid label b{color:#d0aa70;font-size:8px}
+.lac-pass-form__grid label em{color:#68747c;font-size:8px;font-style:normal}
+.lac-pass-form__grid label small{min-height:2.6em;color:#717d85;font-size:8.5px;font-weight:650;line-height:1.5}
+.lac-pass-form__grid input,.lac-pass-form__grid select,.lac-pass-form__grid textarea{box-sizing:border-box;width:100%;min-height:44px;padding:10px 12px;border:1px solid #313c44;border-radius:9px;background:#0d1318;color:#e0e5e8;font:inherit;font-size:11px;outline:none}
+.lac-pass-form__grid textarea{min-height:108px;resize:vertical}
+.lac-pass-form__grid input::placeholder,.lac-pass-form__grid textarea::placeholder{color:#66727b;opacity:1}
+.lac-pass-form__grid input:focus,.lac-pass-form__grid select:focus,.lac-pass-form__grid textarea:focus{border-color:rgba(198,158,94,.58);box-shadow:0 0 0 3px rgba(198,158,94,.065)}
+.lac-pass-form__consent{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;border:1px solid #3a4650;border-radius:10px;background:#10171d;color:#9ea9b1;cursor:pointer}
+.lac-pass-form__consent input{margin-top:2px;accent-color:#b88b4d}
+.lac-pass-form__consent span{display:grid;gap:3px;font-size:9.5px;line-height:1.55}
+.lac-pass-form__consent strong{color:#d7dde1;font-size:10.5px}
+.lac-pass-form__hint{margin:0}
+.lac-pass-form__footer{display:flex;justify-content:flex-end;gap:8px;margin-top:0!important}
+.lac-pass-form__footer button{min-width:120px}
+
+.lac-pass-admin__row--detail{display:grid!important;grid-template-columns:minmax(180px,.7fr) minmax(420px,1.5fr) auto!important;align-items:start!important;gap:16px!important}
+.lac-pass-admin__summary{display:grid;gap:5px;min-width:0}
+.lac-pass-admin__verification{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;min-width:0}
+.lac-pass-admin__verification>span{display:grid;gap:2px;padding:8px 9px;border:1px solid #27313a;border-radius:8px;background:#0e1419;min-width:0}
+.lac-pass-admin__verification small{color:#68747d;font-size:8px}
+.lac-pass-admin__verification strong{overflow:hidden;text-overflow:ellipsis;color:#cbd3d9;font-size:10px;white-space:nowrap}
+.lac-pass-admin__note{grid-column:1/-1;margin:0;padding:8px 10px;border-left:2px solid #725d40;background:#12171c;color:#89959e;font-size:9px;line-height:1.55}
+.lac-pass-admin__actions{align-self:center}
+.lac-pass-admin__actions .is-danger{border-color:#72494a!important;color:#e2b8b8!important;background:#25191b!important}
+
+@media(max-width:900px){
+  .lac-pass-admin__row--detail{grid-template-columns:1fr!important}
+  .lac-pass-admin__verification{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lac-pass-admin__actions{justify-content:flex-start!important}
+}
+@media(max-width:700px){
+  .lac-pass-form__identity,.lac-pass-form__grid{grid-template-columns:1fr}
+  .lac-pass-form__section{padding:14px}
+  .lac-pass-form__section>header{display:grid;gap:6px}
+  .lac-pass-form__section>header p{text-align:left}
+  .lac-pass-form__grid label small{min-height:0}
+  .lac-pass-form__footer button{min-width:0;flex:1}
+  .lac-pass-admin__verification{grid-template-columns:1fr}
+}
+
+/* Public beta pass abuse guard: platform-owner application restriction note. */
+.lac-pass-admin__block-note{margin:0;padding:9px 11px;border:1px solid rgba(188,111,85,.28);border-radius:9px;background:rgba(111,49,35,.14);color:#c9a89b;font-size:11px;line-height:1.5}

@@ -21,7 +21,7 @@ import {
   getPlatformSuggestions, notifySuggestionAnswer, uploadSuggestionAttachment, attachSuggestionFile, getSuggestionAttachmentSignedUrl, getPlatformBuildReports, reviewPlatformBuildReport, getPlatformBuildReportEvidenceUrl,
   removeSuggestionAttachments, deleteSuggestion, getGameInformation, getGlobalModbooks, getMyCompanyAccess, listPlatformCompanyAccess,
   saveGameInfoAdminRow, getGameInfoAdminHistory, uploadGameInfoAdminImage, cleanupUnlinkedGameInfoAdminImage, listPlatformModbookRequests, reviewPlatformModbookRequest, deleteModbookMaster,
-  createCompanyPassRequest, getCompanyPassRequest, listAdminPassRequests, reviewCompanyPassRequest, notifyPassRequestOwner,
+  createCompanyPassRequest, updateCompanyPassRequest, cancelCompanyPassRequest, getCompanyPassRequest, listAdminPassRequests, adminUpdateCompanyPassRequest, setAdminCompanyPassApplicationBlock, reviewCompanyPassRequest, notifyPassRequestOwner,
 } from './lib/productApi.js';
 import { renderShell, renderCookRegistration, canAdmin, currentMembership, moduleEnabled, moduleRow } from './ui/render.js';
 import { renderInfoPage, setGameInfoImageMap } from './ui/infoPage.js';
@@ -128,16 +128,28 @@ function showCookPreview({ push = false } = {}) {
         cookHost.querySelector('[data-action="cook-preview-open"]')?.focus({preventScroll:true});
         return;
       }
-      if(!['open-create-company','copy-registration-info','check-member-registration','submit-company-pass-request'].includes(action))return;
+      if(!['open-create-company','copy-registration-info','check-member-registration','open-pass-application','edit-pass-application','cancel-pass-application'].includes(action))return;
       event.preventDefault();
       if(!state.session?.user){showCookRegistrationFeedback('먼저 Discord로 로그인해 주세요.',true);return;}
-      if(action==='submit-company-pass-request'){
+      if(action==='open-pass-application'||action==='edit-pass-application'){
+        state.requestedContent='요리 계산기';
+        window.history.pushState({lac_hub_primary_screen_v1:'paid-content-guide'},'','/');
+        navigatePrimaryScreen('paid-content-guide');
+        state.modal={type:'pass-application',editing:action==='edit-pass-application'};
+        switchVisibleApp(false);render();window.scrollTo(0,0);
+        return;
+      }
+      if(action==='cancel-pass-application'){
+        const requestId=String(state.companyPassRequest?.id||'');
+        if(!requestId){showCookRegistrationFeedback('취소할 신청을 찾지 못했습니다.',true);return;}
+        if(!window.confirm('현재 회사 이용 신청을 취소할까요? 취소 후 6시간 동안 재신청할 수 없습니다.'))return;
         button.disabled=true;
         try{
-          const result=await submitUnifiedPassRequest();
+          await cancelCompanyPassRequest(requestId);
+          state.companyPassRequest=await getCompanyPassRequest(state.companyId);
           showCookPreview();
-          showCookRegistrationFeedback(result?'이용권 신청이 접수되었습니다. 운영자 승인 후 이용할 수 있어요.':'이미 접수된 신청이 있습니다.');
-        }catch(error){showCookRegistrationFeedback(String(error?.message||'신청을 접수하지 못했습니다.'),true);}
+          showCookRegistrationFeedback('이용 신청을 취소했습니다. 6시간 후 다시 신청할 수 있습니다.');
+        }catch(error){showCookRegistrationFeedback(String(error?.message||'신청을 취소하지 못했습니다.'),true);}
         finally{if(button.isConnected)button.disabled=false;}
         return;
       }
@@ -185,8 +197,8 @@ function showCookPreview({ push = false } = {}) {
             return;
           }
           await loadWebContentPolicies();
-          if(!hasUnifiedPass(state)) { showCookRegistrationFeedback('회사 소속을 확인했습니다. 통합 이용권은 회사 대표 또는 운영자에게 신청해 주세요.');return; }
-          showCookRegistrationFeedback('회사 소속을 확인했습니다. HUB에서 이용권 상태를 확인해 주세요.');
+          if(!hasUnifiedPass(state)) { showCookRegistrationFeedback('회사 소속을 확인했습니다. 회사 이용 승인이 필요합니다.');return; }
+          showCookRegistrationFeedback('회사 소속을 확인했습니다. HUB에서 회사 이용 승인 상태를 확인해 주세요.');
           // Keep the preview mounted on this click. A separate navigation
           // performs the ordinary content-entry check again.
         }catch(error){showCookRegistrationFeedback(String(error?.message||'멤버 등록 확인에 실패했습니다.'),true);}
@@ -1338,14 +1350,29 @@ async function loadAdminPassRequests(){
   catch(error){state.adminPassRequestsError=String(error?.message||error||'이용권 신청 목록 조회 실패');}
 }
 
-// A request belongs to the current company. Only the server-side RPC may create it.
-async function submitUnifiedPassRequest(){
+function passApplicationPayload(data,{requireConsent=true}={}){
+  const requesterRole=String(data.get('requester_role')||'representative');
+  const ingameNickname=String(data.get('ingame_nickname')||'').trim();
+  const representativeIngameNickname=String(data.get('representative_ingame_nickname')||'').trim();
+  const ingamePhone=String(data.get('ingame_phone')||'').trim();
+  const availableTime=String(data.get('available_time')||'').trim();
+  const note=String(data.get('note')||'').trim();
+  const consent=requireConsent?String(data.get('consent')||'')==='on':true;
+  if(!['representative','admin','member'].includes(requesterRole))throw new Error('회사에서의 역할을 선택해 주세요.');
+  if(!ingameNickname)throw new Error('인게임 닉네임을 입력해 주세요.');
+  if(requesterRole!=='representative'&&!representativeIngameNickname)throw new Error('대표가 아닌 경우 대표자 인게임 닉네임을 입력해 주세요.');
+  if(requireConsent&&!consent)throw new Error('인게임 인증 절차 확인에 동의해 주세요.');
+  return {requesterRole,ingameNickname,representativeIngameNickname,ingamePhone,availableTime,note,consent};
+}
+
+// One application belongs to one company. Server RPCs remain authoritative for
+// membership, duplicate prevention, cooldowns and edit/cancel permissions.
+async function submitUnifiedPassRequest(application){
   if(!hasCompany(state)||!state.session?.user)throw new Error('먼저 회사 소속을 확인해 주세요.');
-  if(!canAdmin(state))throw new Error('이용권 신청은 회사 대표 또는 관리자만 할 수 있습니다.');
-  if(state.companyAccessError||state.companyPassRequestError)throw new Error('이용권 상태를 확인하지 못했습니다. 다시 접속해 주세요.');
-  if(state.companyAccess?.entitlement_enabled && state.companyAccess?.subscription_status!=='expired')throw new Error('아직 이용 중인 이용권이 있습니다. 구독 상태를 확인해 주세요.');
+  if(state.companyAccessError||state.companyPassRequestError)throw new Error('이용 승인 상태를 확인하지 못했습니다. 다시 접속해 주세요.');
+  if(state.companyAccess?.entitlement_enabled && state.companyAccess?.subscription_status!=='expired')throw new Error('이미 이용 승인이 적용된 회사입니다.');
   const id=state.companyId;
-  const result=await createCompanyPassRequest(id);
+  const result=await createCompanyPassRequest(id,application);
   if(!result?.id)throw new Error('신청 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
   if(state.companyId===id){
     try{state.companyPassRequest=await getCompanyPassRequest(id);}
@@ -2667,14 +2694,22 @@ root.addEventListener('click', async event => {
     if(!state.canCreateCompany){setError('이미 회사를 생성한 계정은 새 회사를 추가로 만들 수 없습니다. 기존 회사에 멤버로 가입하는 것은 가능합니다.');return;}
     state.modal={type:'create-company'};render();return;
   }
-  if(action==='submit-company-pass-request'){
-    if(actionEl.disabled)return;
-    actionEl.disabled=true;
-    try{
-      const created=await submitUnifiedPassRequest();
-      setNotice(created?'🎟️ 통합 이용권 신청이 접수되었습니다. 운영자 승인을 기다려 주세요.':'이미 접수된 회사 이용권 신청이 있습니다.');
-    }catch(error){setError(error);}finally{if(actionEl.isConnected)actionEl.disabled=false;render();}
-    return;
+  if(action==='open-pass-application'||action==='edit-pass-application'){
+    if(!hasCompany(state)){setError('먼저 회사 소속을 확인해 주세요.');return;}
+    if(action==='edit-pass-application'&&(!state.companyPassRequest?.viewer_can_edit||state.companyPassRequest?.status!=='pending')){setError('현재 신청은 직접 수정할 수 없습니다.');return;}
+    state.modal={type:'pass-application',editing:action==='edit-pass-application'};render();return;
+  }
+  if(action==='cancel-pass-application'){
+    const requestId=String(state.companyPassRequest?.id||'');
+    if(!requestId||!state.companyPassRequest?.viewer_can_cancel){setError('현재 신청은 직접 취소할 수 없습니다.');return;}
+    if(!window.confirm('현재 회사 이용 신청을 취소할까요? 취소 후 6시간 동안 재신청할 수 없습니다.'))return;
+    await withMutation(async()=>{
+      await cancelCompanyPassRequest(requestId);
+      state.companyPassRequest=await getCompanyPassRequest(state.companyId);
+      state.companyPassRequestError='';
+      if(state.platformAdmin)await loadAdminPassRequests();
+      setNotice('회사 이용 신청을 취소했습니다. 6시간 후 다시 신청할 수 있습니다.');
+    });return;
   }
 
   if(action==='copy-registration-info'){
@@ -2703,7 +2738,7 @@ root.addEventListener('click', async event => {
   }
   if(action==='go-dashboard'){state.accountMenuOpen=false;state.requestedContent='회사 관리';navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');render();if(!hasUnifiedPass(state))return;if(!state.fundSnapshot)await withMutation(loadFundSnapshot);if(!state.assetsSnapshot)await withMutation(loadAssetsAndAccounts);render();return;}
   if(action==='open-setup-guide'){
-    if(!hasUnifiedPass(state)){setError('회사 관리 이용권 승인 후 초기설정을 진행할 수 있습니다.');return;}
+    if(!hasUnifiedPass(state)){setError('회사 이용 승인 후 초기설정을 진행할 수 있습니다.');return;}
     if(!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
     const saved=savedSetupGuideProgress();
     const requestedStep=saved&&!saved.completed?Math.max(0,Math.min(6,Number(saved.step||0))):0;
@@ -2977,6 +3012,32 @@ root.addEventListener('click', async event => {
   if(action==='refresh-pass-requests'){
     if(!state.platformAdmin)return;
     await withMutation(loadAdminPassRequests);return;
+  }
+  if(action==='admin-edit-pass-application'){
+    if(!state.platformAdmin)return;
+    const id=String(actionEl.dataset.requestId||'');
+    const request=(state.adminPassRequests||[]).find(row=>String(row.id)===id);
+    if(!request){setError('수정할 신청 정보를 찾지 못했습니다.');return;}
+    state.modal={type:'admin-pass-application',requestId:id};render();return;
+  }
+  if(action==='toggle-pass-application-block'){
+    if(!state.platformAdmin)return;
+    const companyId=String(actionEl.dataset.companyId||'');
+    const request=(state.adminPassRequests||[]).find(row=>String(row.company_id)===companyId);
+    if(!request){setError('회사 신청 정보를 찾지 못했습니다.');return;}
+    const nextBlocked=String(request.application_blocked)!=='true' && request.application_blocked!==true;
+    let reason='';
+    if(nextBlocked){
+      const input=window.prompt(`${request.company_name} 회사의 신규 이용 신청을 제한합니다. 운영 메모를 입력해 주세요.`, String(request.application_block_reason||''));
+      if(input===null)return;
+      reason=String(input||'').trim();
+      if(reason.length>300){setError('신청 제한 사유는 300자 이내로 입력해 주세요.');return;}
+    }else if(!window.confirm(`${request.company_name} 회사의 신규 이용 신청 제한을 해제할까요?`))return;
+    await withMutation(async()=>{
+      await setAdminCompanyPassApplicationBlock(companyId,nextBlocked,reason);
+      await loadAdminPassRequests();
+      setNotice(nextBlocked?'이 회사의 신규 이용 신청을 제한했습니다. 현재 대기 중인 신청은 별도로 승인 또는 반려해 주세요.':'회사 이용 신청 제한을 해제했습니다.');
+    });return;
   }
   if(action==='approve-pass-request'||action==='reject-pass-request'){
     if(!state.platformAdmin)return;
@@ -3395,6 +3456,37 @@ root.addEventListener('submit', async event => {
   if(type==='game-admin-save'){try{await gameAdminSaveForm(form);}catch(error){gameAdminInlineError(error);}return;}
   if(type==='member-register') { await submitMemberRegistration(form,data); return; }
   if(type==='platform-subscription'){setError('이전 이용권 편집 방식은 지원하지 않습니다. 관리 화면에서 새로 발급하거나 즉시 만료해 주세요.');return;}
+  if(type==='pass-application'){
+    await withMutation(async()=>{
+      const payload=passApplicationPayload(data);
+      const requestId=String(data.get('request_id')||'').trim();
+      let created=false;
+      if(requestId){
+        await updateCompanyPassRequest(requestId,payload);
+      }else{
+        created=await submitUnifiedPassRequest(payload);
+      }
+      state.companyPassRequest=await getCompanyPassRequest(state.companyId);
+      state.companyPassRequestError='';
+      if(state.platformAdmin)await loadAdminPassRequests();
+      state.modal=null;
+      setNotice(requestId?'회사 이용 신청 정보를 수정했습니다.':created?'회사 이용 신청이 접수되었습니다. 운영자 확인 후 승인됩니다.':'이미 접수된 회사 이용 신청이 있습니다.');
+    });
+    return;
+  }
+  if(type==='admin-pass-application'){
+    if(!state.platformAdmin){setError('운영자만 인증정보를 수정할 수 있습니다.');return;}
+    await withMutation(async()=>{
+      const payload=passApplicationPayload(data,{requireConsent:false});
+      const requestId=String(data.get('request_id')||'').trim();
+      if(!requestId)throw new Error('수정할 신청을 찾지 못했습니다.');
+      await adminUpdateCompanyPassRequest(requestId,payload);
+      await loadAdminPassRequests();
+      state.modal=null;
+      setNotice('인증정보를 수정했습니다. 이용 상태와 이용 기간은 변경되지 않았습니다.');
+    });
+    return;
+  }
   // Confirm a new departure BEFORE withMutation renders/replaces the form.
   // Cancel or Escape from the dialog must never issue a DB request.
   if (type === 'member') {
@@ -3542,7 +3634,7 @@ root.addEventListener('submit', async event => {
       state.ready=true;
       if(!isCurrentCompanyOwner())throw new Error('회사 등록은 확인됐지만 OWNER 권한 연결을 확인하지 못했습니다. 새로고침 후에도 같다면 관리자에게 문의해 주세요.');
       state.setupGuide=null;state.setupGuideDismissed=false;
-      setNotice('회사를 만들었습니다. 콘텐츠를 둘러보고 필요한 이용권을 신청해 주세요.');
+      setNotice('회사를 만들었습니다. 콘텐츠를 둘러보고 회사 전용 베타 기능이 필요하면 이용 신청을 진행해 주세요.');
       return;
     }
     if(type==='reconnect-discord'){clearCatalogPoll();if(data.get('confirm')!=='yes')throw new Error('Discord 연결 초기화 안내를 확인해 주세요.');const jobId=await requestCompanyDiscordReconnect(state.companyId);state.modal=null;state.onboardingStatus=await getCompanyOnboardingStatus(state.companyId);setNotice(`Discord 연결 정리를 시작했습니다. 작업 ${jobId.slice(0,8)}…`);startReconnectStatusPoll();return;}
@@ -3696,17 +3788,22 @@ setInterval(async()=>{
       else if(state.page==='platform')render();
       else if(before!==JSON.stringify(state.adminPassRequests||[]) && state.page==='hub')render();
     }
-    if(hasCompany(state) && state.companyPassRequest?.status==='pending'){
+    if(hasCompany(state) && ['pending','canceled','rejected'].includes(String(state.companyPassRequest?.status||''))){
       const companyId=state.companyId;
+      const beforeRequest=JSON.stringify(state.companyPassRequest||null);
+      const beforeStatus=String(state.companyPassRequest?.status||'');
       const result=await getCompanyPassRequest(companyId);
       if(companyId!==state.companyId)return;
-      if(result?.status!==state.companyPassRequest?.status){
-        state.companyPassRequest=result;
+      state.companyPassRequest=result;
+      state.companyPassRequestError='';
+      const requestChanged=beforeRequest!==JSON.stringify(result||null);
+      const statusChanged=String(result?.status||'')!==beforeStatus;
+      if(statusChanged){
         state.companyAccess=await getMyCompanyAccess(companyId);
         state.companyAccessStatus='ready';state.companyAccessCheckedAt=Date.now();state.companyAccessError='';
-        if(state.page==='hub'||state.page==='paid-content-guide')render();
-        if(isCookRoute())showCookPreview();
       }
+      if(requestChanged && (state.page==='hub'||state.page==='paid-content-guide'))render();
+      if(statusChanged && isCookRoute())showCookPreview();
     }
   }catch{ /* Poll errors do not erase previously fetched, access-checked state. */ }
 },45000);

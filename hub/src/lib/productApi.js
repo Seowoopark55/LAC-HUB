@@ -1737,20 +1737,71 @@ export async function setPlatformCompanyAccess(companyId, enabled) {
   return unwrap(await supabase.rpc('lac_admin_set_company_access',{p_company_id:companyId,p_enabled:enabled}), '회사 이용권 설정을 저장하지 못했습니다.');
 }
 
-// Company-wide pass applications: the DB enforces membership, uniqueness and admin review.
-export async function createCompanyPassRequest(companyId) {
+// Company-wide beta pass applications. Server RPCs enforce membership, one pending request,
+// cooldowns and edit/cancel authority. The browser never decides those rules by itself.
+export async function createCompanyPassRequest(companyId, application={}) {
   assertClient();
-  const rows=unwrap(await supabase.rpc('lac_pass_request_create',{p_company_id:companyId}), '이용권 신청을 접수하지 못했습니다.')||[];
+  const rows=unwrap(await supabase.rpc('lac_pass_application_submit',{
+    p_company_id:companyId,
+    p_requester_role:String(application.requesterRole||''),
+    p_ingame_nickname:String(application.ingameNickname||''),
+    p_representative_ingame_nickname:String(application.representativeIngameNickname||'')||null,
+    p_ingame_phone:String(application.ingamePhone||'')||null,
+    p_available_time:String(application.availableTime||'')||null,
+    p_note:String(application.note||'')||null,
+    p_verification_consent:application.consent===true,
+  }), '이용 신청을 접수하지 못했습니다.')||[];
+  return Array.isArray(rows)?rows[0]||null:rows;
+}
+export async function updateCompanyPassRequest(requestId, application={}) {
+  assertClient();
+  const rows=unwrap(await supabase.rpc('lac_pass_application_update',{
+    p_request_id:requestId,
+    p_requester_role:String(application.requesterRole||''),
+    p_ingame_nickname:String(application.ingameNickname||''),
+    p_representative_ingame_nickname:String(application.representativeIngameNickname||'')||null,
+    p_ingame_phone:String(application.ingamePhone||'')||null,
+    p_available_time:String(application.availableTime||'')||null,
+    p_note:String(application.note||'')||null,
+    p_verification_consent:application.consent===true,
+  }), '이용 신청 정보를 수정하지 못했습니다.')||[];
+  return Array.isArray(rows)?rows[0]||null:rows;
+}
+export async function cancelCompanyPassRequest(requestId) {
+  assertClient();
+  const rows=unwrap(await supabase.rpc('lac_pass_application_cancel',{p_request_id:requestId}), '이용 신청을 취소하지 못했습니다.')||[];
   return Array.isArray(rows)?rows[0]||null:rows;
 }
 export async function getCompanyPassRequest(companyId) {
   assertClient();
-  const rows=unwrap(await supabase.rpc('lac_pass_request_my_latest',{p_company_id:companyId}), '이용권 신청 상태를 확인하지 못했습니다.')||[];
+  const rows=unwrap(await supabase.rpc('lac_pass_application_my_latest',{p_company_id:companyId}), '이용 신청 상태를 확인하지 못했습니다.')||[];
   return Array.isArray(rows)?rows[0]||null:rows;
 }
 export async function listAdminPassRequests() {
   assertClient();
-  return unwrap(await supabase.rpc('lac_admin_list_pass_requests'), '이용권 신청 목록을 불러오지 못했습니다.')||[];
+  return unwrap(await supabase.rpc('lac_admin_list_pass_applications'), '이용 신청 목록을 불러오지 못했습니다.')||[];
+}
+export async function adminUpdateCompanyPassRequest(requestId, application={}) {
+  assertClient();
+  const rows=unwrap(await supabase.rpc('lac_admin_update_pass_application',{
+    p_request_id:requestId,
+    p_requester_role:String(application.requesterRole||''),
+    p_ingame_nickname:String(application.ingameNickname||''),
+    p_representative_ingame_nickname:String(application.representativeIngameNickname||'')||null,
+    p_ingame_phone:String(application.ingamePhone||'')||null,
+    p_available_time:String(application.availableTime||'')||null,
+    p_note:String(application.note||'')||null,
+  }), '인증 정보를 수정하지 못했습니다.')||[];
+  return Array.isArray(rows)?rows[0]||null:rows;
+}
+export async function setAdminCompanyPassApplicationBlock(companyId,blocked,reason='') {
+  assertClient();
+  const rows=unwrap(await supabase.rpc('lac_admin_set_pass_application_block',{
+    p_company_id:companyId,
+    p_blocked:blocked===true,
+    p_reason:String(reason||'')||null,
+  }), blocked?'회사 이용 신청을 제한하지 못했습니다.':'회사 이용 신청 제한을 해제하지 못했습니다.')||[];
+  return Array.isArray(rows)?rows[0]||null:rows;
 }
 export async function reviewCompanyPassRequest(requestId,approve) {
   assertClient();
