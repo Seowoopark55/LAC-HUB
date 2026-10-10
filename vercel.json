@@ -1,19 +1,53 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "hub/dist",
   "rewrites": [
-    { "source": "/game", "destination": "/index.html" },
-    { "source": "/game/(.*)", "destination": "/index.html" },
-    { "source": "/build", "destination": "/index.html" },
-    { "source": "/build/(.*)", "destination": "/index.html" },
-    { "source": "/cook", "destination": "/index.html" },
-    { "source": "/cook/(.*)", "destination": "/index.html" },
-    { "source": "/company", "destination": "/index.html" },
-    { "source": "/company/(.*)", "destination": "/index.html" },
-    { "source": "/admin", "destination": "/index.html" },
-    { "source": "/admin/(.*)", "destination": "/index.html" },
-    { "source": "/notices", "destination": "/index.html" },
-    { "source": "/notices/(.*)", "destination": "/index.html" },
-    { "source": "/support", "destination": "/index.html" },
-    { "source": "/support/(.*)", "destination": "/index.html" }
+    {
+      "source": "/build",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/build/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/build/builds",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/build/notices",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/build/presets",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/build/modbooks",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/build/weapons",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/build/reports",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/build/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cook",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cook/",
+      "destination": "/index.html"
+    }
   ]
 }
