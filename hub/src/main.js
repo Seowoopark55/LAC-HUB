@@ -3477,11 +3477,6 @@ root.addEventListener('click', async event => {
 });
 
 root.addEventListener('change', async event => {
-  if(event.target.matches('[data-pass-role-select]')){
-    const field=event.target.closest('form')?.querySelector('[data-pass-representative-field]');
-    if(field)field.hidden=String(event.target.value||'')==='representative';
-    return;
-  }
   if(state.platformAdmin&&event.target.matches('[data-ga-multi] input[type="checkbox"]')){gameAdminUpdateMultiChoice(event.target);if(state.gameAdminOpen)state.gameAdmin.dirty=true;return;}
   if(state.gameAdminOpen&&state.platformAdmin&&event.target.matches('[data-game-admin-inactive]')){
     state.gameAdmin.showInactive=event.target.checked;
