@@ -1166,6 +1166,16 @@ body:has(.runtime-app--game-info.game-center)::before {
 .lac-pass-application__cooldown{display:inline-flex;width:fit-content;margin-top:4px;padding:9px 12px;border:1px solid #4f5962;border-radius:9px;background:#171d23;color:#aeb8c0;font-size:11px;font-weight:800}
 
 .lac-pass-form{display:grid;gap:18px}
+/* Company application: compact, readable beta verification form */
+.lac-pass-form__notice{display:grid;gap:5px;padding:12px 15px;border-left:2px solid #957955;background:#14191d;border-radius:3px 9px 9px 3px;color:#aab5bd;font-size:10.5px;line-height:1.6}
+.lac-pass-form__notice strong{color:#e0e5e8;font-size:11.5px;margin-bottom:2px}
+.lac-pass-form__grid [hidden]{display:none!important}
+.lac-pass-form__consent small{color:#75828c;font-size:9px;font-weight:500}
+.lac-pass-form__hint{color:#83909a;font-size:10px;line-height:1.6}
+.lac-pass-form:not(.lac-pass-form--admin) .lac-pass-form__section{padding:0;border:0;border-radius:0;background:transparent;gap:12px}
+.lac-pass-form:not(.lac-pass-form--admin) .lac-pass-form__section>header{padding-bottom:8px;border-bottom:1px solid #29323a}
+.lac-pass-form:not(.lac-pass-form--admin) .lac-pass-form__section>header strong{font-size:12px}
+.lac-pass-form:not(.lac-pass-form--admin) .lac-pass-form__grid label small{min-height:0}
 .lac-pass-form__identity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .lac-pass-form__identity>div{display:grid;gap:4px;padding:11px 12px;border:1px solid #2b353d;border-radius:10px;background:#0d1318}
 .lac-pass-form__identity span{color:#75818a;font-size:9px;font-weight:800;letter-spacing:.05em}

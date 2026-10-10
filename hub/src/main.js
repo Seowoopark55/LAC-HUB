@@ -3686,6 +3686,10 @@ root.addEventListener('drop', event=>{
 });
 
 root.addEventListener('change', event => {
+  if(event.target.matches('form[data-form="pass-application"] select[name="requester_role"], form[data-form="admin-pass-application"] select[name="requester_role"]')){
+    const field=event.target.closest('form').querySelector('[data-pass-representative-field]');
+    if(field){const isRepresentative=event.target.value==='representative';field.hidden=isRepresentative;const input=field.querySelector('input');if(input){input.disabled=isRepresentative;input.required=!isRepresentative;}}
+  }
   if (state.modal?.type === 'member-register' && event.target.matches('form[data-form="member-register"] select[name="role"]')) {
     state.modal.role = event.target.value;
   }
