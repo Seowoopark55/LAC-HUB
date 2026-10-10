@@ -48,6 +48,58 @@
     {
       "source": "/cook/",
       "destination": "/index.html"
+    },
+    {
+      "source": "/game",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/game/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/game/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/company",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/company/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/company/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/notices",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/notices/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/support/",
+      "destination": "/index.html"
     }
   ]
 }
