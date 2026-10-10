@@ -33,6 +33,10 @@ import { readPrimaryScreen, recordPrimaryScreen, replacePrimaryScreen, routeForP
 const root = document.querySelector('#app');
 const MODBOOK_REVIEW_STORAGE_KEY='lac_hub_pending_modbook_review_v1';
 const UUID_RE=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const COMPANY_CONTEXT_FRESH_MS=60_000;
+let companyDataLoadPromise=null;
+let companyDataLoadCompanyId='';
+const companyPageLoadPromises=new Map();
 function pendingModbookReviewId(){
   const fromUrl=String(new URLSearchParams(window.location.search).get('modbook-review')||'').trim();
   if(UUID_RE.test(fromUrl)){try{sessionStorage.setItem(MODBOOK_REVIEW_STORAGE_KEY,fromUrl);}catch{}return fromUrl;}
@@ -1103,7 +1107,7 @@ function installPrimaryScreenHistory() {
     render();
     if (state.page === 'hub-board') void loadHubBoard();
     if (state.page==='game-info' && !state.info.loaded && !state.info.loading) void loadGameInfo();
-    if (state.page==='combat' && !state.combat.overview && !state.combat.loading) void loadCombatOverview();
+    if (['dashboard','fund','members','assets','accounts','questions','suggestions','settings','combat','platform'].includes(state.page)) void queueCompanyPageData(state.page);
   });
 }
 
@@ -1243,6 +1247,60 @@ function companyDataReadyForCurrentCompany(){
 }
 function companyAccessDecisionKnown(){
   return Boolean(state.companyId && ['ready','error'].includes(String(state.companyAccessStatus||'')));
+}
+
+function companyAccessFreshForCurrentCompany(){
+  const checkedAt=Number(state.companyAccessCheckedAt||0);
+  return Boolean(state.companyId && state.companyAccessStatus==='ready' && checkedAt && Date.now()-checkedAt<COMPANY_CONTEXT_FRESH_MS);
+}
+function companyContextFreshForCurrentCompany(){
+  const loadedAt=Number(state.companyDataLoadedAt||0);
+  return companyDataReadyForCurrentCompany() && companyAccessFreshForCurrentCompany() && Boolean(loadedAt && Date.now()-loadedAt<COMPANY_CONTEXT_FRESH_MS);
+}
+function ensureCompanyData({force=false}={}){
+  const companyId=String(state.companyId||'');
+  if(!companyId)return Promise.resolve();
+  if(!force&&companyContextFreshForCurrentCompany())return Promise.resolve();
+  if(companyDataLoadPromise&&companyDataLoadCompanyId===companyId)return companyDataLoadPromise;
+  const request=loadCompanyData();
+  companyDataLoadCompanyId=companyId;
+  companyDataLoadPromise=request.finally(()=>{
+    if(companyDataLoadCompanyId===companyId){companyDataLoadPromise=null;companyDataLoadCompanyId='';}
+  });
+  return companyDataLoadPromise;
+}
+async function loadCompanyPageData(page=state.page){
+  const companyId=String(state.companyId||'');
+  if(!companyId)return;
+  const stillCurrent=()=>String(state.companyId||'')===companyId;
+  if(['dashboard','fund'].includes(page)&&!state.fundSnapshot)await loadFundSnapshot();
+  if(!stillCurrent())return;
+  if(['dashboard','assets','accounts'].includes(page)&&!state.assetsSnapshot)await loadAssetsAndAccounts();
+  if(!stillCurrent())return;
+  if(page==='questions')await loadQuestionBoard();
+  if(!stillCurrent())return;
+  if(page==='suggestions')await loadSuggestionBoard();
+  if(!stillCurrent())return;
+  if(page==='combat'&&!state.combat.overview)await loadCombatOverview();
+  if(!stillCurrent())return;
+  if(page==='platform'&&state.platformAdmin){
+    state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);
+    if(!stillCurrent())return;
+    await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);
+  }
+}
+function queueCompanyPageData(page=state.page){
+  const companyId=String(state.companyId||'');
+  const key=`${companyId}:${page}`;
+  if(companyPageLoadPromises.has(key))return companyPageLoadPromises.get(key);
+  const request=loadCompanyPageData(page)
+    .catch(error=>{if(String(state.companyId||'')===companyId&&state.page===page)setError(error);})
+    .finally(()=>{
+      companyPageLoadPromises.delete(key);
+      if(String(state.companyId||'')===companyId&&state.page===page)render();
+    });
+  companyPageLoadPromises.set(key,request);
+  return request;
 }
 
 function clearCompanyData() {
@@ -2537,7 +2595,16 @@ root.addEventListener('click', async event => {
   const gameAdminButton=event.target.closest('[data-game-admin-action]');
   if(gameAdminButton){event.preventDefault();try{await gameAdminAction(gameAdminButton);}catch(error){setError(error);}return;}
   const pageBtn=event.target.closest('[data-page]');
-  if(pageBtn){ if(state.page==='hub-board'&&['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft(); if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='combat'&&!state.combat.overview) await loadCombatOverview(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);} render(); return; }
+  if(pageBtn){
+    if(state.page==='hub-board'&&['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft();
+    if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;}
+    state.accountMenuOpen=false;
+    navigatePrimaryScreen(pageBtn.dataset.page);
+    localStorage.setItem('axe_product_page',state.page);
+    render();
+    void queueCompanyPageData(state.page);
+    return;
+  }
   const infoTab=event.target.closest('[data-info-table]');
   if(infoTab){if(!canOpenWebContent(state,'game_info'))return;state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';syncPrimaryScreenRoute();render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
@@ -2817,17 +2884,18 @@ root.addEventListener('click', async event => {
       navigatePrimaryScreen('company-start');render();return;
     }
     state.requestedContent='회사 관리';
+    state.accountMenuOpen=false;state.companyMenuOpen=false;
     navigatePrimaryScreen('dashboard');localStorage.setItem('axe_product_page','dashboard');
-    // refreshAll already loaded the selected company. Reuse that in-memory context
-    // instead of blocking every HUB → company-console click on the same RPC bundle.
-    if(companyDataReadyForCurrentCompany()){render();return;}
-    if(!companyAccessDecisionKnown()||state.companyAccessStatus==='error')state.companyAccessStatus='loading';
+    if(companyContextFreshForCurrentCompany()){render();return;}
+    if(!companyAccessFreshForCurrentCompany())state.companyAccessStatus='loading';
+    state.companyDataLoading=true;
     render();
-    try {await loadCompanyData();}
-    catch(error){state.companyAccess=null;state.companyAccessError=String(error?.message||error||'이용권 조회 실패');state.companyAccessStatus='error';state.companyAccessCheckedAt=Date.now();}
-    render();return;
+    void ensureCompanyData({force:true})
+      .catch(error=>{state.companyAccess=null;state.companyAccessError=String(error?.message||error||'이용권 조회 실패');state.companyAccessStatus='error';state.companyAccessCheckedAt=Date.now();})
+      .finally(()=>render());
+    return;
   }
-  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}resetScopedGameInfo();state.companyId=next;state.companyAccess=null;state.companyAccessError='';state.companyAccessStatus='loading';state.companyAccessCheckedAt=0;state.companyDataCompanyId='';state.companyDataLoadedAt=0;state.companyDataLoading=true;state.companyPassRequest=null;state.companyPassRequestError='';localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.combat={overview:null,detail:null,selectedMembershipId:'',period:'30d',rankMode:'kd',loading:false,detailLoading:false,error:''};state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;await withMutation(loadCompanyData);if(state.page==='game-info'&&state.companyId===next)await loadGameInfo();return;}
+  if(action==='switch-company'){const next=String(actionEl.dataset.companyId||'');clearReconnectPoll();clearCatalogPoll();state.companyMenuOpen=false;if(!next||next===state.companyId){render();return;}resetScopedGameInfo();state.companyId=next;state.companyAccess=null;state.companyAccessError='';state.companyAccessStatus='loading';state.companyAccessCheckedAt=0;state.companyDataCompanyId='';state.companyDataLoadedAt=0;state.companyDataLoading=true;state.companyPassRequest=null;state.companyPassRequestError='';localStorage.setItem('axe_product_company_id',next);state.fundSnapshot=null;state.fundLedgerAttachments=[];state.assetsSnapshot=null;state.accountsSnapshot=null;state.combat={overview:null,detail:null,selectedMembershipId:'',period:'30d',rankMode:'kd',loading:false,detailLoading:false,error:''};state.fundMonthlyRows=[];state.fundLedgerPage=1;state.fundReviewPage=1;state.memberPage=1;state.assetPage=1;state.returnPage=1;state.accountPage=1;state.questionPage=1;state.suggestionPage=1;state.cookingPage=1;state.platformPage=1;render();void ensureCompanyData({force:true}).then(async()=>{if(state.page==='game-info'&&state.companyId===next)await loadGameInfo();}).catch(error=>{if(state.companyId!==next)return;state.companyAccess=null;state.companyAccessError=String(error?.message||error||'회사 정보를 불러오지 못했습니다.');state.companyAccessStatus='error';state.companyAccessCheckedAt=Date.now();}).finally(()=>{if(state.companyId===next)render();});return;}
   if(action==='dismiss-error'){state.error='';render();return;}
   if(action==='open-support-image'){const url=String(actionEl.dataset.imageUrl||'');if(!url)return;state.supportImageViewer={url,name:String(actionEl.dataset.imageName||'첨부 사진')};render();return;}
   if(action==='close-support-image'){state.supportImageViewer=null;render();return;}
