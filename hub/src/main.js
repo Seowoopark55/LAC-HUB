@@ -116,6 +116,17 @@ function showCookPreview({ push = false } = {}) {
       const button=event.target.closest('button[data-action]');
       if(!button||!cookHost.contains(button))return;
       const action=button.dataset.action;
+      if(action==='cook-hub-return'){
+        event.preventDefault();
+        // COOK is mounted inside the current SPA. Returning to the HUB must not
+        // perform a full document navigation, otherwise the global startup loader
+        // flashes while session/company state is bootstrapped again.
+        navigatePrimaryScreen('hub',{replace:true});
+        switchVisibleApp(false);
+        render();
+        window.scrollTo(0,0);
+        return;
+      }
       if(action==='cook-preview-open'){
         event.preventDefault();
         const dialog=cookHost.querySelector('[data-cook-preview-dialog]');
@@ -214,7 +225,7 @@ function showCookPreview({ push = false } = {}) {
     const pending=loggedIn && !state.ready;
     const published=contentIsVisible(state,'lac_cook');
     cookHost.innerHTML=`<section class="lac-cook-gate" aria-label="요리 계산기 이용 안내">
-      <div class="lac-pass-landing__top"><a class="lac-cook-gate__back lac-pass-back" href="/" aria-label="LAC HUB 메인으로 돌아가기"><span class="lac-pass-back__icon" aria-hidden="true">←</span><span>LAC HUB로 돌아가기</span></a><span class="lac-pass-landing__context">요리 계산기 <span aria-hidden="true">·</span> 이용 안내</span></div>
+      <div class="lac-pass-landing__top"><button type="button" class="lac-cook-gate__back lac-pass-back" data-action="cook-hub-return" aria-label="LAC HUB 메인으로 돌아가기"><span class="lac-pass-back__icon" aria-hidden="true">←</span><span>LAC HUB로 돌아가기</span></button><span class="lac-pass-landing__context">요리 계산기 <span aria-hidden="true">·</span> 이용 안내</span></div>
       <span class="lac-cook-gate__eyebrow">요리 계산기 · 화면 예시</span>
       <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 요리 계산기를 이용할 수 없어요.':'요리 계산기, 이렇게 이용할 수 있어요.'}</h1>
       <p>${published&&state.contentPoliciesLoaded?'요리를 선택하면 필요한 재료와 작업 수량을 한눈에 정리할 수 있어요.':'LAC HUB 메인에서 현재 이용 가능한 콘텐츠를 확인해 주세요.'}</p>
@@ -931,12 +942,45 @@ function applyRouteContext(route) {
   if (!route || route.kind !== 'app') return;
   if (route.platformView) state.platformView = route.platformView;
   if (route.hubBoardTab) state.hubBoard.tab = route.hubBoardTab;
+  if (route.infoTable && ['info_crafts','info_processes','info_quests','info_skill_ranks','modbook_catalog'].includes(route.infoTable)) {
+    if (state.info.table !== route.infoTable) {
+      state.info.table = route.infoTable;
+      state.info.craftGroup = '근접무기';
+      state.info.modbookCategory = '';
+      state.info.selectedId = '';
+      state.info.query = '';
+      state.info.filterPrimary = '__all__';
+      state.info.filterSecondary = '__all__';
+    }
+  }
+  if (route.fundTab && ['ledger','weekly','review','balance','settings'].includes(route.fundTab)) {
+    state.fundTab = route.fundTab;
+    localStorage.setItem('axe_product_fund_tab', state.fundTab);
+  }
+  if (route.assetTab && ['assets','returns'].includes(route.assetTab)) state.assetTab = route.assetTab;
+  if (route.settingsTab && ['basic','modules','cooking'].includes(route.settingsTab)) {
+    state.settingsTab = route.settingsTab;
+    localStorage.setItem('axe_product_settings_tab', state.settingsTab);
+  }
+  if (route.adminPassView && ['pending','recent','all'].includes(route.adminPassView)) {
+    state.adminPassView = route.adminPassView;
+    state.adminPassPage = 1;
+  }
+  if (route.platformInboxFilter && ['all','content','site','company'].includes(route.platformInboxFilter)) {
+    state.platformInboxFilter = route.platformInboxFilter;
+  }
 }
 
 function routePathForCurrentState(page = state.page) {
   return routePathForScreen(page, {
     platformView: state.platformView,
     hubBoardTab: state.hubBoard?.tab,
+    infoTable: state.info?.table,
+    fundTab: state.fundTab,
+    assetTab: state.assetTab,
+    settingsTab: state.settingsTab,
+    adminPassView: state.adminPassView,
+    platformInboxFilter: state.platformInboxFilter,
   });
 }
 
@@ -1759,6 +1803,11 @@ async function refreshAll() {
     state.page = allowedHistoryPage(state.page);
     if(!isBuildRoute()&&!isCookRoute())syncPrimaryScreenRoute({replace:true});
     await loadCompanyData();
+    if(state.page==='settings' && state.settingsTab==='cooking' && !moduleRow(state,'cooking')){
+      state.settingsTab='basic';
+      localStorage.setItem('axe_product_settings_tab','basic');
+      syncPrimaryScreenRoute({replace:true});
+    }
     if(state.page==='game-info' && canOpenWebContent(state,'game_info'))await loadGameInfo();
     if(state.platformAdmin&&modbookReviewId){
       await loadPlatformModbookReviewCenter(modbookReviewId);
@@ -1847,6 +1896,7 @@ function startReconnectStatusPoll() {
         await loadBaseCompanyData();
         state.settingsTab='basic';
         localStorage.setItem('axe_product_settings_tab','basic');
+        if(state.page==='settings')syncPrimaryScreenRoute({replace:true});
         setNotice('기존 Discord 연결 정리가 완료됐습니다. 다시 연결할 수 있습니다.');
         return;
       }
@@ -1874,7 +1924,7 @@ async function handleDiscordOAuthReturn() {
   if(!token&&!error)return; history.replaceState(history.state,'',`${location.pathname}${location.search}`);
   if(error) throw new Error(discordOAuthErrorMessage(error));
   if(!state.session?.user) throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
-  const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); navigatePrimaryScreen('settings',{replace:true}); state.settingsTab='basic'; localStorage.setItem('axe_product_page','settings'); localStorage.setItem('axe_product_settings_tab','basic');
+  const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.settingsTab='basic'; localStorage.setItem('axe_product_settings_tab','basic'); navigatePrimaryScreen('settings',{replace:true}); localStorage.setItem('axe_product_page','settings');
   const resumeGuide=localStorage.getItem('axe_product_setup_resume')==='1';
   const resumeStepRaw=Number(localStorage.getItem('axe_product_setup_resume_step'));
   localStorage.removeItem('axe_product_setup_resume');
@@ -2489,12 +2539,12 @@ root.addEventListener('click', async event => {
   const pageBtn=event.target.closest('[data-page]');
   if(pageBtn){ if(state.page==='hub-board'&&['notice-compose','notice-edit'].includes(state.hubBoard.mode))await cleanupHubNoticeDraft(); if(pageBtn.dataset.page==='hub'){navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;} state.accountMenuOpen=false; navigatePrimaryScreen(pageBtn.dataset.page); localStorage.setItem('axe_product_page',state.page); if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot); if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts); if(state.page==='questions') await withMutation(loadQuestionBoard); if(state.page==='suggestions') await withMutation(loadSuggestionBoard); if(state.page==='combat'&&!state.combat.overview) await loadCombatOverview(); if(state.page==='platform'&&state.platformAdmin){state.platformSnapshot=await getPlatformCompanies().catch(()=>state.platformSnapshot||[]);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);} render(); return; }
   const infoTab=event.target.closest('[data-info-table]');
-  if(infoTab){if(!canOpenWebContent(state,'game_info'))return;state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';render();return;}
+  if(infoTab){if(!canOpenWebContent(state,'game_info'))return;state.info.table=infoTab.dataset.infoTable;state.info.craftGroup='근접무기';state.info.modbookCategory='';state.info.selectedId='';state.info.query='';state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';syncPrimaryScreenRoute();render();return;}
   const infoFilter=event.target.closest('[data-info-filter]');
   if(infoFilter){const field=infoFilter.dataset.infoFilter;if(!['craftGroup','primary','secondary','modbookCategory'].includes(field))return;const key=field==='craftGroup'?'craftGroup':field==='primary'?'filterPrimary':field==='secondary'?'filterSecondary':'modbookCategory';const value=infoFilter.dataset.infoValue;state.info[key]=field==='secondary'&&state.info.table==='info_quests'&&state.info[key]===value?'__all__':value;if(field==='craftGroup'){state.info.filterPrimary='__all__';state.info.filterSecondary='__all__';}else if(field==='primary')state.info.filterSecondary='__all__';if(field!=='modbookCategory')state.info.modbookCategory='';state.info.query='';state.info.selectedId='';render();return;}
   // A global result opens its source category; the search text is cleared only after navigation.
   const infoResult=event.target.closest('[data-info-result-table]');
-  if(infoResult){if(!canOpenWebContent(state,'game_info'))return;const source=infoResult.dataset.infoResultTable;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks','modbook_catalog'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.modbookCategory=infoResult.dataset.infoResultModbookCategory||'';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';render();return;}
+  if(infoResult){if(!canOpenWebContent(state,'game_info'))return;const source=infoResult.dataset.infoResultTable;if(!['info_crafts','info_material_recipes','info_processes','info_quests','info_skill_ranks','modbook_catalog'].includes(source))return;state.info.table=source==='info_material_recipes'?'info_crafts':source;state.info.craftGroup=source==='info_material_recipes'?'무기부품':source==='info_crafts'?infoResult.dataset.infoResultGroup:'근접무기';state.info.filterPrimary=infoResult.dataset.infoResultPrimary||'__all__';state.info.filterSecondary=infoResult.dataset.infoResultSecondary||'__all__';state.info.modbookCategory=infoResult.dataset.infoResultModbookCategory||'';state.info.selectedId=infoResult.dataset.infoResultId;state.info.query='';syncPrimaryScreenRoute();render();return;}
   const infoRow=event.target.closest('[data-info-id]');
   if(infoRow){
     // Render replaces the entire game-info list. Keep its current position when
@@ -2511,9 +2561,9 @@ root.addEventListener('click', async event => {
     return;
   }
   const fundTab=event.target.closest('[data-fund-tab]');
-  if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
+  if(fundTab){state.fundTab=fundTab.dataset.fundTab;localStorage.setItem('axe_product_fund_tab',state.fundTab);syncPrimaryScreenRoute();render();if(state.fundTab==='weekly') await loadFundWeeklyMonth();return;}
   const memberFilter=event.target.closest('[data-member-filter]'); if(memberFilter){state.memberFilter=memberFilter.dataset.memberFilter;state.memberPage=1;render();return;}
-  const assetTab=event.target.closest('[data-asset-tab]'); if(assetTab){state.assetTab=assetTab.dataset.assetTab;if(state.assetTab==='assets')state.assetPage=1;else state.returnPage=1;render();return;}
+  const assetTab=event.target.closest('[data-asset-tab]'); if(assetTab){state.assetTab=assetTab.dataset.assetTab;if(state.assetTab==='assets')state.assetPage=1;else state.returnPage=1;syncPrimaryScreenRoute();render();return;}
   const settingsTab=event.target.closest('[data-settings-tab]');
   if(settingsTab){
     const nextTab=String(settingsTab.dataset.settingsTab||'basic');
@@ -2527,6 +2577,7 @@ root.addEventListener('click', async event => {
         await loadBaseCompanyData();
         state.settingsTab='modules';
         localStorage.setItem('axe_product_settings_tab','modules');
+        syncPrimaryScreenRoute();
         setNotice('역할 설정을 저장했습니다. 기능·채널 설정으로 이동합니다.');
       });
       return;
@@ -2535,7 +2586,7 @@ root.addEventListener('click', async event => {
       setError('먼저 Discord 서버를 연결해 주세요.');
       return;
     }
-    state.settingsTab=nextTab;localStorage.setItem('axe_product_settings_tab',state.settingsTab);render();return;
+    state.settingsTab=nextTab;localStorage.setItem('axe_product_settings_tab',state.settingsTab);syncPrimaryScreenRoute();render();return;
   }
   if(event.target.matches('[data-support-image-backdrop]')){state.supportImageViewer=null;render();return;}
   if(event.target.matches('[data-modal-backdrop]')){ if(['cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
@@ -2595,6 +2646,7 @@ root.addEventListener('click', async event => {
     if(!state.platformAdmin)return;
     state.accountMenuOpen=false;
     state.platformView='pass-requests';
+    state.adminPassView='pending';state.adminPassPage=1;
     navigatePrimaryScreen('platform');
     await loadAdminPassRequests();
     render();return;
@@ -2960,7 +3012,7 @@ root.addEventListener('click', async event => {
   }
   if(action==='setup-demo-skip-members'){if(!state.setupDemo)return;state.setupDemo.memberImportDone=true;state.setupDemo.memberImportSkipped=true;render();return;}
   if(action==='refresh-questions'){await withMutation(loadQuestionBoard);return;}
-  if(action==='platform-inbox-filter'){state.platformInboxFilter=String(actionEl.dataset.inboxFilter||'all');render();return;}
+  if(action==='platform-inbox-filter'){state.platformInboxFilter=String(actionEl.dataset.inboxFilter||'all');syncPrimaryScreenRoute();render();return;}
   if(action==='refresh-platform-inbox'){await withMutation(async()=>{await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports()]);});return;}
   if(action==='open-platform-build-report'){
     const id=Number(actionEl.dataset.reportId||0);
@@ -3071,9 +3123,9 @@ root.addEventListener('click', async event => {
   }
   if(action==='dashboard-jump'){
     const page=String(actionEl.dataset.page||'dashboard');
-    if(validPages.includes(page)){navigatePrimaryScreen(page);localStorage.setItem('axe_product_page',page);}
     if(actionEl.dataset.fundTab){state.fundTab=String(actionEl.dataset.fundTab);localStorage.setItem('axe_product_fund_tab',state.fundTab);}
     if(actionEl.dataset.settingsTab){state.settingsTab=String(actionEl.dataset.settingsTab);localStorage.setItem('axe_product_settings_tab',state.settingsTab);}
+    if(validPages.includes(page)){navigatePrimaryScreen(page);localStorage.setItem('axe_product_page',page);}
     if(['dashboard','fund'].includes(state.page)&&!state.fundSnapshot) await withMutation(loadFundSnapshot);
     if(['dashboard','assets','accounts'].includes(state.page)&&!state.assetsSnapshot) await withMutation(loadAssetsAndAccounts);
     if(state.page==='questions') await withMutation(loadQuestionBoard);
@@ -3111,7 +3163,7 @@ root.addEventListener('click', async event => {
     if(!state.platformAdmin)return;
     const view=String(actionEl.dataset.view||'pending');
     if(!['pending','recent','all'].includes(view))return;
-    state.adminPassView=view;state.adminPassPage=1;render();return;
+    state.adminPassView=view;state.adminPassPage=1;syncPrimaryScreenRoute();render();return;
   }
   if(action==='pass-admin-page'){
     if(!state.platformAdmin)return;
@@ -3881,6 +3933,7 @@ root.addEventListener('submit', async event => {
       if(wasRoleStep || state.onboardingStatus?.current_step==='modules'){
         state.settingsTab='modules';
         localStorage.setItem('axe_product_settings_tab','modules');
+        syncPrimaryScreenRoute();
       }
       setNotice(wasRoleStep?'역할 설정을 저장했습니다. 기능·채널 설정으로 이동합니다.':'기본 정보를 저장했습니다.');return;
     }
