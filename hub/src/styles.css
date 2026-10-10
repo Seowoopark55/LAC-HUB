@@ -1166,45 +1166,79 @@ body:has(.runtime-app--game-info.game-center)::before {
 .lac-pass-application__cooldown{display:inline-flex;width:fit-content;margin-top:4px;padding:9px 12px;border:1px solid #4f5962;border-radius:9px;background:#171d23;color:#aeb8c0;font-size:11px;font-weight:800}
 
 .lac-pass-form{display:grid;gap:18px}
-/* Company application: compact, readable beta verification form */
-.lac-pass-form__notice{display:grid;gap:5px;padding:12px 15px;border-left:2px solid #957955;background:#14191d;border-radius:3px 9px 9px 3px;color:#aab5bd;font-size:10.5px;line-height:1.6}
-.lac-pass-form__notice strong{color:#e0e5e8;font-size:11.5px;margin-bottom:2px}
+/* Company application: refined, premium application sheet */
 .lac-pass-form__grid [hidden]{display:none!important}
-.lac-pass-form__consent small{color:#75828c;font-size:9px;font-weight:500}
-.lac-pass-form__hint{color:#83909a;font-size:10px;line-height:1.6}
-.lac-pass-form:not(.lac-pass-form--admin) .lac-pass-form__section{padding:0;border:0;border-radius:0;background:transparent;gap:12px}
-.lac-pass-form:not(.lac-pass-form--admin) .lac-pass-form__section>header{padding-bottom:8px;border-bottom:1px solid #29323a}
-.lac-pass-form:not(.lac-pass-form--admin) .lac-pass-form__section>header strong{font-size:12px}
-.lac-pass-form:not(.lac-pass-form--admin) .lac-pass-form__grid label small{min-height:0}
-.lac-pass-form__identity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.lac-pass-form__identity>div{display:grid;gap:4px;padding:11px 12px;border:1px solid #2b353d;border-radius:10px;background:#0d1318}
-.lac-pass-form__identity span{color:#75818a;font-size:9px;font-weight:800;letter-spacing:.05em}
-.lac-pass-form__identity strong{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#e2e7ea;font-size:12px;white-space:nowrap}
-.lac-pass-form__body{display:grid;gap:14px}
-.lac-pass-form__section{display:grid;gap:14px;padding:18px;border:1px solid #27323a;border-radius:12px;background:#0b1015}
-.lac-pass-form__section>header{display:flex;align-items:end;justify-content:space-between;gap:18px;padding-bottom:12px;border-bottom:1px solid #202a31}
-.lac-pass-form__section>header>div{display:flex;align-items:center;gap:8px}
-.lac-pass-form__section>header>div>span{display:grid;place-items:center;width:24px;height:24px;border:1px solid #755f3f;border-radius:7px;background:#2b241b;color:#d7b67e;font-size:9px;font-weight:900}
-.lac-pass-form__section>header strong{color:#dbe1e5;font-size:13px}
-.lac-pass-form__section>header p{margin:0;color:#6f7b84;font-size:9px;line-height:1.5;text-align:right}
-.lac-pass-form__grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
-.lac-pass-form__grid--single{grid-template-columns:1fr}
-.lac-pass-form__grid label{display:grid;align-content:start;gap:7px;min-width:0;color:#aeb8be;font-size:10px;font-weight:850}
-.lac-pass-form__grid label>span{display:flex;align-items:center;gap:6px}
-.lac-pass-form__grid label b{color:#d0aa70;font-size:8px}
-.lac-pass-form__grid label em{color:#68747c;font-size:8px;font-style:normal}
-.lac-pass-form__grid label small{min-height:2.6em;color:#717d85;font-size:8.5px;font-weight:650;line-height:1.5}
-.lac-pass-form__grid input,.lac-pass-form__grid select,.lac-pass-form__grid textarea{box-sizing:border-box;width:100%;min-height:44px;padding:10px 12px;border:1px solid #313c44;border-radius:9px;background:#0d1318;color:#e0e5e8;font:inherit;font-size:11px;outline:none}
-.lac-pass-form__grid textarea{min-height:108px;resize:vertical}
-.lac-pass-form__grid input::placeholder,.lac-pass-form__grid textarea::placeholder{color:#66727b;opacity:1}
-.lac-pass-form__grid input:focus,.lac-pass-form__grid select:focus,.lac-pass-form__grid textarea:focus{border-color:rgba(198,158,94,.58);box-shadow:0 0 0 3px rgba(198,158,94,.065)}
-.lac-pass-form__consent{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;border:1px solid #3a4650;border-radius:10px;background:#10171d;color:#9ea9b1;cursor:pointer}
-.lac-pass-form__consent input{margin-top:2px;accent-color:#b88b4d}
-.lac-pass-form__consent span{display:grid;gap:3px;font-size:9.5px;line-height:1.55}
-.lac-pass-form__consent strong{color:#d7dde1;font-size:10.5px}
-.lac-pass-form__hint{margin:0}
-.lac-pass-form__footer{display:flex;justify-content:flex-end;gap:8px;margin-top:0!important}
-.lac-pass-form__footer button{min-width:120px}
+.lac-pass-form__identity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lac-pass-form__identity>div{display:grid;gap:6px;padding:14px 16px;border:1px solid #26313a;border-radius:12px;background:linear-gradient(180deg,#0f151c,#0b1016)}
+.lac-pass-form__identity span{color:#7e8a94;font-size:10px;font-weight:800;letter-spacing:.06em}
+.lac-pass-form__identity strong{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#edf1f4;font-size:13px;white-space:nowrap}
+.lac-pass-form__body{display:grid!important;grid-template-columns:1fr!important;gap:16px!important;padding:18px 20px 20px!important}
+.lac-pass-form__hint{margin:0;color:#87939c;font-size:10px;line-height:1.6}
+.lac-pass-form__sheet{display:grid;gap:16px}
+.lac-pass-form__notice{display:grid;gap:6px;padding:14px 16px;border-left:3px solid #9c7b4b;border-radius:4px 14px 14px 4px;background:linear-gradient(180deg,rgba(25,31,37,.95),rgba(17,22,28,.98));color:#b7c1c8}
+.lac-pass-form__notice strong{color:#edf1f4;font-size:13px}
+.lac-pass-form__notice p{margin:0;font-size:11px;line-height:1.65}
+.lac-pass-form__notice--hero{padding:16px 18px;background:linear-gradient(180deg,rgba(21,27,34,.96),rgba(15,20,26,.98));border:1px solid rgba(159,124,74,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+.lac-pass-form__columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.lac-pass-form__panel{display:grid;gap:14px;padding:18px;border:1px solid #24303a;border-radius:16px;background:linear-gradient(180deg,#0c1218,#0b1015);box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+.lac-pass-form__panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-bottom:12px;border-bottom:1px solid #202a33}
+.lac-pass-form__panel-head strong{display:block;color:#edf1f4;font-size:15px;line-height:1.3}
+.lac-pass-form__panel-head p{margin:4px 0 0;color:#7f8b94;font-size:10.5px;line-height:1.55}
+.lac-pass-form__field-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:13px}
+.lac-pass-form__field-grid--single{grid-template-columns:1fr}
+.lac-pass-form__field{display:grid;align-content:start;gap:7px;min-width:0;color:#b5bfc6;font-size:10.5px;font-weight:800}
+.lac-pass-form__field--grow textarea{min-height:150px}
+.lac-pass-form__field>span{display:flex;align-items:center;gap:6px;min-height:16px}
+.lac-pass-form__field b{color:#d3ab6f;font-size:8.5px}
+.lac-pass-form__field em{color:#73808a;font-size:8.5px;font-style:normal}
+.lac-pass-form__field input,.lac-pass-form__field select,.lac-pass-form__field textarea{box-sizing:border-box;width:100%;min-height:46px;padding:11px 13px;border:1px solid #2f3a43;border-radius:11px;background:#0e141a;color:#e7edf2;font:inherit;font-size:11.5px;outline:none;transition:border-color .15s ease, box-shadow .15s ease, background .15s ease}
+.lac-pass-form__field textarea{min-height:128px;resize:vertical}
+.lac-pass-form__field input::placeholder,.lac-pass-form__field textarea::placeholder{color:#66737d;opacity:1}
+.lac-pass-form__field input:focus,.lac-pass-form__field select:focus,.lac-pass-form__field textarea:focus{border-color:rgba(198,158,94,.58);box-shadow:0 0 0 3px rgba(198,158,94,.075);background:#10171e}
+.lac-pass-form__microcopy{padding:2px 2px 0;color:#7b8791;font-size:10px;line-height:1.65}
+.lac-pass-form__confirm{display:grid;gap:10px}
+.lac-pass-form__consent{display:flex;align-items:flex-start;gap:12px;padding:14px 15px;border:1px solid #33404a;border-radius:14px;background:linear-gradient(180deg,#10171d,#0d1419);color:#a5b0b8;cursor:pointer}
+.lac-pass-form__consent input{margin-top:1px;accent-color:#bd8e49}
+.lac-pass-form__consent span{display:grid;gap:4px;font-size:10px;line-height:1.6}
+.lac-pass-form__consent strong{color:#eef2f5;font-size:12px}
+.lac-pass-form__consent em{color:#b6c0c7;font-size:10px;font-style:normal}
+.lac-pass-form__consent small{color:#798691;font-size:9.5px;font-weight:600}
+.lac-pass-form__footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:2px;margin-top:0!important}
+.lac-pass-form__footer button{min-width:126px;height:40px}
+.lac-pass-form__footer .runtime-btn-ghost{background:#0e141a;color:#b7c1c8}
+.lac-pass-form__footer .runtime-btn-primary{background:#1a140c;color:#efc774;border-color:rgba(228,178,75,.4)}
+
+.lac-pass-form--admin .lac-pass-form__section{display:grid;gap:14px;padding:18px;border:1px solid #27323a;border-radius:12px;background:#0b1015}
+.lac-pass-form--admin .lac-pass-form__section>header{display:flex;align-items:end;justify-content:space-between;gap:18px;padding-bottom:12px;border-bottom:1px solid #202a31}
+.lac-pass-form--admin .lac-pass-form__section>header>div{display:flex;align-items:center;gap:8px}
+.lac-pass-form--admin .lac-pass-form__section>header>div>span{display:grid;place-items:center;width:24px;height:24px;border:1px solid #755f3f;border-radius:7px;background:#2b241b;color:#d7b67e;font-size:9px;font-weight:900}
+.lac-pass-form--admin .lac-pass-form__section>header strong{color:#dbe1e5;font-size:13px}
+.lac-pass-form--admin .lac-pass-form__section>header p{margin:0;color:#6f7b84;font-size:9px;line-height:1.5;text-align:right}
+.lac-pass-form--admin .lac-pass-form__grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.lac-pass-form--admin .lac-pass-form__grid--single{grid-template-columns:1fr}
+.lac-pass-form--admin .lac-pass-form__grid label{display:grid;align-content:start;gap:7px;min-width:0;color:#aeb8be;font-size:10px;font-weight:850}
+.lac-pass-form--admin .lac-pass-form__grid label>span{display:flex;align-items:center;gap:6px}
+.lac-pass-form--admin .lac-pass-form__grid label b{color:#d0aa70;font-size:8px}
+.lac-pass-form--admin .lac-pass-form__grid label em{color:#68747c;font-size:8px;font-style:normal}
+.lac-pass-form--admin .lac-pass-form__grid label small{min-height:2.6em;color:#717d85;font-size:8.5px;font-weight:650;line-height:1.5}
+.lac-pass-form--admin .lac-pass-form__grid input,.lac-pass-form--admin .lac-pass-form__grid select,.lac-pass-form--admin .lac-pass-form__grid textarea{box-sizing:border-box;width:100%;min-height:44px;padding:10px 12px;border:1px solid #313c44;border-radius:9px;background:#0d1318;color:#e0e5e8;font:inherit;font-size:11px;outline:none}
+.lac-pass-form--admin .lac-pass-form__grid textarea{min-height:108px;resize:vertical}
+.lac-pass-form--admin .lac-pass-form__grid input::placeholder,.lac-pass-form--admin .lac-pass-form__grid textarea::placeholder{color:#66727b;opacity:1}
+.lac-pass-form--admin .lac-pass-form__grid input:focus,.lac-pass-form--admin .lac-pass-form__grid select:focus,.lac-pass-form--admin .lac-pass-form__grid textarea:focus{border-color:rgba(198,158,94,.58);box-shadow:0 0 0 3px rgba(198,158,94,.065)}
+
+@media(max-width:900px){
+  .lac-pass-form__columns{grid-template-columns:1fr}
+  .lac-pass-admin__row--detail{grid-template-columns:1fr!important}
+  .lac-pass-admin__verification{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lac-pass-admin__actions{justify-content:flex-start!important}
+}
+@media(max-width:700px){
+  .lac-pass-form__identity,.lac-pass-form__field-grid,.lac-pass-form--admin .lac-pass-form__grid{grid-template-columns:1fr}
+  .lac-pass-form__body{padding:16px!important}
+  .lac-pass-form__footer button{min-width:0;flex:1}
+  .lac-pass-form__footer{display:grid;grid-template-columns:1fr 1fr}
+  .lac-pass-admin__verification{grid-template-columns:1fr}
+}
 
 .lac-pass-admin__row--detail{display:grid!important;grid-template-columns:minmax(180px,.7fr) minmax(420px,1.5fr) auto!important;align-items:start!important;gap:16px!important}
 .lac-pass-admin__summary{display:grid;gap:5px;min-width:0}
