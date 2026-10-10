@@ -70,6 +70,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/company/access",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/company/access/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/company/:path*",
       "destination": "/index.html"
     },

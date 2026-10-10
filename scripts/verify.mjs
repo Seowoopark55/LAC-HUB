@@ -18,6 +18,7 @@ assert.ok(!f('build/src/styles.css').includes("url('/assets/"),'CSS background a
 const routes=JSON.parse(f('vercel.json')).rewrites;for(const route of routeKeys.filter(x=>x!=='/build/'))assert.ok(routes.some(r=>r.source===route));
 const spaFallbackSources=['/game','/game/','/game/:path*','/company','/company/','/company/:path*','/admin','/admin/','/admin/:path*','/notices','/notices/','/support','/support/'];
 for(const route of spaFallbackSources)assert.ok(routes.some(r=>r.source===route&&r.destination==='/index.html'),`SPA fallback missing ${route}`);
+for(const route of ['/company/access','/company/access/'])assert.ok(routes.some(r=>r.source===route&&r.destination==='/index.html'),`Company access direct refresh fallback missing ${route}`);
 for(const p of ['hub/api/discord/callback.js','hub/src/lib/productApi.js','build/public/assets/equipment/top-team.webp','build/public/assets/equipment/bottom-team.webp','build/public/assets/equipment/outer-team.webp','build/public/assets/equipment/shoes-team.webp'])assert.ok(existsSync(new URL(`../${p}`,import.meta.url)),`source missing ${p}`);
 console.log('PASS: same-origin integration routes, asset isolation, OAuth return, existing functions and clothing preserved.');
 console.log('NOTE: static checks do not verify live authentication, authorization, build, or database access.');
