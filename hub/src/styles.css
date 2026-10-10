@@ -1165,36 +1165,54 @@ body:has(.runtime-app--game-info.game-center)::before {
 .lac-pass-application__secondary.is-danger{border-color:#6e4a4a;color:#e1b6b6;background:#25191b}
 .lac-pass-application__cooldown{display:inline-flex;width:fit-content;margin-top:4px;padding:9px 12px;border:1px solid #4f5962;border-radius:9px;background:#171d23;color:#aeb8c0;font-size:11px;font-weight:800}
 
-.lac-pass-form{display:grid;gap:18px}
-.lac-pass-form__identity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.lac-pass-form__identity>div{display:grid;gap:4px;padding:11px 12px;border:1px solid #2b353d;border-radius:10px;background:#0d1318}
-.lac-pass-form__identity span{color:#75818a;font-size:9px;font-weight:800;letter-spacing:.05em}
-.lac-pass-form__identity strong{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#e2e7ea;font-size:12px;white-space:nowrap}
-.lac-pass-form__body{display:grid;gap:14px}
-.lac-pass-form__section{display:grid;gap:14px;padding:18px;border:1px solid #27323a;border-radius:12px;background:#0b1015}
-.lac-pass-form__section>header{display:flex;align-items:end;justify-content:space-between;gap:18px;padding-bottom:12px;border-bottom:1px solid #202a31}
+.lac-pass-form{display:grid;gap:14px}
+.lac-pass-form__identity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.lac-pass-form__identity>div{display:grid;gap:3px;padding:9px 11px;border:1px solid #28323a;border-radius:9px;background:#0d1318}
+.lac-pass-form__identity span{color:#75818a;font-size:8.5px;font-weight:800;letter-spacing:.04em}
+.lac-pass-form__identity strong{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#e2e7ea;font-size:11.5px;white-space:nowrap}
+.lac-pass-form__purpose{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;padding:13px 15px;border:1px solid rgba(179,143,86,.28);border-radius:10px;background:linear-gradient(110deg,rgba(179,143,86,.075),rgba(13,19,24,.76));color:#9ca7ae}
+.lac-pass-form__purpose>div{display:grid;gap:3px;min-width:0}
+.lac-pass-form__purpose strong{color:#d9dee1;font-size:10.5px}
+.lac-pass-form__purpose p{margin:0;color:#909ba2;font-size:9.5px;line-height:1.55}
+.lac-pass-form__purpose>span{max-width:270px;color:#c8aa78;font-size:9px;font-weight:800;line-height:1.5;text-align:right}
+.lac-pass-form__body{display:grid;gap:12px}
+.lac-pass-form__section{display:grid;gap:12px;padding:15px 16px;border:1px solid #27323a;border-radius:11px;background:#0b1015}
+.lac-pass-form__section>header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:10px;border-bottom:1px solid #202a31}
 .lac-pass-form__section>header>div{display:flex;align-items:center;gap:8px}
-.lac-pass-form__section>header>div>span{display:grid;place-items:center;width:24px;height:24px;border:1px solid #755f3f;border-radius:7px;background:#2b241b;color:#d7b67e;font-size:9px;font-weight:900}
-.lac-pass-form__section>header strong{color:#dbe1e5;font-size:13px}
-.lac-pass-form__section>header p{margin:0;color:#6f7b84;font-size:9px;line-height:1.5;text-align:right}
-.lac-pass-form__grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
-.lac-pass-form__grid--single{grid-template-columns:1fr}
-.lac-pass-form__grid label{display:grid;align-content:start;gap:7px;min-width:0;color:#aeb8be;font-size:10px;font-weight:850}
-.lac-pass-form__grid label>span{display:flex;align-items:center;gap:6px}
-.lac-pass-form__grid label b{color:#d0aa70;font-size:8px}
-.lac-pass-form__grid label em{color:#68747c;font-size:8px;font-style:normal}
-.lac-pass-form__grid label small{min-height:2.6em;color:#717d85;font-size:8.5px;font-weight:650;line-height:1.5}
-.lac-pass-form__grid input,.lac-pass-form__grid select,.lac-pass-form__grid textarea{box-sizing:border-box;width:100%;min-height:44px;padding:10px 12px;border:1px solid #313c44;border-radius:9px;background:#0d1318;color:#e0e5e8;font:inherit;font-size:11px;outline:none}
-.lac-pass-form__grid textarea{min-height:108px;resize:vertical}
-.lac-pass-form__grid input::placeholder,.lac-pass-form__grid textarea::placeholder{color:#66727b;opacity:1}
-.lac-pass-form__grid input:focus,.lac-pass-form__grid select:focus,.lac-pass-form__grid textarea:focus{border-color:rgba(198,158,94,.58);box-shadow:0 0 0 3px rgba(198,158,94,.065)}
-.lac-pass-form__consent{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;border:1px solid #3a4650;border-radius:10px;background:#10171d;color:#9ea9b1;cursor:pointer}
+.lac-pass-form__section>header strong{color:#dbe1e5;font-size:12px}
+.lac-pass-form__section>header>div>span{padding:3px 6px;border:1px solid #303b43;border-radius:999px;color:#7f8a91;font-size:7.5px;font-weight:800;letter-spacing:.02em}
+.lac-pass-form__section>header p{margin:0;color:#6f7b84;font-size:8.5px;line-height:1.45;text-align:right}
+.lac-pass-form__grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 13px}
+.lac-pass-form__grid--contact{grid-template-columns:minmax(220px,.8fr) minmax(0,1.2fr)}
+.lac-pass-form__grid label{display:grid;align-content:start;gap:6px;min-width:0;color:#aeb8be;font-size:9.5px;font-weight:850}
+.lac-pass-form__grid label>span{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lac-pass-form__grid label b{color:#d0aa70;font-size:7.5px}
+.lac-pass-form__grid label em{color:#68747c;font-size:7.5px;font-style:normal;font-weight:750}
+.lac-pass-form__grid [hidden]{display:none!important}
+.lac-pass-form__grid input,.lac-pass-form__grid select,.lac-pass-form__grid textarea{box-sizing:border-box;width:100%;min-height:42px;padding:9px 11px;border:1px solid #313c44;border-radius:8px;background:#0d1318;color:#e0e5e8;font:inherit;font-size:10.5px;outline:none}
+.lac-pass-form__grid textarea{min-height:78px;resize:vertical}
+.lac-pass-form__grid input::placeholder,.lac-pass-form__grid textarea::placeholder{color:#626d75;opacity:1}
+.lac-pass-form__grid input:focus,.lac-pass-form__grid select:focus,.lac-pass-form__grid textarea:focus{border-color:rgba(198,158,94,.58);box-shadow:0 0 0 3px rgba(198,158,94,.055)}
+.lac-pass-form__consent{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid #303b43;border-radius:9px;background:#0e151a;color:#909ca4;cursor:pointer}
 .lac-pass-form__consent input{margin-top:2px;accent-color:#b88b4d}
-.lac-pass-form__consent span{display:grid;gap:3px;font-size:9.5px;line-height:1.55}
-.lac-pass-form__consent strong{color:#d7dde1;font-size:10.5px}
-.lac-pass-form__hint{margin:0}
-.lac-pass-form__footer{display:flex;justify-content:flex-end;gap:8px;margin-top:0!important}
+.lac-pass-form__consent>span{display:grid;gap:2px;font-size:9px;line-height:1.5}
+.lac-pass-form__consent strong{color:#d5dbdf;font-size:10px}
+.lac-pass-form__consent small{color:#6f7b83;font-size:8px;font-weight:650}
+.lac-pass-form__hint{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 2px;color:#6f7b83;font-size:8.5px;line-height:1.5}
+.lac-pass-form__hint span{color:#806f57;white-space:nowrap}
+.lac-pass-form__footer{display:flex;justify-content:flex-end;gap:8px;margin-top:1px!important;padding-top:2px}
 .lac-pass-form__footer button{min-width:120px}
+@media(max-width:760px){
+  .lac-pass-form__identity,.lac-pass-form__grid,.lac-pass-form__grid--contact{grid-template-columns:1fr}
+  .lac-pass-form__purpose{grid-template-columns:1fr;gap:6px}
+  .lac-pass-form__purpose>span{text-align:left;max-width:none}
+  .lac-pass-form__section{padding:13px}
+  .lac-pass-form__section>header{display:grid;gap:4px}
+  .lac-pass-form__section>header p{text-align:left}
+  .lac-pass-form__hint{display:grid;gap:2px}
+  .lac-pass-form__hint span{white-space:normal}
+  .lac-pass-form__footer button{min-width:0;flex:1}
+}
 
 .lac-pass-admin__row--detail{display:grid!important;grid-template-columns:minmax(180px,.7fr) minmax(420px,1.5fr) auto!important;align-items:start!important;gap:16px!important}
 .lac-pass-admin__summary{display:grid;gap:5px;min-width:0}
@@ -1212,12 +1230,6 @@ body:has(.runtime-app--game-info.game-center)::before {
   .lac-pass-admin__actions{justify-content:flex-start!important}
 }
 @media(max-width:700px){
-  .lac-pass-form__identity,.lac-pass-form__grid{grid-template-columns:1fr}
-  .lac-pass-form__section{padding:14px}
-  .lac-pass-form__section>header{display:grid;gap:6px}
-  .lac-pass-form__section>header p{text-align:left}
-  .lac-pass-form__grid label small{min-height:0}
-  .lac-pass-form__footer button{min-width:0;flex:1}
   .lac-pass-admin__verification{grid-template-columns:1fr}
 }
 
