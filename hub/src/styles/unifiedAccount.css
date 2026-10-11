@@ -11,7 +11,20 @@
 .lac-unified-company-account .hub-account__menu,
 .lac-hub-account-portal .hub-account__menu {font-family:inherit;text-align:left;line-height:1.35;}
 .lac-unified-company-account .hub-account__profile {margin:0;}
-.lac-unified-company-account .hub-account__trigger {min-width:158px;}
+/* Company console: keep the home account menu, but size the header chip to its content.
+   The former 158px minimum made this one trigger look larger than HUB/BUILD. */
+.lac-unified-company-account .hub-account__trigger {
+  min-width:132px;
+  min-height:40px;
+  gap:7px;
+  padding:3px 8px 3px 4px;
+}
+.lac-unified-company-account .hub-account__trigger>.hub-account__avatar {
+  width:32px;
+  height:32px;
+  border-radius:9px;
+}
+.lac-unified-company-account .hub-account__trigger>.hub-account__identity {gap:2px;}
 /* The BUILD menu must remain outside the shadow tree and above BUILD's header. */
 #lac-hub-account-host.lac-hub-account-portal {
   box-sizing:border-box; position:fixed; display:block; z-index:1500;
