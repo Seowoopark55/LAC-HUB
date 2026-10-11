@@ -1284,7 +1284,7 @@ function passApplicationFormMarkup(application={},adminMode=false){
   }
   return `<div class="lac-pass-form__sheet">
   <aside class="lac-pass-form__notice lac-pass-form__notice--premium">
-    <div class="lac-pass-form__notice-title">회사 확인 안내 <span>VERIFICATION</span></div>
+    <div class="lac-pass-form__notice-title">회사 확인 안내</div>
     <p>실제 회사 소속 여부를 확인하기 위한 신청입니다. <strong>결제 · 이용료 납부 · 후원 등 금전 제공을 요구하지 않습니다.</strong></p>
   </aside>
   <section class="lac-pass-form__main">
@@ -1311,9 +1311,9 @@ function passApplicationModal(state,m){
   const editing=Boolean(m?.editing&&current.status==='pending');
   const owner=(state.memberships||[]).find(row=>row.role==='owner'&&row.status==='active');
   const application=editing?current:{requester_role:passRoleValueForViewer(state)};
-  const number=current?.id?`#${String(current.id).slice(0,8).toUpperCase()}`:'신규 신청';
+  const number=editing&&current?.id?`#${String(current.id).slice(0,8).toUpperCase()}`:'신청 후 발급';
   const title=editing?'회사 이용 신청 수정':'회사 이용 신청';
-  const form=`<div class="lac-pass-form lac-pass-form--customer"><div class="lac-pass-form__identity"><div><span>회사</span><strong>${esc(company?.name||'회사')}</strong></div><div><span>등록 대표</span><strong>${esc(owner?.alias_name||owner?.display_name||owner?.discord_display_name||'대표')}</strong></div><div><span>신청 번호</span><strong>${esc(number)}</strong></div></div><form data-form="pass-application" class="runtime-modal-form lac-pass-form__body"><input type="hidden" name="request_id" value="${esc(editing?current.id||'':'')}">${passApplicationFormMarkup(application,false)}<div class="lac-pass-form__bottom"><label class="lac-pass-form__consent lac-pass-form__consent--compact"><input type="checkbox" name="consent" required ${application.id?'checked':''}><span><strong>인증 절차를 확인했습니다.</strong><small>승인 전 LAC HUB 운영자와 Discord DM 및 인게임 확인이 진행될 수 있습니다.<br>입력 정보는 회사 소속 및 이용 승인 확인에 사용됩니다.</small></span></label><footer class="lac-pass-form__footer"><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">${editing?'수정사항 저장':'회사 이용 신청'}</button></footer></div></form></div>`;
+  const form=`<div class="lac-pass-form lac-pass-form--customer"><div class="lac-pass-form__identity"><div><span>회사</span><strong>${esc(company?.name||'회사')}</strong></div><div><span title="LAC HUB에 등록된 회사 대표 계정">회사 대표자</span><strong>${esc(owner?.alias_name||owner?.display_name||owner?.discord_display_name||'대표')}</strong></div><div><span title="신청을 완료한 뒤 발급되는 접수 식별번호">접수번호</span><strong>${esc(number)}</strong></div></div><form data-form="pass-application" class="runtime-modal-form lac-pass-form__body"><input type="hidden" name="request_id" value="${esc(editing?current.id||'':'')}">${passApplicationFormMarkup(application,false)}<div class="lac-pass-form__bottom"><label class="lac-pass-form__consent lac-pass-form__consent--compact"><input type="checkbox" name="consent" required ${application.id?'checked':''}><span><strong>인증 절차를 확인했습니다.</strong><small>승인 전에 운영자와 Discord DM 및 인게임 확인이 진행될 수 있습니다.<br>입력 정보는 회사 소속 확인 및 이용 승인 검토에 사용됩니다.</small></span></label><footer class="lac-pass-form__footer"><button type="button" class="runtime-btn-ghost" data-action="close-modal">취소</button><button class="runtime-btn-primary" type="submit">${editing?'수정사항 저장':'회사 이용 신청'}</button></footer></div></form></div>`;
   return modalShell(title,'회사 소속 확인 및 이용 승인 신청',form,true,'lac-pass-application-modal');
 }
 function adminPassApplicationModal(state,m){
