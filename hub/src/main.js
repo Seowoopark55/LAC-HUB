@@ -35,6 +35,11 @@ import {renderCompanyPassNotice} from './platform/unifiedPassGuide.js';
 import { readPrimaryScreen, recordPrimaryScreen, replacePrimaryScreen, routeForPathname, routePathForScreen, AUTH_RETURN_STORAGE_KEY, safeInternalReturnPath } from './platform/screenHistory.js';
 
 const root = document.querySelector('#app');
+// Keep the one HUB-owned profile dialog outside #app: BUILD/COOK hide #app.
+// The portal is not a second profile implementation or a navigation destination.
+const playerProfileHost = document.createElement('div');
+playerProfileHost.id = 'lac-player-profile-host';
+root.insertAdjacentElement('afterend', playerProfileHost);
 const MODBOOK_REVIEW_STORAGE_KEY='lac_hub_pending_modbook_review_v1';
 const UUID_RE=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const COMPANY_CONTEXT_FRESH_MS=60_000;
@@ -457,11 +462,9 @@ window.addEventListener('lac:navigate-hub', () => {
 });
 // BUILD's embedded profile action now opens the single HUB-owned profile UI.
 window.addEventListener('lac:open-player-profile', () => {
+  // Embedded BUILD asks the owner for the same dialog as company/HUB.
+  // Never change pathname, hide BUILD or reset BUILD's React state.
   if (!isBuildRoute()) return;
-  navigatePrimaryScreen('hub');
-  switchVisibleApp(false);
-  render();
-  window.scrollTo(0, 0);
   void openHubPlayerProfile();
 });
 const now = new Date();
@@ -1145,11 +1148,15 @@ function installPrimaryScreenHistory() {
   });
 }
 
+function renderPlayerProfilePortal(){
+  // Render outside the hidden #app so BUILD can keep its current route and UI.
+  playerProfileHost.innerHTML = state.session?.user && state.ready && state.modal?.type==='player-profile'
+    ? renderPlayerProfileModal(state) : '';
+}
+
 function render() {
   renderShell(root, state);
-  if(state.session?.user && state.ready && state.modal?.type==='player-profile'){
-    root.insertAdjacentHTML('beforeend',renderPlayerProfileModal(state));
-  }
+  renderPlayerProfilePortal();
   suppressBrowserFormHistory();
 }
 // Phase 6: Keep confirmation above the existing HUB modal without replacing its DOM.
@@ -2102,6 +2109,7 @@ let memberClosePending = false;
 async function closeModal({force=false}={}) {
   // A registration in flight cannot be closed while the server may be writing.
   if (state.modal?.type === 'member-register' && state.modal.pending) return false;
+  if (state.modal?.type === 'player-profile' && state.playerProfileBusy) return false;
   if (state.modal?.type === 'member') {
     if (mutationBusy || memberClosePending) return false;
     const editingModal = state.modal;
@@ -3692,6 +3700,10 @@ document.addEventListener('keydown', event=>{
     if(state.accountMenuOpen){state.accountMenuOpen=false;render();event.preventDefault();}
   }
   if(event.key==='Escape' && state.supportImageViewer){event.preventDefault();state.supportImageViewer=null;render();}
+  if(event.key==='Escape' && state.modal?.type==='player-profile'){
+    event.preventDefault();
+    void closeModal();
+  }
   if(event.key==='Escape' && ['member','member-register'].includes(state.modal?.type) && !document.querySelector('dialog[open]')){
     event.preventDefault();
     void closeModal();
@@ -3736,32 +3748,55 @@ root.addEventListener('change', event => {
   }
 });
 
-root.addEventListener('submit', async event => {
-  const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
-  if(type==='player-profile'){
-    if(!state.session?.user || state.modal?.type!=='player-profile' || state.playerProfileBusy)return;
-    const userId=state.session.user.id;
-    let payload;
-    try{payload=playerProfileFormData(data);}
-    catch(error){state.modal={...state.modal,draft:{ingame_nickname:String(data.get('ingame_nickname')||''),ingame_phone:String(data.get('ingame_phone')||'')},error:String(error.message||error)};render();return;}
-    state.playerProfileBusy=true;
-    const savingModal=state.modal;
-    const saveButton=form.querySelector('[type="submit"]');if(saveButton)saveButton.disabled=true;
-    try{
-      const saved=await upsertPlayerProfile(userId,payload);
-      if(state.session?.user?.id!==userId)return;
-      state.playerProfile=saved;
-      window.dispatchEvent(new Event('lac:player-profile-updated'));
-      if(state.modal!==savingModal)return;
-      state.modal=null;
-      setNotice('인게임 프로필이 저장되었습니다.');
-    }catch(error){
-      if(state.session?.user?.id!==userId || state.modal?.type!=='player-profile')return;
-      state.modal={...state.modal,draft:{ingame_nickname:String(data.get('ingame_nickname')||''),ingame_phone:String(data.get('ingame_phone')||'')},error:String(error?.message||error||'프로필 저장에 실패했습니다.')};
-      render();
-    }finally{state.playerProfileBusy=false;}
+// One save path for HUB, company and embedded BUILD. The modal lives in a
+// document-level portal; never duplicate this in BUILD React.
+async function submitPlayerProfileForm(form){
+  if(!state.session?.user || state.modal?.type!=='player-profile' || state.playerProfileBusy)return;
+  const data=new FormData(form);
+  const userId=state.session.user.id;
+  let payload;
+  try{payload=playerProfileFormData(data);}
+  catch(error){
+    state.modal={...state.modal,draft:{ingame_nickname:String(data.get('ingame_nickname')||''),ingame_phone:String(data.get('ingame_phone')||'')},error:String(error.message||error)};
+    render();
     return;
   }
+  state.playerProfileBusy=true;
+  const savingModal=state.modal;
+  const saveButton=form.querySelector('[type="submit"]');
+  if(saveButton)saveButton.disabled=true;
+  try{
+    const saved=await upsertPlayerProfile(userId,payload);
+    if(state.session?.user?.id!==userId)return;
+    state.playerProfile=saved;
+    window.dispatchEvent(new Event('lac:player-profile-updated'));
+    if(state.modal!==savingModal)return;
+    state.modal=null;
+    setNotice('인게임 프로필이 저장되었습니다.');
+  }catch(error){
+    if(state.session?.user?.id!==userId || state.modal?.type!=='player-profile')return;
+    state.modal={...state.modal,draft:{ingame_nickname:String(data.get('ingame_nickname')||''),ingame_phone:String(data.get('ingame_phone')||'')},error:String(error?.message||error||'프로필 저장에 실패했습니다.')};
+    render();
+  }finally{state.playerProfileBusy=false;}
+}
+
+// Profile portal events must be handled here, not on #app (hidden on BUILD).
+playerProfileHost.addEventListener('click', event => {
+  if (event.target.matches('[data-modal-backdrop]') || event.target.closest('[data-action="close-modal"]')) {
+    event.preventDefault();
+    void closeModal();
+  }
+});
+playerProfileHost.addEventListener('submit', async event => {
+  const form=event.target.closest('form[data-form="player-profile"]');
+  if(!form)return;
+  event.preventDefault();
+  await submitPlayerProfileForm(form);
+});
+
+root.addEventListener('submit', async event => {
+  const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
+  if(type==='player-profile'){await submitPlayerProfileForm(form);return;}
   if(type==='game-admin-save'){try{await gameAdminSaveForm(form);}catch(error){gameAdminInlineError(error);}return;}
   if(type==='member-register') { await submitMemberRegistration(form,data); return; }
   if(type==='platform-subscription'){setError('이전 이용권 편집 방식은 지원하지 않습니다. 관리 화면에서 새로 발급하거나 즉시 만료해 주세요.');return;}

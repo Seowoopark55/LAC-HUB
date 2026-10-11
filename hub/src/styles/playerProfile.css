@@ -1,4 +1,6 @@
 /* LAC HUB — compact game identity profile. Scoped, no shared modal overrides. */
+/* A document-level portal stays visible while HUB #app is hidden for BUILD/COOK. */
+#lac-player-profile-host{position:relative;z-index:5100}
 .lac-player-profile-backdrop{z-index:5100}
 .runtime-modal.lac-player-profile{box-sizing:border-box;width:min(404px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;border:1px solid #34404b;border-radius:16px;background:#10161d;box-shadow:0 24px 65px rgba(0,0,0,.62)}
 .lac-player-profile .lac-player-profile__header{box-sizing:border-box;min-height:66px;padding:16px 20px;background:#111922;border-bottom:1px solid #2b3540}
