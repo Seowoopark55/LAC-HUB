@@ -4,8 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "check": "node scripts/verify.mjs && node scripts/verify-deploy.mjs && node scripts/verify-embedded.mjs && node hub/scripts/hub-phase24-build-entry-check.mjs && cd hub && npm run check",
-    "build": "node scripts/deploy-build.mjs"
+    "check": "node scripts/verify.mjs && node scripts/verify-deploy.mjs && node scripts/verify-embedded.mjs && node scripts/verify-ui-application.mjs && node hub/scripts/hub-phase24-build-entry-check.mjs && cd hub && npm run check",
+    "build": "node scripts/deploy-build.mjs",
+    "check:ui-application": "node scripts/verify-ui-application.mjs"
   },
   "engines": {
     "node": ">=20.19.0"
