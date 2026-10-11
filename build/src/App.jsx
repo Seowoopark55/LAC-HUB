@@ -808,16 +808,25 @@ function Header({
   const accountActions = (
     <div className="header-actions">
       {user ? (
-        <div className="user-chip">
-          {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : <div className="avatar-fallback">{displayName[0] || "?"}</div>}
-          <div>
-            <div className="user-chip-name-v115">
+        onHubReturn ? (
+          <button type="button" className="user-chip user-chip--hub-account" onClick={onProfile}
+            aria-haspopup="menu" aria-label={`내 계정 메뉴 열기: ${displayName}`}>
+            {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : <span className="avatar-fallback" aria-hidden="true">{displayName[0] || "?"}</span>}
+            <span className="user-chip__identity">
               <strong>{displayName}</strong>
-              {displayCompany && <span>{displayCompany}</span>}
+              <small>{displayCompany || "회사 미설정"}</small>
+            </span>
+            <svg className="user-chip__chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+        ) : (
+          <div className="user-chip">
+            {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : <div className="avatar-fallback">{displayName[0] || "?"}</div>}
+            <div>
+              <div className="user-chip-name-v115"><strong>{displayName}</strong>{displayCompany && <span>{displayCompany}</span>}</div>
+              <div className="user-chip-actions"><button type="button" onClick={onProfile}>프로필</button><button onClick={onLogout}>로그아웃</button></div>
             </div>
-            <div className="user-chip-actions"><button type="button" onClick={onProfile} aria-haspopup={onHubReturn ? "menu" : undefined}>{onHubReturn ? "내 계정 ▾" : "프로필"}</button>{!onHubReturn && <button onClick={onLogout}>로그아웃</button>}</div>
           </div>
-        </div>
+        )
       ) : <button className="btn discord" onClick={onLogin}>Discord로 계속하기</button>}
     </div>
   );

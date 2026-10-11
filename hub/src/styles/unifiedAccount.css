@@ -4,11 +4,14 @@
   display:flex; width:auto!important; max-width:min(280px,45%)!important;
   padding:0!important; margin-left:auto!important; justify-content:flex-end;
   position:relative; z-index:21;
+  /* Old company .global-account disables mouse events for home navigation.
+     The shared <details> trigger must explicitly opt back in. */
+  pointer-events:auto;
 }
 .lac-unified-company-account .hub-account__menu,
 .lac-hub-account-portal .hub-account__menu {font-family:inherit;text-align:left;line-height:1.35;}
 .lac-unified-company-account .hub-account__profile {margin:0;}
-.lac-unified-company-account .hub-account__trigger {min-width:0;}
+.lac-unified-company-account .hub-account__trigger {min-width:158px;}
 /* The BUILD menu must remain outside the shadow tree and above BUILD's header. */
 #lac-hub-account-host.lac-hub-account-portal {
   box-sizing:border-box; position:fixed; display:block; z-index:1500;
