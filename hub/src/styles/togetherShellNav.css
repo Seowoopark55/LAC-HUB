@@ -2,16 +2,16 @@
    Navigation and content now live inside a SINGLE gold-edged content frame.
    Scoped to Together only; existing signature backdrop and account logic remain. */
 .lac-together {
-  padding: 0 0 16px;
+  padding: 17px 0 20px;
 }
 .lac-together__shell {
   box-sizing: border-box;
   width: min(1120px, calc(100% - 32px));
-  min-height: calc(100dvh - 16px);
+  min-height: calc(100dvh - 36px);
   margin: 0 auto;
   border: 1px solid rgba(208, 161, 96, .47);
-  border-top: 0;
-  border-radius: 0 0 13px 13px;
+  border-top: 1px solid rgba(208, 161, 96, .47);
+  border-radius: 14px;
   background: linear-gradient(180deg, rgba(11, 19, 28, .82), rgba(11, 19, 28, .32) 55%, rgba(11, 19, 28, .12));
   box-shadow: 0 14px 38px rgba(0, 0, 0, .19), inset 0 1px rgba(235, 197, 135, .09);
   overflow: visible;
@@ -25,7 +25,7 @@
   padding: 0 24px;
   border-bottom: 1px solid rgba(208, 161, 96, .34);
   background: rgba(15, 22, 31, .95);
-  border-radius: 0;
+  border-radius: 13px 13px 0 0;
 }
 .lac-together .lac-together__main {
   max-width: none;
@@ -81,8 +81,8 @@
   .lac-together .lac-together__head-right > .lac-together__eyebrow {display: none;}
 }
 @media (max-width: 520px) {
-  .lac-together__shell {width: calc(100% - 10px); border-radius: 0 0 10px 10px;}
-  .lac-together .lac-together__head {height: 57px; min-height: 57px; padding: 0 10px; gap: 8px;}
+  .lac-together__shell {width: calc(100% - 10px); border-radius: 11px;}
+  .lac-together .lac-together__head {height: 57px; min-height: 57px; padding: 0 10px; gap: 8px; border-radius: 10px 10px 0 0;}
   .lac-together .lac-together__main {padding: 15px 10px 26px;}
   .lac-together .lac-together__brand {min-width: 103px; min-height: 34px; padding: 6px 9px; font-size: 11px;}
   .lac-together .lac-together__head-right {gap: 7px;}

@@ -1,0 +1,94 @@
+/* LAC HUB · Content consistency v2.7
+ * The gold shell geometry is shared across content pages, not recreated as
+ * a floating full-width header. This file loads AFTER the existing content
+ * styles so legacy button/card declarations cannot undo the final layout.
+ * Scope every new visual rule; nothing here changes navigation/DB behavior. */
+
+/* TOGETHER: top corners match GAME INFO / BUILD shell rather than the old
+   squared-off fullscreen strip. Keep the account dropdown outside clipping. */
+.lac-together .lac-together__shell{
+  border-top:1px solid rgba(208,161,96,.47);
+  border-radius:14px;
+  overflow:visible;
+}
+.lac-together .lac-together__head{
+  border-radius:13px 13px 0 0;
+}
+
+/* GAME INFO: use the same legible filled-outline return button as Together.
+   The earlier generic `game-center__actions button` rule was visually winning
+   on some builds and left the control looking like bare text. */
+.runtime-app--game-info.game-center .game-center__actions > button.game-center__back[data-hub-return],
+.runtime-app--game-info.game-center .game-center__actions > button.game-center__back[data-hub-return]:not(:disabled){
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  gap:6px;
+  min-width:111px;
+  min-height:36px;
+  padding:7px 12px;
+  border:1px solid rgba(226,180,105,.52);
+  border-radius:10px;
+  background:rgba(159,109,43,.13);
+  color:#f3d39d;
+  box-shadow:inset 0 1px rgba(255,244,219,.045);
+  font-size:12px;
+  font-weight:750;
+  line-height:1.25;
+  text-decoration:none;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.runtime-app--game-info.game-center .game-center__actions > button.game-center__back[data-hub-return]:hover{
+  border-color:#ecc58a;
+  background:rgba(185,133,57,.23);
+  color:#ffe8bd;
+}
+
+/* Together list: the art contains a natural banner-to-copy seam already.
+   Suppress the extra HTML progress bar that created two parallel lines.
+   Attendance is now a visible people icon with explicit "참가 현황" copy. */
+.lac-together .lac-together__item-progress{display:none!important}
+.lac-together .lac-together__item-footer{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  margin-top:auto;
+  min-height:48px;
+  gap:10px;
+  padding-top:9px;
+  border:0;
+  background:transparent;
+}
+.lac-together .lac-together__item-info{gap:4px;min-width:0}
+.lac-together .lac-together__item-info>span{line-height:1.35}
+.lac-together .lac-together__item-count{
+  display:inline-flex;
+  flex-shrink:0;
+  align-items:center;
+  gap:7px;
+  padding:7px 8px;
+  border:1px solid rgba(206,174,123,.31);
+  border-radius:8px;
+  background:rgba(11,20,30,.35);
+  color:#e9d2ae;
+  line-height:1.1;
+  white-space:nowrap;
+}
+.lac-together .lac-together__item-count>svg{width:18px;height:18px;flex:0 0 auto;color:#e0bc83}
+.lac-together .lac-together__item-count>span{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.lac-together .lac-together__item-count small{font-size:9px;color:#a6b9c8;font-weight:550;white-space:nowrap}
+.lac-together .lac-together__item-count strong{color:#f2e5d5;font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
+
+@media(max-width:760px){
+  .lac-together{padding-top:9px}
+  .lac-together .lac-together__shell{border-radius:11px}
+  .lac-together .lac-together__head{border-radius:10px 10px 0 0}
+}
+@media(max-width:420px){
+ .lac-together .lac-together__item-count{padding:6px;gap:5px}
+ .lac-together .lac-together__item-count>svg{width:17px;height:17px}
+ .runtime-app--game-info.game-center .game-center__actions>button.game-center__back[data-hub-return]{min-width:103px;min-height:34px;padding:6px 9px;font-size:11px}
+}

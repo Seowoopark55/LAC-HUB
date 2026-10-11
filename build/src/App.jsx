@@ -835,8 +835,8 @@ function Header({
       {onHubReturn && (
         <div className="shell lac-build-unified-header">
           <button type="button" className="lac-build-inline-return" data-hub-return
-            aria-label="LAC HUB 메인으로 이동" onClick={onHubReturn}>
-            <span className="lac-hub-return__arrow" aria-hidden="true">←</span><span>LAC HUB</span>
+            aria-label="메인으로 이동" onClick={onHubReturn}>
+            <span className="lac-hub-return__arrow" aria-hidden="true">←</span><span>메인으로</span>
           </button>
           <h1 className="lac-build-unified-title">LAC BUILD</h1>
           {accountActions}
