@@ -6,6 +6,7 @@ import './styles/together.css';
 import {renderHubAccountControl} from './ui/hubHome.js';
 import {loadPlayerProfile, upsertPlayerProfile} from './lib/playerProfileApi.js';
 import {renderPlayerProfileModal, playerProfileFormData} from './ui/playerProfile.js';
+import {maskIngamePhoneInput} from './lib/ingamePhone.js';
 import {refreshTogether, togetherOnFilter, togetherOnInput, togetherAction, togetherSubmit, togetherProfileUpdated} from './features/together.js';
 import './styles/passApplication.css'; // Customer application styles, loaded after shared modal styles.
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
@@ -3843,6 +3844,9 @@ async function submitPlayerProfileForm(form){
 }
 
 // Profile portal events must be handled here, not on #app (hidden on BUILD).
+playerProfileHost.addEventListener('input', event => {
+  if(event.target?.matches('input[data-ingame-phone-mask]'))maskIngamePhoneInput(event.target);
+});
 playerProfileHost.addEventListener('click', event => {
   if (event.target.matches('[data-modal-backdrop]') || event.target.closest('[data-action="close-modal"]')) {
     event.preventDefault();

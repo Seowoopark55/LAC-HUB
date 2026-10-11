@@ -1,16 +1,17 @@
 import {supabase} from '../lib/supabase.js';
 import {loadPlayerProfile} from '../lib/playerProfileApi.js';
 import {renderHubAccountControl} from '../ui/hubHome.js';
+import {formatStoredIngamePhone} from '../lib/ingamePhone.js';
 
 const CATEGORIES=['전체','보스','범죄','WWE','자유 활동','기타'];
 const DURATIONS=[{value:30,label:'30분'},{value:60,label:'1시간'},{value:120,label:'2시간'},{value:240,label:'4시간'},{value:360,label:'6시간'}];
 const ui={mode:'list',category:'전체',items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0};
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
+const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
 const pad=n=>String(n).padStart(2,'0');
 const localDate=t=>`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;
 const today=()=>localDate(new Date());
-function defaultStart(){const d=new Date(Date.now()+60*60_000);d.setMinutes(Math.ceil(d.getMinutes()/30)*30,0,0);return {date:localDate(d),hour:pad(d.getHours()),minute:pad(d.getMinutes())};}
+function defaultStart(){const d=new Date(Date.now()+60*60_000);d.setMinutes(Math.ceil(d.getMinutes()/30)*30,0,0);return {date:localDate(d),period:d.getHours()>=12?'pm':'am',hour:String(d.getHours()%12||12),minute:pad(d.getMinutes())};}
 function check(){if(!supabase)throw Error('Supabase 연결이 필요합니다.');return supabase;}
 async function rpc(method,params={}){const {data,error}=await check().rpc(`together_${method}`,params);if(error)throw error;return data;}
 function displayError(e){return String(e?.message||e||'잠시 후 다시 시도해 주세요.').replace(/^Error:\s*/, '');}
@@ -22,11 +23,12 @@ function pageTop(state){const account=state.session?.user && state.ready
 function empty(message){return `<div class="lac-together__empty">${esc(message)}</div>`;}
 function controlState(state){return {loggedIn:Boolean(state.session?.user),profile:Boolean(ui.profile && ui.profile.user_id===state.session?.user?.id),busy:ui.busy};}
 function listCards(){let rows=ui.items.filter(row=>ui.category==='전체'||row.category===ui.category);
-  return rows.length?rows.map(row=>`<button type="button" class="lac-together__item" data-together-action="detail" data-id="${esc(row.id)}">
+  return rows.length?rows.map((row,index)=>{const capacity=Math.max(2,Number(row.capacity)||2),confirmed=Math.min(capacity,Math.max(1,Number(row.confirmed_count)||1));return `<button type="button" class="lac-together__item" data-together-action="detail" data-id="${esc(row.id)}">
     <span class="lac-together__item-top"><span class="lac-together__category">${esc(row.category)}</span>${statusBadge(row.status)}</span>
-    <strong>${esc(row.title)}</strong><span class="lac-together__item-desc">${esc(row.description||'함께할 플레이어를 모집합니다.')}</span>
-    <span class="lac-together__item-footer"><span>◷ ${esc(when(row.starts_at))} 시작</span><span>♙ ${Number(row.confirmed_count)||1} / ${Number(row.capacity)||2}명</span></span>
-  </button>`).join(''):empty('해당 카테고리에 등록된 활동이 없습니다.');}
+    <span class="lac-together__item-heading"><span class="lac-together__item-symbol" aria-hidden="true">${pad(index+1)}</span><strong>${esc(row.title)}</strong></span><span class="lac-together__item-desc">${esc(row.description||'함께할 플레이어를 모집합니다.')}</span>
+    <span class="lac-together__item-progress"><i style="width:${(confirmed/capacity)*100}%"></i></span>
+    <span class="lac-together__item-footer"><span class="lac-together__item-info"><span>◷ ${esc(when(row.starts_at))}</span><span>모집자 ${esc(row.host_nickname||'플레이어')}</span></span><span class="lac-together__item-count">${confirmed} / ${capacity}명 <b aria-hidden="true">↗</b></span></span>
+  </button>`;}).join(''):empty('해당 카테고리에 등록된 활동이 없습니다.');}
 function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||{},editing=ui.mode==='edit';return `<form class="lac-together__create" data-together-form="${editing?'edit':'create'}"><h2 class="lac-together__form-title">${editing?'모집글 수정':'모집 등록'}</h2>
   <div class="lac-together__form-grid lac-together__form-grid--basics">
     <label class="lac-together__field"><span class="lac-together__field-label">활동 카테고리</span><select name="category" required>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${f.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select></label>
@@ -37,7 +39,7 @@ function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||
   <div class="lac-together__form-grid lac-together__form-grid--schedule">
     <label class="lac-together__field"><span class="lac-together__field-label">활동 날짜</span><input type="date" name="date" value="${esc(f.date||defaults.date)}" min="${d}" required></label>
     <div class="lac-together__field lac-together__time-field" role="group" aria-label="시작 시각"><span class="lac-together__field-label">시작 시각</span>
-      <div class="lac-together__time-inputs"><label><input name="hour" type="number" inputmode="numeric" min="0" max="23" step="1" placeholder="시" value="${esc(f.hour??defaults.hour)}" required aria-label="시작 시간, 시"><span>시</span></label><span class="lac-together__time-sep">:</span><label><input name="minute" type="number" inputmode="numeric" min="0" max="59" step="1" placeholder="분" value="${esc(f.minute??defaults.minute)}" required aria-label="시작 시간, 분"><span>분</span></label></div>
+      <div class="lac-together__time-inputs"><select name="period" aria-label="오전 오후"><option value="am" ${(f.period??defaults.period)==='am'?'selected':''}>오전</option><option value="pm" ${(f.period??defaults.period)==='pm'?'selected':''}>오후</option></select><label><input name="hour" type="number" inputmode="numeric" min="1" max="12" step="1" placeholder="시" value="${esc(f.hour??defaults.hour)}" required aria-label="시작 시간, 시"><span>시</span></label><span class="lac-together__time-sep">:</span><label><input name="minute" type="number" inputmode="numeric" min="0" max="59" step="1" placeholder="분" value="${esc(f.minute??defaults.minute)}" required aria-label="시작 시간, 분"><span>분</span></label></div>
     </div>
   </div>
   <label class="lac-together__field lac-together__duration-field"><span class="lac-together__field-label">시작 후 유지 시간</span><select name="duration">${DURATIONS.map(d=>`<option value="${d.value}" ${Number(f.duration||60)===d.value?'selected':''}>${d.label}</option>`).join('')}</select></label>
@@ -46,7 +48,7 @@ function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||
   </form>`;}
 function renderPartyMember(member,index){
   const host=member.role==='host',name=esc(member.nickname||'닉네임 미등록');
-  const phone=member.ingame_phone?esc(member.ingame_phone):'미등록';
+  const phone=member.ingame_phone?esc(formatStoredIngamePhone(member.ingame_phone)):'미등록';
   return `<li class="lac-together__person"><span class="lac-together__person-num">${pad(index+1)}</span><div class="lac-together__person-name"><strong>${name}</strong><small>${host?'모집자':'참가 확정'}</small></div><div class="lac-together__person-phone"><span>인게임 전화</span><strong>${phone}</strong></div></li>`;
 }
 function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보를 찾을 수 없거나 보관 기간이 종료되었습니다.');
@@ -69,17 +71,17 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   return `<div class="lac-together__detail"><article class="lac-together__post">
     <header class="lac-together__post-header">
       <div class="lac-together__post-top"><div class="lac-together__post-tags"><span class="lac-together__category">${esc(p.category)}</span>${statusBadge(p.status)}</div>${management}</div>
-      <h2>${esc(p.title)}</h2><p class="lac-together__post-description">${esc(p.description||'상세 안내가 없습니다.')}</p>
+      <div class="lac-together__post-caption">TOGETHER / RECRUITMENT DETAIL</div><h2>${esc(p.title)}</h2><p class="lac-together__post-description">${esc(p.description||'상세 안내가 없습니다.')}</p>
       <div class="lac-together__post-meta"><div><span>활동 일시</span><strong>${esc(when(p.starts_at))}</strong></div><div><span>모집자</span><strong>${esc(p.host_nickname)}</strong></div><div><span>자동 종료</span><strong>${esc(when(p.ends_at))}</strong></div></div>
       <div class="lac-together__post-status"><div class="lac-together__post-status-top"><div><strong>모집 현황</strong><span>모집자 1명 · 확정 파티원 ${confirmedOthers}명</span></div><span class="lac-together__post-count"><b>${confirmed}</b> / ${capacity}명</span></div><div class="lac-together__progress" role="progressbar" aria-valuemin="0" aria-valuemax="${capacity}" aria-valuenow="${confirmed}" aria-label="현재 확정 인원"><i style="width:${ratio}%"></i></div>${participantAction?`<div class="lac-together__post-join">${participantAction}${p.my_status==='pending'?'<span class="lac-together__tip">모집자의 승인을 기다리는 중입니다.</span>':''}</div>`:''}</div>
     </header>
-    <div class="lac-together__post-body"><div class="lac-together__post-side"><section class="lac-together__post-section"><div class="lac-together__section-heading"><h3>파티원 정보</h3><span>${confirmed} / ${capacity}명</span></div>${people}</section>${requests}</div>
-      <section class="lac-together__post-section lac-together__post-chat"><div class="lac-together__section-heading"><h3>파티 채팅</h3><span>${p.can_chat?'참가자 전용':'비공개'}</span></div>${chat}</section>
+    <div class="lac-together__post-body"><div class="lac-together__post-side"><section class="lac-together__post-section"><div class="lac-together__section-heading"><h3>파티원 정보 <small>PARTY ROSTER</small></h3><span>${confirmed} / ${capacity}명</span></div>${people}</section>${requests}</div>
+      <section class="lac-together__post-section lac-together__post-chat"><div class="lac-together__section-heading"><h3>파티 채팅 <small>PARTY LOUNGE</small></h3><span>${p.can_chat?'참가자 전용':'비공개'}</span></div>${chat}</section>
     </div>
   </article></div>`;
 }
 export function renderTogetherPage(state){const {loggedIn,profile}=controlState(state);
-  return `<div class="lac-together" id="lac-together">${pageTop(state)}<main class="lac-together__main"><div class="lac-together__hero"><div><span class="lac-together__eyebrow">LAC HUB COMMUNITY</span><h1>함께하기</h1><p>다양한 활동에 함께할 플레이어를 찾아보세요.</p></div><div class="lac-together__hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></div></div><div class="lac-together__toolbar"><div class="lac-together__toolbar-left">${ui.mode==='list'?`<label for="lac-together-filter">활동 카테고리</label><select id="lac-together-filter" data-together-filter><option value="전체">전체 활동</option>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${ui.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`:`<button class="lac-together__ghost" type="button" data-together-action="back">← 모집 목록</button>`}</div><div>${ui.mode==='list'?`<button type="button" class="lac-together__primary" data-together-action="create">+ 모집하기</button>`:''}</div></div>
+  return `<div class="lac-together" id="lac-together">${pageTop(state)}<main class="lac-together__main"><div class="lac-together__hero"><div><span class="lac-together__eyebrow">LAC HUB · PLAY TOGETHER</span><h1>함께하기 <span class="lac-together__hero-accent">/ 모집 광장</span></h1><p>다양한 활동의 동료를 모집하고, 게임 속에서 함께하세요.</p><span class="lac-together__hero-caption">RECRUIT · MEET · PLAY</span></div><div class="lac-together__hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></div></div><div class="lac-together__toolbar"><div class="lac-together__toolbar-left">${ui.mode==='list'?`<label for="lac-together-filter">활동 카테고리</label><select id="lac-together-filter" data-together-filter><option value="전체">전체 활동</option>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${ui.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`:`<button class="lac-together__ghost" type="button" data-together-action="back">← 모집 목록</button>`}</div><div>${ui.mode==='list'?`<button type="button" class="lac-together__primary" data-together-action="create">+ 모집하기</button>`:''}</div></div>
   ${ui.error?`<div class="lac-together__error" role="alert">${esc(ui.error)}</div>`:''}
   ${['create','edit'].includes(ui.mode)?renderCreate():ui.mode==='detail'?renderDetail(state):`<div class="lac-together__grid">${listCards()}</div>`}
   ${ui.mode==='list'?`<p class="lac-together__foot">모집 목록은 로그인 없이 볼 수 있습니다. 모집·참가·채팅에는 Discord 로그인과 인게임 프로필이 필요합니다.${!loggedIn?' <button type="button" data-together-action="login">Discord 로그인</button>':!profile?' <button type="button" data-together-action="profile">인게임 프로필 등록</button>':''}</p>`:''}
@@ -131,7 +133,7 @@ export async function togetherAction(button,state,{render,openProfile,login}){
   if(action==='edit'){
     if(!ui.detail?.is_host||Date.parse(ui.detail.starts_at)<=Date.now())return;
     const p=ui.detail,start=new Date(p.starts_at);
-    ui.formDraft={category:p.category,title:p.title,description:p.description||'',capacity:String(p.capacity),date:localDate(start),hour:pad(start.getHours()),minute:pad(start.getMinutes()),duration:String(Math.round((Date.parse(p.ends_at)-Date.parse(p.starts_at))/60000))};
+    ui.formDraft={category:p.category,title:p.title,description:p.description||'',capacity:String(p.capacity),date:localDate(start),period:start.getHours()>=12?'pm':'am',hour:String(start.getHours()%12||12),minute:pad(start.getMinutes()),duration:String(Math.round((Date.parse(p.ends_at)-Date.parse(p.starts_at))/60000))};
     ui.mode='edit';ui.error='';render();return;
   }
   if(action==='create'){
@@ -158,10 +160,12 @@ export async function togetherSubmit(form,state,{render,openProfile}){
   if(['create','edit'].includes(form.dataset.togetherForm)){
     const date=String(data.get('date')||'');
     const hourText=String(data.get('hour')??'').trim(), minuteText=String(data.get('minute')??'').trim();
-    const hour=Number(hourText),minute=Number(minuteText);
-    const validClock=/^\d{1,2}$/.test(hourText)&&/^\d{1,2}$/.test(minuteText)&&Number.isInteger(hour)&&Number.isInteger(minute)&&hour>=0&&hour<=23&&minute>=0&&minute<=59;
+    const period=String(data.get('period')||'');
+    const hour12=Number(hourText),minute=Number(minuteText);
+    const hour=(hour12%12)+(period==='pm'?12:0);
+    const validClock=/^\d{1,2}$/.test(hourText)&&/^\d{1,2}$/.test(minuteText)&&['am','pm'].includes(period)&&Number.isInteger(hour12)&&Number.isInteger(minute)&&hour12>=1&&hour12<=12&&minute>=0&&minute<=59;
     const starts=validClock&&/^\d{4}-\d{2}-\d{2}$/.test(date)?new Date(`${date}T${pad(hour)}:${pad(minute)}:00`):new Date(NaN);
-    if(!Number.isFinite(starts.getTime())||localDate(starts)!==date||starts.getHours()!==hour||starts.getMinutes()!==minute){ui.error='활동 날짜와 시작 시각을 정확히 입력해 주세요. (시 0~23, 분 0~59)';render();return;}
+    if(!Number.isFinite(starts.getTime())||localDate(starts)!==date||starts.getHours()!==hour||starts.getMinutes()!==minute){ui.error='활동 날짜와 시작 시각을 정확히 입력해 주세요. (오전/오후, 시 1~12, 분 0~59)';render();return;}
     // Do not pass a fabricated timezone; Date preserves the browser's local input time.
     await runMutation(async()=>{
       const fields={p_category:data.get('category'),p_title:String(data.get('title')||'').trim(),p_description:String(data.get('description')||'').trim(),p_capacity:Number(data.get('capacity')),p_starts_at:starts.toISOString(),p_duration_minutes:Number(data.get('duration'))};
