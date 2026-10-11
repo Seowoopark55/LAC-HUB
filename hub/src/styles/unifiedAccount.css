@@ -1,0 +1,36 @@
+/* HUB account renderer is shared by the HUB home, company console and BUILD portal. */
+/* The company header retains its centered title while reusing the home trigger/menu. */
+.runtime-app .global-header__inner .lac-unified-company-account {
+  display:flex; width:auto!important; max-width:min(280px,45%)!important;
+  padding:0!important; margin-left:auto!important; justify-content:flex-end;
+  position:relative; z-index:21;
+}
+.lac-unified-company-account .hub-account__menu,
+.lac-hub-account-portal .hub-account__menu {font-family:inherit;text-align:left;line-height:1.35;}
+.lac-unified-company-account .hub-account__profile {margin:0;}
+.lac-unified-company-account .hub-account__trigger {min-width:0;}
+/* The BUILD menu must remain outside the shadow tree and above BUILD's header. */
+#lac-hub-account-host.lac-hub-account-portal {
+  box-sizing:border-box; position:fixed; display:block; z-index:1500;
+  padding:0; width:265px; max-width:calc(100vw - 24px);
+  margin:0; color:#d9dfe6; font-size:12px;
+}
+.lac-hub-account-portal *, .lac-unified-company-account * {box-sizing:border-box;}
+.lac-hub-account-portal .hub-account__profile {width:100%;}
+.lac-hub-account-portal .hub-account__trigger {display:none;}
+.lac-hub-account-portal .hub-account__menu {
+  position:static; top:auto;right:auto;width:100%;max-width:100%;
+  box-sizing:border-box;max-height:calc(100dvh - 24px);overflow-y:auto;
+}
+@media(max-width:600px){
+  .runtime-app .global-header__inner .lac-unified-company-account {max-width:43%!important;}
+  .lac-unified-company-account .hub-account__identity {max-width:78px;}
+  .lac-unified-company-account .hub-account__trigger {gap:5px;padding-right:5px;}
+}
+/* Desktop company shell normally clips to its rounded frame. Let the opened
+   account dropdown extend over the workspace instead of cutting off rows. */
+@media(min-width:761px){
+  .runtime-app:has(.lac-unified-company-account .hub-account__profile[open]){overflow:visible;}
+}
+
+.runtime-app .global-header:has(.lac-unified-company-account .hub-account__profile[open]) {position:relative;z-index:60;}

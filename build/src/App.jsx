@@ -815,7 +815,7 @@ function Header({
               <strong>{displayName}</strong>
               {displayCompany && <span>{displayCompany}</span>}
             </div>
-            <div className="user-chip-actions"><button onClick={onProfile}>{onHubReturn ? "내 인게임 프로필" : "프로필"}</button><button onClick={onLogout}>로그아웃</button></div>
+            <div className="user-chip-actions"><button type="button" onClick={onProfile} aria-haspopup={onHubReturn ? "menu" : undefined}>{onHubReturn ? "내 계정 ▾" : "프로필"}</button>{!onHubReturn && <button onClick={onLogout}>로그아웃</button>}</div>
           </div>
         </div>
       ) : <button className="btn discord" onClick={onLogin}>Discord로 계속하기</button>}
@@ -3582,10 +3582,16 @@ export default function App({ onHubReturn = null } = {}) {
 
   const modMap = useMemo(() => new Map(modbooks.map((m) => [m.id, m])), [modbooks]);
 
-  function openProfile() {
+  function openProfile(event) {
     if (onHubReturn) {
-      // HUB owns profile creation/editing. No second BUILD application form.
-      window.dispatchEvent(new Event('lac:open-player-profile'));
+      // Embedded BUILD requests the exact HUB account menu, not a second profile UI.
+      // Stop the originating click from immediately closing the outside-click portal.
+      event?.stopPropagation?.();
+      const anchor=event?.currentTarget?.getBoundingClientRect?.();
+      window.dispatchEvent(new CustomEvent('lac:open-account-menu', {detail:{
+        top:anchor?.bottom || 62,
+        right:anchor ? window.innerWidth-anchor.right : 16,
+      }}));
       return;
     }
     setProfileModal(true); // Standalone BUILD fallback; not an embedded entry point.

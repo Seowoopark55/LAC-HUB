@@ -1,5 +1,7 @@
 import './styles.css';
 import './styles/playerProfile.css';
+import './styles/unifiedAccount.css';
+import {renderHubAccountControl} from './ui/hubHome.js';
 import {loadPlayerProfile, upsertPlayerProfile} from './lib/playerProfileApi.js';
 import {renderPlayerProfileModal, playerProfileFormData} from './ui/playerProfile.js';
 import './styles/passApplication.css'; // Customer application styles, loaded after shared modal styles.
@@ -40,6 +42,28 @@ const root = document.querySelector('#app');
 const playerProfileHost = document.createElement('div');
 playerProfileHost.id = 'lac-player-profile-host';
 root.insertAdjacentElement('afterend', playerProfileHost);
+// The BUILD React tree is isolated in a shadow root. Its account button opens
+// the HUB-rendered account menu in this outer-document portal (no navigation).
+const accountMenuHost=document.createElement('div');
+accountMenuHost.id='lac-hub-account-host';
+playerProfileHost.insertAdjacentElement('afterend',accountMenuHost);
+let accountPortalOpen=false;
+let accountPortalAnchor={top:70,right:16};
+function closeAccountPortal(){
+  accountPortalOpen=false;
+  accountMenuHost.replaceChildren();
+}
+function renderAccountPortal(){
+  if(!accountPortalOpen || !isBuildRoute() || !state.session?.user || !state.ready){accountMenuHost.replaceChildren();return;}
+  accountMenuHost.className='lac-hub-account-portal hub-account';
+  accountMenuHost.style.right=`${Math.max(12,Math.min(window.innerWidth-285,accountPortalAnchor.right))}px`;
+  accountMenuHost.innerHTML=renderHubAccountControl(state,{expanded:true});
+  // Prefer the opener, but keep the complete menu within short viewports.
+  const panelHeight=accountMenuHost.querySelector('.hub-account__menu')?.getBoundingClientRect().height||395;
+  const maxTop=Math.max(12,window.innerHeight-panelHeight-12);
+  accountMenuHost.style.top=`${Math.max(12,Math.min(maxTop,accountPortalAnchor.top+8))}px`;
+}
+
 const MODBOOK_REVIEW_STORAGE_KEY='lac_hub_pending_modbook_review_v1';
 const UUID_RE=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const COMPANY_CONTEXT_FRESH_MS=60_000;
@@ -65,6 +89,7 @@ let cookHost = null;
 let cookFrame = null;
 
 function switchVisibleApp(buildActive) {
+  if(!buildActive)closeAccountPortal();
   document.documentElement.classList.toggle('lac-build-route', buildActive);
   root.hidden = buildActive;
   if (embeddedHost) embeddedHost.hidden = !buildActive;
@@ -460,7 +485,20 @@ window.addEventListener('lac:navigate-hub', () => {
   render();
   window.scrollTo(0, 0);
 });
-// BUILD's embedded profile action now opens the single HUB-owned profile UI.
+// BUILD's embedded account button opens the same HUB account menu via the shared portal.
+window.addEventListener('lac:open-account-menu', event=>{
+  if(!isBuildRoute() || !state.session?.user || !state.ready)return;
+  if(accountPortalOpen){closeAccountPortal();return;}
+  const detail=event.detail||{};
+  accountPortalAnchor={
+    top:Number.isFinite(Number(detail.top))?Number(detail.top):70,
+    right:Number.isFinite(Number(detail.right))?Number(detail.right):16,
+  };
+  accountPortalOpen=true;
+  renderAccountPortal();
+  accountMenuHost.querySelector('.hub-account__close')?.focus({preventScroll:true});
+});
+
 window.addEventListener('lac:open-player-profile', () => {
   // Embedded BUILD asks the owner for the same dialog as company/HUB.
   // Never change pathname, hide BUILD or reset BUILD's React state.
@@ -1157,6 +1195,7 @@ function renderPlayerProfilePortal(){
 function render() {
   renderShell(root, state);
   renderPlayerProfilePortal();
+  if(accountPortalOpen)renderAccountPortal();
   suppressBrowserFormHistory();
 }
 // Phase 6: Keep confirmation above the existing HUB modal without replacing its DOM.
@@ -2639,7 +2678,7 @@ async function gameAdminSaveForm(form){
   }
 }
 
-root.addEventListener('click', async event => {
+async function handlePrimaryClick(event) {
   const gameAdminButton=event.target.closest('[data-game-admin-action]');
   if(gameAdminButton){event.preventDefault();try{await gameAdminAction(gameAdminButton);}catch(error){setError(error);}return;}
   const pageBtn=event.target.closest('[data-page]');
@@ -2707,6 +2746,9 @@ root.addEventListener('click', async event => {
   if(event.target.matches('[data-modal-backdrop]')){ if(['cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
+  if(accountPortalOpen && event.currentTarget===accountMenuHost &&
+    !['refresh-company-subscription','close-account-menu'].includes(action))closeAccountPortal();
+  if(action==='close-account-menu' && event.currentTarget===accountMenuHost)closeAccountPortal();
   if(action==='open-player-profile'){await openHubPlayerProfile();return;}
   if(action==='combat-select-member'){const id=String(actionEl.dataset.membershipId||'');if(!id||id===state.combat.selectedMembershipId)return;await loadCombatMember(id);return;}
   if(action==='combat-period'){const period=String(actionEl.dataset.period||'30d');if(!['7d','30d','all'].includes(period))return;state.combat.period=period;render();return;}
@@ -3433,7 +3475,7 @@ root.addEventListener('click', async event => {
   await withMutation(async()=>{
     if(action==='discord-login'){await signInWithDiscord();return;}
     if(action==='logout'){clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
-    if(action==='refresh-company-subscription'){const companyId=state.companyId; if(!companyId || !(state.companies||[]).some(company=>company.id===companyId))return; const [subscription, access]=await Promise.all([getCompanySubscription(companyId),getMyCompanyAccess(companyId)]); if(state.companyId!==companyId)return;state.companyAccess=access||null;state.companyAccessError='';state.companyAccessStatus='ready';state.companyAccessCheckedAt=Date.now(); state.currentSubscription=subscription||null; render(); if(state.page==='hub')root.querySelector('.hub-account__profile')?.setAttribute('open',''); return;}
+    if(action==='refresh-company-subscription'){const companyId=state.companyId; if(!companyId || !(state.companies||[]).some(company=>company.id===companyId))return; const [subscription, access]=await Promise.all([getCompanySubscription(companyId),getMyCompanyAccess(companyId)]); if(state.companyId!==companyId)return;state.companyAccess=access||null;state.companyAccessError='';state.companyAccessStatus='ready';state.companyAccessCheckedAt=Date.now(); state.currentSubscription=subscription||null; render(); if(!isBuildRoute())root.querySelector('.hub-account__profile')?.setAttribute('open',''); return;}
     if(action==='refresh'){await refreshAll();setNotice('최신 데이터를 불러왔습니다.');return;}
     if(action==='refresh-platform'){if(!state.platformAdmin)throw new Error('PLATFORM OWNER 권한이 필요합니다.');await loadCompanies();state.platformSnapshot=await getPlatformCompanies();state.platformCompanyAccess=await listPlatformCompanyAccess().catch(()=>null);await Promise.all([loadPlatformSupport(),loadPlatformSuggestions(),loadHubBoard(),loadPlatformBuildReports(),...(state.platformView==='contents'?[loadPlatformContentSettings()]:[])]);const changed=applyPlatformCompanyVisibility();if(changed)await loadCompanyData();setNotice('서비스 현황을 새로고침했습니다.');return;}
     if(action==='refresh-fund'){await loadFundSnapshot();if(state.fundTab==='weekly')await loadFundWeeklyMonth();setNotice('공금 데이터를 새로고침했습니다.');return;}
@@ -3523,7 +3565,9 @@ root.addEventListener('click', async event => {
     }
     if(action==='open-evidence'){const url=await getFundEvidenceSignedUrl(actionEl.dataset.evidencePath,300);if(url)showHubBoardPhoto(actionEl,url);return;}
   });
-});
+}
+root.addEventListener('click',handlePrimaryClick);
+accountMenuHost.addEventListener('click',handlePrimaryClick);
 
 root.addEventListener('change', async event => {
   if(state.platformAdmin&&event.target.matches('[data-ga-multi] input[type="checkbox"]')){gameAdminUpdateMultiChoice(event.target);if(state.gameAdminOpen)state.gameAdmin.dirty=true;return;}
@@ -3688,6 +3732,7 @@ document.addEventListener('click', event => {
   let changed=false;
   if(state.companyMenuOpen && !event.target.closest('.runtime-company-picker')){state.companyMenuOpen=false;changed=true;}
   if(state.accountMenuOpen && !event.target.closest('.runtime-account-picker')){state.accountMenuOpen=false;changed=true;}
+  if(accountPortalOpen && !event.target.closest('#lac-hub-account-host'))closeAccountPortal();
   const hubProfile=root.querySelector('.hub-account__profile[open]');
   if(hubProfile && !event.target.closest('.hub-account__profile'))hubProfile.open=false;
   if(changed)render();
@@ -3695,6 +3740,7 @@ document.addEventListener('click', event => {
 
 document.addEventListener('keydown', event=>{
   if(event.key==='Escape'){
+    if(accountPortalOpen){closeAccountPortal();event.preventDefault();}
     const hubProfile=root.querySelector('.hub-account__profile[open]');
     if(hubProfile){hubProfile.open=false;hubProfile.querySelector('.hub-account__trigger')?.focus();event.preventDefault();}
     if(state.accountMenuOpen){state.accountMenuOpen=false;render();event.preventDefault();}

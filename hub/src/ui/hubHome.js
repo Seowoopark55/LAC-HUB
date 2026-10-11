@@ -89,19 +89,14 @@ function renderHubContentSection(state,{current,companyAction}) {
   </section>`;
 }
 
-export function renderHubHome(state) {
+// Shared account content for HUB home, company management and the BUILD account portal.
+// One renderer preserves the exact same company/pass/profile/logout menu everywhere.
+export function renderHubAccountControl(state,{expanded=false}={}) {
   const companies = state.companies || [];
   const current = companies.find(company => company.id === state.companyId) || null;
   const displayName = accountName(state);
   const avatar = accountAvatar(state, displayName);
   const owner = state.platformAdmin === true;
-  const companyAction = current ? 'open-company-console' : 'open-company-start';
-  // The hero is the only company CTA on the HUB home. A member of an existing
-  // company must never see a new-company CTA, even if the creation RPC reports
-  // eligibility (e.g. an administrator or a member who has not created one).
-  const companyLabel = current ? '내 회사로 이동' : state.canCreateCompany === true ? '+ 회사 생성' : state.companyCreatePermissionError ? '회사 등록 안내' : '회사 가입 안내';
-  // One account control for every member; platform administration remains
-  // independent and appears only for the platform owner.
   const accountCompany = !current
     ? `<span class="hub-account__company hub-account__company--empty">회사 미설정</span>`
     : companies.length > 1
@@ -116,7 +111,17 @@ export function renderHubHome(state) {
     : `<span>${current ? '이용권 정보가 없습니다. 새로고침해 주세요.' : '소속 회사 없음'}</span>`;
   const accountSubscription = `<section class="hub-account__subscription" aria-label="회사 통합 이용권"><strong>회사 통합 이용권</strong>${subscriptionDetails}${current ? '<button type="button" data-action="refresh-company-subscription">이용권 새로고침</button>' : ''}</section>`;
   const pendingPassCount=owner?(state.adminPassRequests||[]).filter(row=>row.status==='pending').length:0;
-  const accountMenu = `<details class="hub-account__profile"><summary class="hub-account__trigger" aria-label="내 계정 메뉴 열기: ${esc(displayName)}"><span class="hub-account__avatar">${avatar}</span><span class="hub-account__identity"><strong>${esc(displayName)}</strong><small>${current ? esc(current.name) : '회사 미설정'}</small></span>${pendingPassCount?`<b class="hub-pass-alert__dot" aria-label="새 이용권 신청 ${pendingPassCount}건">${pendingPassCount}</b>`:''}${chevron}</summary><div class="hub-account__menu"><div class="hub-account__menu-head"><span class="hub-account__avatar hub-account__avatar--large">${avatar}</span><span><small>로그인 계정</small><strong>${esc(displayName)}</strong></span><button type="button" class="hub-account__close" data-action="close-account-menu" aria-label="계정 메뉴 닫기" title="닫기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>${accountCompany}${accountSubscription}${owner?`<button type="button" class="hub-pass-alert" data-action="open-pass-requests"><span aria-hidden="true">🔔</span> 이용권 신청 알림 ${pendingPassCount?`<b>${pendingPassCount}건</b>`:'<small>새 신청 없음</small>'}</button>`:''}<button type="button" class="hub-player-profile-link" data-action="open-player-profile">내 인게임 프로필 <span aria-hidden="true">→</span></button><button type="button" class="hub-logout" data-action="logout">로그아웃 <span aria-hidden="true">→</span></button></div></details>`;
+  const accountMenu = `<details class="hub-account__profile"${expanded?' open':''}><summary class="hub-account__trigger" aria-label="내 계정 메뉴 열기: ${esc(displayName)}"><span class="hub-account__avatar">${avatar}</span><span class="hub-account__identity"><strong>${esc(displayName)}</strong><small>${current ? esc(current.name) : '회사 미설정'}</small></span>${pendingPassCount?`<b class="hub-pass-alert__dot" aria-label="새 이용권 신청 ${pendingPassCount}건">${pendingPassCount}</b>`:''}${chevron}</summary><div class="hub-account__menu"><div class="hub-account__menu-head"><span class="hub-account__avatar hub-account__avatar--large">${avatar}</span><span><small>로그인 계정</small><strong>${esc(displayName)}</strong></span><button type="button" class="hub-account__close" data-action="close-account-menu" aria-label="계정 메뉴 닫기" title="닫기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>${accountCompany}${accountSubscription}${owner?`<button type="button" class="hub-pass-alert" data-action="open-pass-requests"><span aria-hidden="true">🔔</span> 이용권 신청 알림 ${pendingPassCount?`<b>${pendingPassCount}건</b>`:'<small>새 신청 없음</small>'}</button>`:''}<button type="button" class="hub-player-profile-link" data-action="open-player-profile">내 인게임 프로필 <span aria-hidden="true">→</span></button><button type="button" class="hub-logout" data-action="logout">로그아웃 <span aria-hidden="true">→</span></button></div></details>`;
+  return accountMenu;
+}
+
+export function renderHubHome(state) {
+  const companies = state.companies || [];
+  const current = companies.find(company => company.id === state.companyId) || null;
+  const owner = state.platformAdmin === true;
+  const companyAction = current ? 'open-company-console' : 'open-company-start';
+  const companyLabel = current ? '내 회사로 이동' : state.canCreateCompany === true ? '+ 회사 생성' : state.companyCreatePermissionError ? '회사 등록 안내' : '회사 가입 안내';
+  const accountMenu = renderHubAccountControl(state);
   return `<div class="hub-home">
     <header class="hub-topbar"><div class="hub-topbar__inner">
       <span class="hub-wordmark"><img src="${ASSETS}mark.png" alt="" width="32" height="32"><strong>LAC HUB</strong></span>

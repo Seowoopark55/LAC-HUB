@@ -1,7 +1,7 @@
 import { renderHubBoard } from './hubBoard.js';
 import { renderInfoPage } from './infoPage.js';
 import { renderGameInfoAdmin, renderPlatformModbookReview } from './gameInfoAdmin.js';
-import { renderHubHome } from './hubHome.js';
+import { renderHubHome, renderHubAccountControl } from './hubHome.js';
 import {canOpenWebContent,contentAccessPending,hasCompany,hasUnifiedPass,companySetupComplete} from '../platform/contentPolicy.js';
 import {renderCompanyPassNotice} from '../platform/unifiedPassGuide.js';
 import { hubReturnButton } from './hubReturnButton.js';
@@ -218,17 +218,6 @@ function renderOnboarding(state) {
   return `${hubReturnButton('hub-onboarding-back')}<section class="runtime-auth runtime-auth--onboarding runtime-auth--first-run"><div class="runtime-first-run">${firstRunContent(discord,{canCreateCompany:state.canCreateCompany===true,accessError:state.companyCreatePermissionError,contentKind:state.companyStartSource==='game'?'game':'company'})}</div></section>`;
 }
 
-function companySubscriptionAccountSummary(state) {
-  if (!state.companyId || !(state.companies || []).some(company => company.id === state.companyId)) {
-    return '<div class="runtime-account-subscription"><strong>회사 관리 이용권</strong><span>소속 회사 없음</span></div>';
-  }
-  const subscription = state.currentSubscription;
-  const details = subscription
-    ? `<span>플랜: ${esc(companyPlanName(subscription.plan))}</span><span>상태: ${esc(companyStatusName(subscription))}</span><span>종료일: ${esc(companySubscriptionEnd(subscription, value => fmtDate(value, true)))}</span>`
-    : '<span>이용권 정보가 없습니다. 새로고침해 주세요.</span>';
-  return `<div class="runtime-account-subscription"><strong>회사 관리 이용권</strong>${details}<button type="button" data-action="refresh-company-subscription">이용권 새로고침</button></div>`;
-}
-
 function renderAuthed(state) {
   const company = currentCompany(state);
   const membership = currentMembership(state);
@@ -242,11 +231,8 @@ function renderAuthed(state) {
       <button type="button" class="global-home-zone" data-action="${platformScreen?'go-hub':'open-company-console'}" aria-label="${platformScreen?'LAC HUB 메인':'회사 관리 대시보드'}로 이동">
         <span class="product-brand product-brand--home"><span class="product-brand__copy"><strong>${platformScreen?'서비스 관리':'회사 관리'}</strong>${platformScreen?'<small>LAC HUB · PLATFORM</small>':''}</span></span>
       </button>
-      <div class="global-account runtime-account-picker ${state.accountMenuOpen?'is-open':''}">
-        <button type="button" class="runtime-account-trigger" data-action="toggle-account-menu" aria-expanded="${state.accountMenuOpen?'true':'false'}" aria-haspopup="menu">
-          <span class="runtime-account-trigger__identity"><strong>${esc(userDisplayName(state))}</strong><em>${esc(ROLE_LABEL[membership?.role] || (state.platformAdmin?'PLATFORM OWNER':'-'))}</em></span><b>⌄</b>
-        </button>
-        ${state.accountMenuOpen?`<div class="runtime-account-menu" role="menu"><div class="runtime-account-menu__head"><strong>계정 정보</strong><button type="button" data-action="close-account-menu" aria-label="계정 메뉴 닫기" title="닫기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>${companySubscriptionAccountSummary(state)}<button type="button" data-action="open-player-profile" role="menuitem"><span class="runtime-account-menu__icon">♙</span><span><strong>내 인게임 프로필</strong><small>닉네임 · 인게임 전화번호</small></span></button><button type="button" data-action="logout" role="menuitem"><span class="runtime-account-menu__icon">${icon('logout')}</span><span><strong>로그아웃</strong><small>현재 계정에서 나가기</small></span></button></div>`:''}
+      <div class="global-account hub-account lac-unified-company-account">
+        ${renderHubAccountControl(state)}
       </div>
     </div></header>
     <div class="workspace-shell">
