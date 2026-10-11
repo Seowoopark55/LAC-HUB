@@ -81,8 +81,9 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   </article></div>`;
 }
 export function renderTogetherPage(state){const {loggedIn,profile}=controlState(state);
-  return `<div class="lac-together" id="lac-together">${pageTop(state)}<main class="lac-together__main"><div class="lac-together__hero"><div><span class="lac-together__eyebrow">LAC HUB · PLAY TOGETHER</span><h1>함께하기 <span class="lac-together__hero-accent">/ 모집 광장</span></h1><p>다양한 활동의 동료를 모집하고, 게임 속에서 함께하세요.</p><span class="lac-together__hero-caption">RECRUIT · MEET · PLAY</span></div><div class="lac-together__hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></div></div><div class="lac-together__toolbar"><div class="lac-together__toolbar-left">${ui.mode==='list'?`<label for="lac-together-filter">활동 카테고리</label><select id="lac-together-filter" data-together-filter><option value="전체">전체 활동</option>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${ui.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`:`<button class="lac-together__ghost" type="button" data-together-action="back">← 모집 목록</button>`}</div><div>${ui.mode==='list'?`<button type="button" class="lac-together__primary" data-together-action="create">+ 모집하기</button>`:''}</div></div>
+  return `<div class="lac-together lac-together--${esc(ui.mode)}" id="lac-together">${pageTop(state)}<main class="lac-together__main"><div class="lac-together__hero"><div><span class="lac-together__eyebrow">LAC HUB · PLAY TOGETHER</span><h1>함께하기 <span class="lac-together__hero-accent">/ 모집 광장</span></h1><p>다양한 활동의 동료를 모집하고, 게임 속에서 함께하세요.</p><span class="lac-together__hero-caption">RECRUIT · MEET · PLAY</span></div><div class="lac-together__hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></div></div><div class="lac-together__toolbar"><div class="lac-together__toolbar-left">${ui.mode==='list'?`<label for="lac-together-filter">활동 카테고리</label><select id="lac-together-filter" data-together-filter><option value="전체">전체 활동</option>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${ui.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`:`<button class="lac-together__ghost" type="button" data-together-action="back">← 모집 목록</button>`}</div><div>${ui.mode==='list'?`<button type="button" class="lac-together__primary" data-together-action="create">+ 모집하기</button>`:''}</div></div>
   ${ui.error?`<div class="lac-together__error" role="alert">${esc(ui.error)}</div>`:''}
+  ${ui.mode==='list'?`<div class="lac-together__list-heading"><h2>모집 목록</h2><span>총 ${ui.items.filter(row=>ui.category==='전체'||row.category===ui.category).length}개의 모집글</span></div>`:''}
   ${['create','edit'].includes(ui.mode)?renderCreate():ui.mode==='detail'?renderDetail(state):`<div class="lac-together__grid">${listCards()}</div>`}
   ${ui.mode==='list'?`<p class="lac-together__foot">모집 목록은 로그인 없이 볼 수 있습니다. 모집·참가·채팅에는 Discord 로그인과 인게임 프로필이 필요합니다.${!loggedIn?' <button type="button" data-together-action="login">Discord 로그인</button>':!profile?' <button type="button" data-together-action="profile">인게임 프로필 등록</button>':''}</p>`:''}
   </main></div>`;
@@ -185,3 +186,16 @@ export async function togetherSubmit(form,state,{render,openProfile}){
   }
 }
 export function togetherProfileUpdated(state){if(state.session?.user){ui.profile=null;ui.profileChecked=false;ui.profileUser=null;}}
+
+// Shared account menus are independent. This listener only closes the Together host management menu.
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', event => {
+    const menu=document.querySelector('#lac-together .lac-together__manage[open]');
+    if(menu && !menu.contains(event.target)) menu.open=false;
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape')return;
+    const menu=document.querySelector('#lac-together .lac-together__manage[open]');
+    if(menu){menu.open=false;menu.querySelector('summary')?.focus();}
+  });
+}

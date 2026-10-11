@@ -1,0 +1,90 @@
+/* Together v2.1 visual layer. Keep live content / controls in the DOM.
+   Brand background is the SAME asset used by HUB: /brand/lac-one-shell-clean.png.
+   Cropped generated fragments are decorative only, never data or clickable images. */
+.lac-together{--tg-gold:#bf9a66;--tg-ink:#eaf0f5;--tg-line:#584b3c;--tg-muted:#b1c0ce;background:linear-gradient(180deg,rgba(4,7,11,.40),rgba(3,6,10,.57));position:relative;isolation:isolate}
+.lac-together::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:url('/brand/lac-one-shell-clean.png') center center/cover no-repeat #030507}
+.lac-together__head{background:linear-gradient(90deg,rgba(7,11,17,.96),rgba(12,19,27,.92));border-bottom-color:rgba(194,157,99,.22);box-shadow:0 7px 25px rgba(0,0,0,.32)}
+.lac-together__main{max-width:1230px;padding:19px 24px 34px}
+.lac-together__hero{min-height:150px;margin-bottom:15px;padding:21px 30px;background:linear-gradient(90deg,rgba(10,16,24,.96),rgba(10,16,24,.84) 56%,rgba(9,16,25,.68)),url('/hub/together/art/post-banner.webp') center 43%/cover no-repeat;border:1px solid rgba(204,170,112,.48);box-shadow:inset 0 1px rgba(255,230,175,.09),0 16px 45px rgba(0,0,0,.28)}
+.lac-together__hero h1{font-size:31px;letter-spacing:-.045em;color:#f2eee5}
+.lac-together__hero-caption{margin-top:10px}
+.lac-together__toolbar{min-height:55px;padding:8px 12px;margin-bottom:14px;border:1px solid rgba(186,149,91,.38);border-radius:11px;background:linear-gradient(105deg,rgba(11,17,26,.95),rgba(15,24,35,.88));box-shadow:0 8px 25px rgba(0,0,0,.22)}
+.lac-together__toolbar-left label{color:#dac09b;font-size:11px}
+.lac-together__toolbar select{width:172px}
+.lac-together__primary{background:linear-gradient(180deg,#e3c69b,#c39d6a);border-color:#f0d3a7;color:#151b23;box-shadow:inset 0 1px rgba(255,255,255,.30);font-weight:800}
+.lac-together__ghost{background:rgba(21,32,46,.88);border-color:#5c6370;color:#e5ebf1}
+.lac-together__list-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:7px 0 13px}
+.lac-together__list-heading h2{margin:0;font-size:16px;letter-spacing:-.02em;color:#f0e9de;padding-left:13px;position:relative}
+.lac-together__list-heading h2::before{content:"";position:absolute;left:0;top:3px;bottom:2px;width:3px;border-radius:3px;background:linear-gradient(#efd2a4,#ab7c43)}
+.lac-together__list-heading span{font-size:11px;color:#b0c0cd}
+.lac-together__grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.lac-together__item{min-height:240px;justify-content:flex-start;padding:25px 24px 18px;gap:11px;border:1px solid rgba(213,176,116,.55);border-radius:13px;background:linear-gradient(155deg,rgba(14,20,29,.40),rgba(9,17,26,.80)),url('/hub/together/art/list-card.webp') center/100% 100% no-repeat;box-shadow:0 8px 24px rgba(0,0,0,.30),inset 0 1px rgba(255,229,187,.09);transition:transform .16s,border-color .16s,box-shadow .16s}
+.lac-together__item:hover{border-color:#e6bd79;background:linear-gradient(155deg,rgba(22,31,42,.45),rgba(12,22,33,.77)),url('/hub/together/art/list-card.webp') center/100% 100% no-repeat;box-shadow:0 13px 34px rgba(0,0,0,.40);transform:translateY(-3px)}
+.lac-together__item:before{display:none}
+.lac-together__item-top{min-height:32px}
+.lac-together__category{display:inline-flex;align-items:center;border:1px solid rgba(211,173,114,.50);border-radius:5px;background:rgba(7,14,22,.70);padding:5px 9px;line-height:1.2;color:#f0d3a8;font-size:11px}
+.lac-together__badge{border-radius:5px;font-size:10px}
+.lac-together__item-heading{margin-top:10px}
+.lac-together__item-symbol{border-radius:6px;background:rgba(13,22,33,.68);color:#d9b988;border-color:#66583f}
+.lac-together__item-heading strong{font-size:16px;color:#f3f4f5}
+.lac-together__item-desc{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.45;min-height:32px;color:#bdc9d4}
+.lac-together__item-progress{margin-top:auto;height:4px;background:#273642}
+.lac-together__item-footer{align-items:center;padding-top:12px;border-top:1px solid rgba(192,164,122,.24);gap:8px;color:#cad4de}
+.lac-together__item-info{gap:5px}
+.lac-together__foot{padding:12px 14px;margin-top:15px;background:rgba(7,12,18,.68);border:1px solid rgba(191,154,104,.18);border-radius:8px;color:#b0c0cf}
+/* On the post screen, show the post itself immediately — no duplicate landing hero. */
+.lac-together--detail .lac-together__hero,.lac-together--create .lac-together__hero,.lac-together--edit .lac-together__hero{display:none}
+.lac-together--detail .lac-together__main{max-width:1220px;padding-top:13px}
+.lac-together--detail .lac-together__toolbar,.lac-together--create .lac-together__toolbar,.lac-together--edit .lac-together__toolbar{margin-bottom:11px;background:transparent;border-color:transparent;box-shadow:none;padding:0;min-height:32px}
+.lac-together--detail .lac-together__toolbar .lac-together__ghost{border-color:rgba(179,149,103,.37);min-height:32px}
+.lac-together__detail{max-width:1160px}
+.lac-together__post{border:1px solid rgba(202,161,98,.45);border-radius:13px;background:rgba(10,16,24,.96);box-shadow:0 17px 55px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.05)}
+.lac-together__post:before{display:none}
+.lac-together__post-header{padding:19px 25px 18px;background:linear-gradient(90deg,rgba(10,17,27,.94),rgba(11,19,29,.88)),url('/hub/together/art/post-banner.webp') right center/cover no-repeat;border-bottom:1px solid rgba(201,158,98,.50)}
+.lac-together__post-caption{display:none}
+.lac-together__post-header h2{margin:10px 0 5px;font-size:24px;color:#faf5e9}
+.lac-together__post-description{margin:0 0 11px;max-height:55px;overflow-y:auto;line-height:1.55;color:#ced9e3}
+.lac-together__post-meta{padding:11px 0;gap:9px;border-top-color:rgba(190,154,98,.30)}
+.lac-together__post-meta span{color:#c0a47e;font-size:10px}
+.lac-together__post-meta strong{font-size:11.5px}
+.lac-together__post-status{display:flex;align-items:center;gap:20px;min-height:49px;padding:8px 12px;border:1px solid rgba(182,144,93,.32);background:rgba(6,13,21,.55)}
+.lac-together__post-status-top{flex:1;min-width:0}
+.lac-together__post-status-top>div{gap:1px}
+.lac-together__post-status-top strong{font-size:11.5px}
+.lac-together__post-status-top span{font-size:10px}
+.lac-together__post-count b{font-size:17px}
+.lac-together__progress{width:130px;flex-shrink:0;margin:0}
+.lac-together__post-join{margin:0}
+.lac-together__post-body{grid-template-columns:minmax(300px,.93fr) minmax(0,1.07fr);border-top:0;min-height:325px}
+.lac-together__post-side{border-right-color:rgba(188,149,96,.29);background:linear-gradient(rgba(13,23,34,.94),rgba(9,16,25,.96)),url('/hub/together/art/roster-crest.webp') top center/100% auto no-repeat}
+.lac-together__post-section{padding:14px 18px}
+.lac-together__post-side>.lac-together__post-section+.lac-together__post-section{border-top-color:rgba(182,145,95,.25)}
+.lac-together__section-heading{margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid rgba(191,149,89,.27)}
+.lac-together__section-heading h3{color:#eee5d7;font-size:13px}
+.lac-together__section-heading>span{color:#d1b48a}
+.lac-together__person{padding:8px 0;border-bottom-color:#3b4450}
+.lac-together__person-num{border:1px solid rgba(189,155,105,.50);background:rgba(21,36,50,.94)}
+.lac-together__privacy{font-size:9.5px;margin-top:10px}
+.lac-together__post-chat{background:linear-gradient(rgba(12,22,34,.94),rgba(9,17,27,.97)),url('/hub/together/art/chat-surface.webp') center/cover no-repeat}
+.lac-together__messages{min-height:150px;max-height:310px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#66717c transparent;background:rgba(6,13,21,.63);border:1px solid rgba(172,144,107,.28);padding:12px}
+.lac-together__message p{background:#263546;border:1px solid rgba(195,170,125,.13);border-radius:9px}
+.lac-together__message.is-mine p{background:#5a4a36;border-color:#766044}
+.lac-together__chat-form{margin-top:8px}
+.lac-together__manage summary{border-color:rgba(213,173,105,.50);background:rgba(9,16,25,.82);color:#e9dfcf}
+.lac-together__manage-items{min-width:160px;background:linear-gradient(135deg,#192533,#101923);border:1px solid rgba(213,175,113,.65);box-shadow:0 14px 30px rgba(0,0,0,.65);padding:6px}
+.lac-together__manage-items button{font-size:11px;min-height:35px}
+.lac-together__manage-items button:hover{background:#354052}
+.lac-together__create{max-width:620px;background:linear-gradient(rgba(13,22,33,.94),rgba(11,19,29,.97)),url('/hub/together/art/form-crest.webp') top center/100% auto no-repeat;border:1px solid rgba(204,161,98,.58);box-shadow:0 15px 50px rgba(0,0,0,.38);padding:20px 25px 22px}
+.lac-together__form-title{border-bottom:1px solid rgba(189,154,103,.30);padding-bottom:13px;color:#f5ead8}
+.lac-together .lac-together__create input,.lac-together .lac-together__create textarea,.lac-together .lac-together__create select{background:rgba(9,18,29,.87);border-color:#485467}
+@media(max-width:1090px){.lac-together__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lac-together__main{max-width:1000px}}
+@media(min-width:761px) and (max-height:850px){.lac-together--detail .lac-together__main{padding-bottom:12px}.lac-together__post-header{padding-top:13px;padding-bottom:11px}.lac-together__post-body{min-height:260px}.lac-together__post-section{padding-top:11px;padding-bottom:11px}.lac-together__messages{max-height:230px;min-height:125px}.lac-together__post-header h2{font-size:21px;margin-top:6px}}
+@media(max-width:760px){.lac-together__grid{grid-template-columns:1fr}.lac-together__post-body{grid-template-columns:1fr}.lac-together__post-side{border-right:0;border-bottom:1px solid rgba(188,149,96,.29)}.lac-together__post-status{display:block}.lac-together__progress{margin-top:9px;width:100%}.lac-together__post-join{margin-top:8px}.lac-together__post-description{max-height:none}.lac-together__messages{max-height:300px;min-height:180px}.lac-together__main{padding-bottom:32px}.lac-together__item{min-height:210px}}
+@media(max-width:520px){.lac-together__main{padding:13px 12px 25px}.lac-together__hero{min-height:120px;padding:17px}.lac-together__hero h1{font-size:24px}.lac-together__toolbar{padding:8px}.lac-together__toolbar select{width:137px}.lac-together__item{padding:19px 18px}.lac-together__post-header{padding:15px}.lac-together__post-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.lac-together__post-section{padding:14px}.lac-together__section-heading h3 small{display:none}.lac-together__list-heading span{font-size:10px}}
+@media(min-width:761px) and (max-height:850px){
+  .lac-together__create{gap:10px;padding:14px 22px}
+  .lac-together__create textarea{min-height:64px;height:64px}
+  .lac-together__form-grid--schedule{padding-top:12px}
+  .lac-together__form-title{margin-bottom:1px;padding-bottom:9px}
+  .lac-together__actions{padding-top:9px}
+}
