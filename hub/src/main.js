@@ -1,6 +1,7 @@
 import './styles.css';
 import './styles/playerProfile.css';
 import './styles/unifiedAccount.css';
+import './styles/sharedAccountTrigger.css'; // Exact HUB-home chip sizes for company and HUB.
 import {renderHubAccountControl} from './ui/hubHome.js';
 import {loadPlayerProfile, upsertPlayerProfile} from './lib/playerProfileApi.js';
 import {renderPlayerProfileModal, playerProfileFormData} from './ui/playerProfile.js';

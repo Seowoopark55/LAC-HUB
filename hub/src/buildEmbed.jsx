@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import BuildApp from '../../build/src/App.jsx';
 import buildCss from '../../build/src/styles.css?inline';
 import hubReturnCss from './styles/hub-return.css?inline';
+import sharedAccountTriggerCss from './styles/sharedAccountTrigger.css?inline';
 
 let mounted = false;
 
@@ -14,7 +15,7 @@ export function mountEmbeddedBuild(host) {
   const shadow = host.attachShadow({ mode: 'open' });
   const style = document.createElement('style');
   // BUILD's :root variables belong to its isolated host, not the HUB document.
-  style.textContent = buildCss.replace(/:root\b/g, ':host') + hubReturnCss + `
+  style.textContent = buildCss.replace(/:root\b/g, ':host') + hubReturnCss + sharedAccountTriggerCss + `
     :host { display: block; min-height: 100vh; color: #f4f4f5;
       font-family: Inter, Pretendard, "Noto Sans KR", system-ui, sans-serif;
       background: url('/brand/lac-one-shell-clean.png') center top / cover no-repeat, #030507; }
@@ -49,46 +50,7 @@ export function mountEmbeddedBuild(host) {
     .lac-build-unified-header>.header-actions {
       margin-left:0;justify-self:end;min-width:0;
     }
-    /* The entire identity surface matches the HUB account trigger, and is clickable. */
-    .lac-build-unified .user-chip--hub-account {
-      box-sizing:border-box;appearance:none;display:flex;align-items:center;gap:9px;
-      min-height:43px;max-width:min(270px,42vw);padding:4px 10px 4px 5px;
-      border:1px solid #3b4b58;border-radius:13px;
-      background:linear-gradient(130deg,#24303c,#19232e);
-      color:#e8ebef;text-align:left;box-shadow:inset 0 1px 0 #ffffff12;
-      cursor:pointer;font:inherit;
-    }
-    .lac-build-unified .user-chip--hub-account:hover,
-    .lac-build-unified .user-chip--hub-account:focus-visible {
-      border-color:#b09368;background:linear-gradient(130deg,#2b3541,#1d2935);
-    }
-    .lac-build-unified .user-chip--hub-account:focus-visible {outline:2px solid #e9c990;outline-offset:2px;}
-    .lac-build-unified .user-chip--hub-account>img,
-    .lac-build-unified .user-chip--hub-account>.avatar-fallback {
-      box-sizing:border-box;flex:0 0 35px;width:35px;height:35px;
-      border:1px solid #91734b;border-radius:10px;object-fit:cover;
-    }
-    .lac-build-unified .user-chip--hub-account>.avatar-fallback {
-      display:grid;place-items:center;background:linear-gradient(140deg,#493925,#242e39);
-      color:#ffe2ac;font-size:15px;font-weight:850;
-    }
-    .lac-build-unified .user-chip--hub-account .user-chip__identity {
-      display:flex;flex-direction:column;align-items:flex-start;gap:3px;
-      min-width:0;max-width:155px;line-height:1.15;
-    }
-    .lac-build-unified .user-chip--hub-account .user-chip__identity strong {
-      display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;
-      white-space:nowrap;color:#f1f1f0;font-size:12px;
-    }
-    .lac-build-unified .user-chip--hub-account .user-chip__identity small {
-      display:block;max-width:100%;padding:2px 7px;border:1px solid #7b6440;
-      border-radius:100px;background:#3b3126;color:#f1d5a7;
-      font-size:9px;font-weight:750;line-height:1.1;
-      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-    }
-    .lac-build-unified .user-chip--hub-account .user-chip__chevron {
-      flex:0 0 16px;color:#d9b781;
-    }
+    /* BUILD uses the identical chip dimensions provided by sharedAccountTriggerCss. */
     .lac-build-unified-header .lac-build-inline-return[data-hub-return] {
       box-sizing: border-box; display: inline-flex; align-items: center;
       justify-content: center; flex: 0 0 auto; gap: 7px;

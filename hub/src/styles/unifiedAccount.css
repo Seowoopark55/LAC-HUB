@@ -11,20 +11,7 @@
 .lac-unified-company-account .hub-account__menu,
 .lac-hub-account-portal .hub-account__menu {font-family:inherit;text-align:left;line-height:1.35;}
 .lac-unified-company-account .hub-account__profile {margin:0;}
-/* Company console: keep the home account menu, but size the header chip to its content.
-   The former 158px minimum made this one trigger look larger than HUB/BUILD. */
-.lac-unified-company-account .hub-account__trigger {
-  min-width:132px;
-  min-height:40px;
-  gap:7px;
-  padding:3px 8px 3px 4px;
-}
-.lac-unified-company-account .hub-account__trigger>.hub-account__avatar {
-  width:32px;
-  height:32px;
-  border-radius:9px;
-}
-.lac-unified-company-account .hub-account__trigger>.hub-account__identity {gap:2px;}
+/* Trigger dimensions come exclusively from sharedAccountTrigger.css. */
 /* The BUILD menu must remain outside the shadow tree and above BUILD's header. */
 #lac-hub-account-host.lac-hub-account-portal {
   box-sizing:border-box; position:fixed; display:block; z-index:1500;
@@ -40,8 +27,6 @@
 }
 @media(max-width:600px){
   .runtime-app .global-header__inner .lac-unified-company-account {max-width:43%!important;}
-  .lac-unified-company-account .hub-account__identity {max-width:78px;}
-  .lac-unified-company-account .hub-account__trigger {gap:5px;padding-right:5px;}
 }
 /* Desktop company shell normally clips to its rounded frame. Let the opened
    account dropdown extend over the workspace instead of cutting off rows. */

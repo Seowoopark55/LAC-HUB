@@ -1,0 +1,58 @@
+/* Single source of truth for the HUB home account chip across HUB, company and embedded BUILD.
+   Keep dimensions here rather than overriding each content header individually. */
+.hub-account__trigger,
+.lac-build-unified .user-chip--hub-account {
+  box-sizing:border-box;appearance:none;display:flex;align-items:center;gap:10px;
+  list-style:none;min-height:43px;max-width:270px;padding:4px 10px 4px 5px;
+  border:1px solid #3b4b58;border-radius:13px;
+  background:linear-gradient(130deg,#24303c,#19232e);
+  box-shadow:inset 0 1px 0 #ffffff12;color:#e8ebef;
+  text-align:left;cursor:pointer;font:inherit;font-size:12px;
+}
+.hub-account__trigger:hover,
+.hub-account__profile[open]>.hub-account__trigger,
+.lac-build-unified .user-chip--hub-account:hover {
+  border-color:#b09368;background:linear-gradient(130deg,#2b3541,#1d2935);
+}
+.hub-account__trigger>svg,
+.lac-build-unified .user-chip--hub-account>.user-chip__chevron {
+  flex-shrink:0;color:#d9b781;transition:transform .16s;
+}
+.hub-account__profile[open]>.hub-account__trigger>svg {transform:rotate(180deg)}
+.hub-account__avatar,
+.lac-build-unified .user-chip--hub-account>img,
+.lac-build-unified .user-chip--hub-account>.avatar-fallback {
+  box-sizing:border-box;display:grid;place-items:center;flex-shrink:0;
+  width:35px;height:35px;overflow:hidden;border:1px solid #91734b;
+  border-radius:10px;background:linear-gradient(140deg,#493925,#242e39);
+  color:#ffe2ac;font-weight:850;font-size:15px;
+}
+.hub-account__avatar--large{width:41px;height:41px;border-radius:12px}
+.hub-account__avatar img {width:100%;height:100%;object-fit:cover;border-radius:inherit}
+/* BUILD renders the avatar directly as <img>, not inside an avatar span. */
+.lac-build-unified .user-chip--hub-account>img {width:35px;height:35px;object-fit:cover;border-radius:10px}
+.hub-account__identity,
+.lac-build-unified .user-chip--hub-account .user-chip__identity {
+  display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  min-width:0;max-width:155px;line-height:1.15;
+}
+.hub-account__identity strong,
+.lac-build-unified .user-chip--hub-account .user-chip__identity strong {
+  display:block;width:100%;max-width:100%;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-size:12px;color:#f1f1f0;
+}
+.hub-account__identity small,
+.lac-build-unified .user-chip--hub-account .user-chip__identity small {
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:2px 7px;border:1px solid #7b6440;border-radius:100px;
+  background:#3b3126;color:#f1d5a7;
+  font-size:9px;font-weight:750;line-height:1.1;letter-spacing:normal;
+}
+.lac-build-unified .user-chip--hub-account:focus-visible,
+.hub-account__trigger:focus-visible {outline:2px solid #e9c990;outline-offset:3px}
+@media(max-width:600px){
+  .hub-account__trigger,
+  .lac-build-unified .user-chip--hub-account {padding:3px 6px 3px 3px;gap:7px}
+  .hub-account__identity,
+  .lac-build-unified .user-chip--hub-account .user-chip__identity {max-width:105px}
+}
