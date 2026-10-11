@@ -1,0 +1,68 @@
+/* TOGETHER v2.2 — authored asset skins. This is decorative presentation only.
+   Keep HUB's signature page background and all live controls in HTML. No rasterized text.
+   Frame assets have transparent centers; 9-slice preserves the gold corners. */
+.lac-together{--tg-art-border:rgba(200,164,103,.47)}
+.lac-together__main{position:relative}
+.lac-together__hero{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(90deg,rgba(8,14,22,.95) 0%,rgba(9,16,25,.85) 53%,rgba(10,18,28,.20) 100%),url('/hub/together/art/v22/cinematic-ribbon.webp') right center/cover no-repeat;box-shadow:0 16px 40px rgba(0,0,0,.38),inset 0 1px rgba(250,225,185,.19)}
+.lac-together__hero:after{content:"";position:absolute;inset:0;pointer-events:none;border-top:1px solid rgba(236,196,129,.58);border-bottom:1px solid rgba(225,179,103,.40);background:linear-gradient(90deg,transparent 10%,rgba(211,165,97,.44) 40%,transparent 74%) top left/100% 1px no-repeat;z-index:0}
+.lac-together__hero>*{position:relative;z-index:1}
+.lac-together__hero h1{font-size:31px;text-shadow:0 2px 15px rgba(0,0,0,.65)}
+.lac-together__toolbar{border-color:rgba(206,172,113,.52);background:linear-gradient(100deg,rgba(11,18,28,.97),rgba(18,27,38,.92));box-shadow:inset 0 1px rgba(242,211,152,.10),0 9px 24px rgba(0,0,0,.26)}
+.lac-together__item{isolation:isolate;min-height:278px;padding:118px 19px 16px;gap:8px;border-color:rgba(204,171,115,.45);border-radius:12px;background:linear-gradient(180deg,rgba(17,28,40,.96),rgba(10,18,29,.97));box-shadow:0 14px 32px rgba(0,0,0,.31),inset 0 1px rgba(230,200,157,.14)}
+.lac-together__item:hover{background:linear-gradient(180deg,rgba(25,37,50,.97),rgba(11,22,34,.98));box-shadow:0 18px 35px rgba(0,0,0,.40),0 0 0 1px rgba(214,177,112,.32)}
+.lac-together__item::before{content:"";display:block;position:absolute;inset:2px 2px auto;height:110px;pointer-events:none;z-index:0;opacity:.94;background:linear-gradient(180deg,rgba(9,17,27,.18),rgba(9,17,27,.24) 65%,rgba(14,24,34,.99)),url('/hub/together/art/v22/cinematic-ribbon.webp') center center/cover no-repeat;}
+.lac-together__item[data-together-category="보스"]::before{background-position:center,70% center;filter:saturate(.85)}
+.lac-together__item[data-together-category="범죄"]::before{background-position:center,10% center;filter:sepia(.13)}
+.lac-together__item[data-together-category="WWE"]::before{background-position:center,85% center;filter:hue-rotate(9deg)}
+.lac-together__item[data-together-category="자유 활동"]::before{background-position:center,35% center;filter:saturate(.80)}
+.lac-together__item::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;border:17px solid transparent;border-image-source:url('/hub/together/art/v22/card-edge.webp');border-image-slice:76;border-image-width:17px;border-image-repeat:stretch}
+.lac-together__item>span{position:relative;z-index:1}
+.lac-together__item-top{position:absolute!important;top:14px;left:17px;right:17px;z-index:3!important;min-height:30px;}
+.lac-together__item-heading{margin-top:6px;gap:9px}
+.lac-together__item-heading strong{font-size:16px;line-height:1.35}
+.lac-together__item-symbol{width:29px;height:29px;font-size:10px;border-color:rgba(208,169,110,.65);background:linear-gradient(160deg,#3f352b,#1b2937)}
+.lac-together__item-desc{margin-top:0;padding-left:0;min-height:33px;line-height:1.5}
+.lac-together__item-progress{margin-top:auto;background:#24313d}
+.lac-together__item-footer{margin-top:3px;padding-top:10px;border-top:1px solid rgba(223,183,119,.30)}
+.lac-together__category{border:1px solid rgba(230,191,129,.61);background:rgba(8,15,24,.86);box-shadow:0 2px 8px rgba(0,0,0,.27)}
+/* Single cohesive article with authentic art on the frame and the banner. */
+.lac-together__detail{max-width:1160px}
+.lac-together__post{isolation:isolate;border:1px solid rgba(225,178,112,.49);border-radius:13px;background:rgba(11,18,27,.97);box-shadow:0 22px 56px rgba(0,0,0,.40)}
+.lac-together__post:before{display:none}
+.lac-together__post:after{content:"";position:absolute;inset:-1px;pointer-events:none;z-index:4;border:17px solid transparent;border-image-source:url('/hub/together/art/v22/article-edge.webp');border-image-slice:100;border-image-width:17px;border-image-repeat:stretch}
+.lac-together__post-header{position:relative;z-index:2;background:linear-gradient(90deg,rgba(8,15,24,.97) 0%,rgba(12,20,30,.86) 48%,rgba(14,22,32,.39) 100%),url('/hub/together/art/v22/cinematic-ribbon.webp') right center/cover no-repeat;border-bottom:1px solid rgba(225,180,111,.50)}
+.lac-together__post-header h2{font-size:23px;letter-spacing:-.035em;text-shadow:0 2px 12px #0009}
+.lac-together__post-meta{border-top-color:rgba(209,166,103,.36)}
+.lac-together__post-status{border-color:rgba(209,174,117,.37);background:linear-gradient(90deg,rgba(10,19,29,.83),rgba(20,30,41,.77))}
+.lac-together__post-body{position:relative;z-index:2;background:rgba(7,14,23,.65)}
+.lac-together__post-side{position:relative;isolation:isolate;background:linear-gradient(180deg,rgba(12,22,34,.96),rgba(10,17,27,.97))}
+.lac-together__post-side::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;border:14px solid transparent;border-image-source:url('/hub/together/art/v22/roster-edge.webp');border-image-slice:88;border-image-width:14px;border-image-repeat:stretch;opacity:.9}
+.lac-together__post-side>.lac-together__post-section{position:relative;z-index:1}
+.lac-together__post-chat{position:relative;isolation:isolate;background:linear-gradient(160deg,rgba(14,24,36,.92),rgba(8,17,27,.97))}
+.lac-together__post-chat:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;border:14px solid transparent;border-image-source:url('/hub/together/art/v22/chat-edge.webp');border-image-slice:90;border-image-width:14px;border-image-repeat:stretch;opacity:.88}
+.lac-together__post-chat>*{position:relative;z-index:1}
+.lac-together__messages{background:rgba(8,15,24,.88);border-color:rgba(192,154,98,.34);scrollbar-width:thin}
+.lac-together__section-heading{border-bottom:1px solid rgba(211,174,119,.32);padding-bottom:8px}
+.lac-together__section-heading h3{font-size:13.5px}
+.lac-together__person{border-bottom-color:rgba(203,165,110,.19)}
+.lac-together__person-num{border-radius:50%;border-color:rgba(212,181,125,.54);background:linear-gradient(135deg,#253849,#161f2c)}
+.lac-together__create{isolation:isolate;position:relative;background:linear-gradient(180deg,rgba(15,26,38,.97),rgba(10,18,28,.98));border:1px solid rgba(226,182,112,.55);border-radius:14px;box-shadow:0 21px 53px rgba(0,0,0,.38)}
+.lac-together__create:before{content:"";position:absolute;top:0;left:0;right:0;height:85px;pointer-events:none;background:linear-gradient(90deg,rgba(13,22,33,.76),rgba(12,21,30,.36)),url('/hub/together/art/v22/cinematic-ribbon.webp') center/cover no-repeat;border-radius:14px 14px 0 0;z-index:0}
+.lac-together__create:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;border:15px solid transparent;border-image-source:url('/hub/together/art/v22/form-edge.webp');border-image-slice:85;border-image-width:15px;border-image-repeat:stretch}
+.lac-together__create>*{position:relative;z-index:1}
+.lac-together__form-title{min-height:46px;display:flex;align-items:center;color:#f3e4ce;text-shadow:0 2px 12px #0009}
+.lac-together__manage{z-index:7}
+.lac-together__manage-items{isolation:isolate;background:linear-gradient(160deg,#101c2a,#172638);border:1px solid rgba(222,177,103,.67);border-radius:10px;box-shadow:0 15px 36px #000b}
+.lac-together__manage-items:before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;border:9px solid transparent;border-image-source:url('/hub/together/art/v22/menu-edge.webp');border-image-slice:92;border-image-width:9px;border-image-repeat:stretch}
+.lac-together__manage-items button{position:relative;z-index:1}
+@media(max-width:760px){.lac-together__item{min-height:255px;padding-top:110px}.lac-together__post:after{border-width:12px;border-image-width:12px}.lac-together__post-side::before,.lac-together__post-chat:before{border-width:10px;border-image-width:10px}}
+@media(max-width:520px){.lac-together__item{padding:105px 18px 16px}.lac-together__item::before{height:102px}.lac-together__item-top{top:13px;left:17px;right:17px}.lac-together__item::after{border-width:13px;border-image-width:13px}.lac-together__create:after{border-width:10px;border-image-width:10px}.lac-together__hero{background-position:center,right center}}
+@media(prefers-reduced-motion:reduce){.lac-together__item{transition:none}.lac-together__item:hover{transform:none}}
+/* Contextual scenic bands; only picture pixels are used, not baked-in interface labels. */
+.lac-together__item::before{background:linear-gradient(180deg,rgba(8,15,24,.18),rgba(9,17,27,.20) 50%,rgba(12,22,32,.98)),url('/hub/together/art/v22/banner-boss.webp') center center/cover no-repeat}
+.lac-together__item[data-together-category="WWE"]::before{background:linear-gradient(180deg,rgba(8,15,24,.18),rgba(9,17,27,.20) 50%,rgba(12,22,32,.98)),url('/hub/together/art/v22/banner-wwe.webp') center center/cover no-repeat;filter:none}
+.lac-together__item[data-together-category="자유 활동"]::before{background:linear-gradient(180deg,rgba(8,15,24,.18),rgba(9,17,27,.20) 50%,rgba(12,22,32,.98)),url('/hub/together/art/v22/banner-free.webp') center center/cover no-repeat;filter:none}
+.lac-together__item[data-together-category="범죄"]::before{background:linear-gradient(180deg,rgba(8,15,24,.21),rgba(9,17,27,.21) 50%,rgba(12,22,32,.98)),url('/hub/together/art/v22/banner-wwe.webp') center center/cover no-repeat;filter:hue-rotate(20deg)}
+.lac-together__item[data-together-category="기타"]::before{background:linear-gradient(180deg,rgba(8,15,24,.21),rgba(9,17,27,.21) 50%,rgba(12,22,32,.98)),url('/hub/together/art/v22/banner-free.webp') center center/cover no-repeat;filter:sepia(.15)}
+/* Override the old tiny accent-line width: the new art band spans the whole card. */
+.lac-together__item::before{width:auto;left:2px;right:2px;opacity:1}

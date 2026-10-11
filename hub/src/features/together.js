@@ -23,7 +23,7 @@ function pageTop(state){const account=state.session?.user && state.ready
 function empty(message){return `<div class="lac-together__empty">${esc(message)}</div>`;}
 function controlState(state){return {loggedIn:Boolean(state.session?.user),profile:Boolean(ui.profile && ui.profile.user_id===state.session?.user?.id),busy:ui.busy};}
 function listCards(){let rows=ui.items.filter(row=>ui.category==='전체'||row.category===ui.category);
-  return rows.length?rows.map((row,index)=>{const capacity=Math.max(2,Number(row.capacity)||2),confirmed=Math.min(capacity,Math.max(1,Number(row.confirmed_count)||1));return `<button type="button" class="lac-together__item" data-together-action="detail" data-id="${esc(row.id)}">
+  return rows.length?rows.map((row,index)=>{const capacity=Math.max(2,Number(row.capacity)||2),confirmed=Math.min(capacity,Math.max(1,Number(row.confirmed_count)||1));return `<button type="button" class="lac-together__item" data-together-category="${esc(row.category)}" data-together-action="detail" data-id="${esc(row.id)}">
     <span class="lac-together__item-top"><span class="lac-together__category">${esc(row.category)}</span>${statusBadge(row.status)}</span>
     <span class="lac-together__item-heading"><span class="lac-together__item-symbol" aria-hidden="true">${pad(index+1)}</span><strong>${esc(row.title)}</strong></span><span class="lac-together__item-desc">${esc(row.description||'함께할 플레이어를 모집합니다.')}</span>
     <span class="lac-together__item-progress"><i style="width:${(confirmed/capacity)*100}%"></i></span>
