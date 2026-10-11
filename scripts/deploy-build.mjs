@@ -10,6 +10,7 @@ if (!existsSync(vite)) throw new Error('Root dependencies missing. Run npm insta
 execFileSync(process.execPath, [resolve(root, 'scripts/verify.mjs')], { cwd: root, stdio: 'inherit' });
 execFileSync(process.execPath, [resolve(root, 'scripts/verify-deploy.mjs')], { cwd: root, stdio: 'inherit' });
 execFileSync(process.execPath, [resolve(root, 'scripts/verify-ui-application.mjs')], { cwd: root, stdio: 'inherit' });
+execFileSync(process.execPath, [resolve(root, 'scripts/verify-build-hub-profile.mjs')], { cwd: root, stdio: 'inherit' });
 console.log('Building one HUB entrypoint with embedded BUILD...');
 execFileSync(process.execPath, [vite, 'build'], { cwd: resolve(root, 'hub'), stdio: 'inherit', env: process.env });
 const publicAssets = resolve(root, 'build/public');

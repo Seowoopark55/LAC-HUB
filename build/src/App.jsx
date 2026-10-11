@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import { loadBuildHubIdentity } from "./lib/hubIdentity.js";
 async function notifyHubOperatorOfBuildReport(reportId){
   try{
     const {data:{session}}=await supabase.auth.getSession();
@@ -463,6 +464,14 @@ function visibleTags(tags = []) {
 }
 
 function displayProfileName(profile, user) {
+  // In embedded BUILD, the HUB in-game name replaces legacy BUILD name approval.
+  // Discord is a safe placeholder until the user registers their HUB profile.
+  if (profile?.hub_identity_mode) return (
+    profile.hub_ingame_nickname ||
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    "Discord User"
+  );
   return (
     profile?.approved_nickname ||
     profile?.display_name ||
@@ -473,6 +482,7 @@ function displayProfileName(profile, user) {
 }
 
 function displayProfileCompany(profile) {
+  if (profile?.hub_identity_mode) return String(profile?.hub_company_name || "").trim();
   return String(profile?.approved_company_name || "").trim();
 }
 
@@ -805,7 +815,7 @@ function Header({
               <strong>{displayName}</strong>
               {displayCompany && <span>{displayCompany}</span>}
             </div>
-            <div className="user-chip-actions"><button onClick={onProfile}>프로필</button><button onClick={onLogout}>로그아웃</button></div>
+            <div className="user-chip-actions"><button onClick={onProfile}>{onHubReturn ? "내 인게임 프로필" : "프로필"}</button><button onClick={onLogout}>로그아웃</button></div>
           </div>
         </div>
       ) : <button className="btn discord" onClick={onLogin}>Discord로 계속하기</button>}
@@ -1275,7 +1285,7 @@ function FloatingContextPanel({
     admin: {
       kicker: "ADMIN CENTER",
       title: "관리 작업",
-      body: "공지, 닉네임·회사명 승인, 제보 검수를 이 영역에서 빠르게 확인할 수 있습니다."
+      body: "공지, 기존 신청 기록과 개조서 제보 검수를 이 영역에서 확인할 수 있습니다."
     }
   };
 
@@ -1356,7 +1366,7 @@ function LoginPrivacyModal({ onClose, onContinue }) {
           <section>
             <span>사이트에 저장되는 내용</span>
             <strong>직접 작성한 데이터</strong>
-            <p>빌드, 댓글, 닉네임/회사명 신청, 제보 등 사용자가 직접 입력한 내용만 저장합니다.</p>
+            <p>HUB 인게임 프로필, 추천세팅, 댓글, 제보 등 사용자가 직접 입력한 내용을 저장합니다.</p>
           </section>
           <section>
             <span>이미지 업로드</span>
@@ -2118,12 +2128,12 @@ function AdminPage({
   };
   return (
     <section className="shell section admin-page">
-      <div className="section-head"><div><div className="eyebrow">LAC HUB ADMIN</div><h2>관리 센터</h2><p>개조서 DB, 제보 검수, 닉네임·회사명 승인, 공지사항을 한 곳에서 관리합니다.</p></div></div>
+      <div className="section-head"><div><div className="eyebrow">LAC HUB ADMIN</div><h2>관리 센터</h2><p>개조서 DB, 제보 검수, 기존 닉네임·회사명 신청 기록의 검수와 공지사항을 관리합니다.</p></div></div>
       <div className="admin-tabs">
         <button className={cls(mode === "modbooks" && "active")} onClick={() => setMode("modbooks")}>개조서 관리 <span>{modbooks.length}</span></button>
         <button className={cls(mode === "reports" && "active")} onClick={() => setMode("reports")}>개조서 제보 <span>{pending.length}</span></button>
-        <button className={cls(mode === "nicknames" && "active")} onClick={() => setMode("nicknames")}>닉네임 신청 <span>{pendingNames.length}</span></button>
-        <button className={cls(mode === "companies" && "active")} onClick={() => setMode("companies")}>회사명 신청 <span>{pendingCompanies.length}</span></button>
+        <button className={cls(mode === "nicknames" && "active")} onClick={() => setMode("nicknames")}>기존 닉네임 신청 <span>{pendingNames.length}</span></button>
+        <button className={cls(mode === "companies" && "active")} onClick={() => setMode("companies")}>기존 회사명 신청 <span>{pendingCompanies.length}</span></button>
         <button className={cls(mode === "notices" && "active")} onClick={() => setMode("notices")}>공지사항 <span>{announcements.length}</span></button>
       </div>
       {mode === "modbooks" && (
@@ -3572,6 +3582,28 @@ export default function App({ onHubReturn = null } = {}) {
 
   const modMap = useMemo(() => new Map(modbooks.map((m) => [m.id, m])), [modbooks]);
 
+  function openProfile() {
+    if (onHubReturn) {
+      // HUB owns profile creation/editing. No second BUILD application form.
+      window.dispatchEvent(new Event('lac:open-player-profile'));
+      return;
+    }
+    setProfileModal(true); // Standalone BUILD fallback; not an embedded entry point.
+  }
+
+  useEffect(() => {
+    if (!onHubReturn || !user?.id) return;
+    // Profile edited in HUB while BUILD stays mounted in its shadow root.
+    const updateIdentity = () => {
+      const userId = user.id;
+      loadBuildHubIdentity(userId).then(identity => {
+        setProfile(previous => previous?.hub_identity_mode ? {...previous, ...identity} : previous);
+      }).catch(error => console.warn('BUILD 프로필 반영 실패:', error));
+    };
+    window.addEventListener('lac:player-profile-updated', updateIdentity);
+    return () => window.removeEventListener('lac:player-profile-updated', updateIdentity);
+  }, [onHubReturn, user?.id]);
+
   function notify(message, tone = "default") {
     setToast({ message, tone });
     window.clearTimeout(window.__axeToastTimer);
@@ -3727,7 +3759,8 @@ export default function App({ onHubReturn = null } = {}) {
       supabase.from("nickname_requests").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("company_requests").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle()
     ]);
-    setProfile(p || null);
+    const hubIdentity = onHubReturn ? await loadBuildHubIdentity(userId) : null;
+    setProfile(onHubReturn ? { ...(p || {}), ...(hubIdentity || { hub_identity_mode: true }) } : (p || null));
     setFavorites(new Set((fav || []).map((f) => f.build_id)));
     setMyReports(reports || []);
     setUserVotes(new Map((votes || []).map((v) => [v.build_id, v.value])));
@@ -4061,7 +4094,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...`}</pre>
         }
         onLogin={login}
         onLogout={logout}
-        onProfile={() => setProfileModal(true)}
+        onProfile={openProfile}
         onHubReturn={onHubReturn}
       />
 
@@ -4078,7 +4111,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...`}</pre>
                 setShareLoginModal(true);
               }
             }}
-            onProfile={() => setProfileModal(true)}
+            onProfile={openProfile}
             onLogin={login}
           />
         </>
@@ -4207,7 +4240,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...`}</pre>
         />
       )}
 
-      {profileModal && user && (
+      {!onHubReturn && profileModal && user && (
         <ProfileModal
           user={user}
           profile={profile}

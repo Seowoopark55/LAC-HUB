@@ -408,6 +408,25 @@ window.addEventListener('message', async event => {
   }
 });
 
+// Single profile entry point shared by HUB's account menu and embedded BUILD.
+async function openHubPlayerProfile(){
+  if(!state.session?.user){setError('먼저 Discord로 로그인해 주세요.');return;}
+  state.accountMenuOpen=false;
+  root.querySelector('.hub-account__profile[open]')?.removeAttribute('open');
+  state.modal={type:'player-profile',loading:true,error:''};render();
+  const openedModal=state.modal,userId=state.session.user.id;
+  try{
+    const profile=await loadPlayerProfile(userId);
+    if(state.modal!==openedModal || state.session?.user?.id!==userId)return;
+    state.playerProfile=profile;
+    state.modal={type:'player-profile',loading:false,error:''};
+  }catch(error){
+    if(state.modal!==openedModal || state.session?.user?.id!==userId)return;
+    state.modal={type:'player-profile',loading:false,error:String(error?.message||error||'프로필 정보를 불러오지 못했습니다.'),loadFailed:true};
+  }
+  render();
+}
+
 // Intercept first-party BUILD and COOK cards. Preserve native browser gestures
 // and existing HUB delegated actions for company / administration content.
 root.addEventListener('click', async (event) => {
@@ -435,6 +454,15 @@ window.addEventListener('lac:navigate-hub', () => {
   switchVisibleApp(false);
   render();
   window.scrollTo(0, 0);
+});
+// BUILD's embedded profile action now opens the single HUB-owned profile UI.
+window.addEventListener('lac:open-player-profile', () => {
+  if (!isBuildRoute()) return;
+  navigatePrimaryScreen('hub');
+  switchVisibleApp(false);
+  render();
+  window.scrollTo(0, 0);
+  void openHubPlayerProfile();
 });
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
@@ -2671,23 +2699,7 @@ root.addEventListener('click', async event => {
   if(event.target.matches('[data-modal-backdrop]')){ if(['cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
-  if(action==='open-player-profile'){
-    if(!state.session?.user){setError('먼저 Discord로 로그인해 주세요.');return;}
-    state.accountMenuOpen=false;
-    root.querySelector('.hub-account__profile[open]')?.removeAttribute('open');
-    state.modal={type:'player-profile',loading:true,error:''};render();
-    const openedModal=state.modal,userId=state.session.user.id;
-    try{
-      const profile=await loadPlayerProfile(userId);
-      if(state.modal!==openedModal || state.session?.user?.id!==userId)return;
-      state.playerProfile=profile;
-      state.modal={type:'player-profile',loading:false,error:''};
-    }catch(error){
-      if(state.modal!==openedModal || state.session?.user?.id!==userId)return;
-      state.modal={type:'player-profile',loading:false,error:String(error?.message||error||'프로필 정보를 불러오지 못했습니다.'),loadFailed:true};
-    }
-    render();return;
-  }
+  if(action==='open-player-profile'){await openHubPlayerProfile();return;}
   if(action==='combat-select-member'){const id=String(actionEl.dataset.membershipId||'');if(!id||id===state.combat.selectedMembershipId)return;await loadCombatMember(id);return;}
   if(action==='combat-period'){const period=String(actionEl.dataset.period||'30d');if(!['7d','30d','all'].includes(period))return;state.combat.period=period;render();return;}
   if(action==='combat-rank-mode'){const mode=String(actionEl.dataset.rankMode||'kd');if(!['kd','kills','activity'].includes(mode))return;state.combat.rankMode=mode;render();return;}
@@ -3739,6 +3751,7 @@ root.addEventListener('submit', async event => {
       const saved=await upsertPlayerProfile(userId,payload);
       if(state.session?.user?.id!==userId)return;
       state.playerProfile=saved;
+      window.dispatchEvent(new Event('lac:player-profile-updated'));
       if(state.modal!==savingModal)return;
       state.modal=null;
       setNotice('인게임 프로필이 저장되었습니다.');
