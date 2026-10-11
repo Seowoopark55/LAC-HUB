@@ -7,6 +7,10 @@
   /* Old company .global-account disables mouse events for home navigation.
      The shared <details> trigger must explicitly opt back in. */
   pointer-events:auto;
+  /* The legacy company header uses a flex row; without an explicit non-shrinking
+     account wrapper its auto width collapses to min-content, truncating even
+     short HUB nicknames/company tags. Keep the shared trigger's intrinsic size. */
+  flex:0 0 auto;
 }
 .lac-unified-company-account .hub-account__menu,
 .lac-hub-account-portal .hub-account__menu {font-family:inherit;text-align:left;line-height:1.35;}
