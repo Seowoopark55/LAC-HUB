@@ -267,7 +267,7 @@ function showCookPreview({ push = false } = {}) {
     const pending=loggedIn && !state.ready;
     const published=contentIsVisible(state,'lac_cook');
     cookHost.innerHTML=`<section class="lac-cook-gate" aria-label="요리 계산기 이용 안내">
-      <div class="lac-pass-landing__top"><button type="button" class="lac-cook-gate__back lac-pass-back" data-action="cook-hub-return" aria-label="LAC HUB 메인으로 돌아가기"><span class="lac-pass-back__icon" aria-hidden="true">←</span><span>LAC HUB로 돌아가기</span></button><span class="lac-pass-landing__context">요리 계산기 <span aria-hidden="true">·</span> 이용 안내</span></div>
+      <div class="lac-pass-landing__top"><button type="button" class="lac-cook-gate__back lac-pass-back" data-action="cook-hub-return" aria-label="LAC HUB 메인으로 돌아가기"><span class="lac-pass-back__icon" aria-hidden="true">←</span><span>메인으로</span></button><span class="lac-pass-landing__context">요리 계산기 <span aria-hidden="true">·</span> 이용 안내</span></div>
       <span class="lac-cook-gate__eyebrow">요리 계산기 · 화면 예시</span>
       <h1>${pending?'이용 조건을 확인하고 있어요.':!loggedIn?'Discord 로그인 후 이용할 수 있어요.':!state.contentPoliciesLoaded?'이용 조건을 확인하지 못했어요.':!published?'현재 요리 계산기를 이용할 수 없어요.':'요리 계산기, 이렇게 이용할 수 있어요.'}</h1>
       <p>${published&&state.contentPoliciesLoaded?'요리를 선택하면 필요한 재료와 작업 수량을 한눈에 정리할 수 있어요.':'LAC HUB 메인에서 현재 이용 가능한 콘텐츠를 확인해 주세요.'}</p>
