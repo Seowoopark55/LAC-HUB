@@ -1,0 +1,139 @@
+/* LAC HUB Together v2.5 / measured live-content UI art.
+   Custom shells have NO baked-in labels or internal fixed columns. All divisions
+   follow the live DOM. v2.2-v2.4 art is superseded only for Together surfaces. */
+.lac-together{--tg25-gold:rgba(205,166,109,.60);--tg25-dim:rgba(185,153,109,.27)}
+.lac-together .lac-together__grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* 모집 카드: produced for 290px slot. Real CSS positions match the image's
+   cinematic 132px header and 232px natural section seam. */
+.lac-together .lac-together__item,
+.lac-together .lac-together__item:hover{
+  min-height:290px;height:auto;isolation:isolate;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:6px;padding:143px 19px 14px;
+  border:0;border-radius:11px;
+  background: #0b1521 url('/hub/together/art/v25/card-plate.webp') center/100% 100% no-repeat;
+  box-shadow:0 12px 24px rgba(0,0,0,.30);
+}
+.lac-together .lac-together__item::before{display:none!important;content:none!important}
+.lac-together .lac-together__item::after{
+  content:"";position:absolute;z-index:3;inset:0;pointer-events:none;
+  border:17px solid transparent;
+  border-image:url('/hub/together/art/v25/card-border.png') 60 / 17px / 0 stretch;
+}
+.lac-together .lac-together__item-top{position:absolute!important;inset:16px 18px auto!important;min-height:28px;z-index:4!important}
+.lac-together .lac-together__item-heading{position:relative;z-index:2;margin:0;min-height:24px}
+.lac-together .lac-together__item-heading strong{font-size:16px;line-height:1.35}
+.lac-together .lac-together__item-symbol{display:none!important}
+.lac-together .lac-together__item-desc{padding:0;margin:0;min-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#b5c4d0}
+.lac-together .lac-together__item-progress{display:block;position:relative;z-index:2;height:3px;margin:3px 0 0;min-height:3px;background:rgba(97,113,124,.32)}
+.lac-together .lac-together__item-footer{position:static!important;top:auto!important;left:auto!important;right:auto!important;height:auto!important;min-height:42px!important;z-index:2;display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding:9px 0 0;border:0;gap:8px;background:transparent}
+.lac-together .lac-together__item-info{min-width:0;font-size:10.5px}
+.lac-together .lac-together__item-count{white-space:nowrap}
+/* Detail: custom scenic cap ends at ~180px, matching the actual DOM header
+   title. Meta and capacity bar use DOM-driven separators (no rasterized slots). */
+.lac-together.lac-together--detail .lac-together__post{
+ position:relative;isolation:isolate;background:#091522;
+ border:0;border-radius:12px;overflow:visible;box-shadow:0 15px 38px rgba(0,0,0,.35);
+}
+.lac-together.lac-together--detail .lac-together__post::before{display:none}
+.lac-together.lac-together--detail .lac-together__post::after{
+ content:"";position:absolute;inset:0;z-index:6;pointer-events:none;
+ border:20px solid transparent;border-image:url('/hub/together/art/v25/article-border.png') 55 / 20px / 0 stretch;
+}
+.lac-together.lac-together--detail .lac-together__post-header{
+ position:relative;isolation:isolate;padding:23px 29px 11px;
+ background:url('/hub/together/art/v25/detail-cap.webp') center top / 100% 137px no-repeat #0b1825 !important;
+ border:0;border-radius:12px 12px 0 0;
+}
+.lac-together.lac-together--detail .lac-together__post-header::before{display:none!important}
+.lac-together.lac-together--detail .lac-together__post-top{min-height:29px}
+.lac-together.lac-together--detail .lac-together__post-caption{margin:10px 0 1px}
+.lac-together.lac-together--detail .lac-together__post-header h2{margin:3px 0 3px;font-size:23px;max-width:82%}
+.lac-together.lac-together--detail .lac-together__post-description{margin:0 0 10px;min-height:14px;max-height:39px;max-width:74%;color:#c9d5df}
+.lac-together.lac-together--detail .lac-together__post-meta{
+ margin-top:9px;padding:12px 0 11px;gap:0;border-top:1px solid var(--tg25-gold);
+ border-bottom:1px solid var(--tg25-dim);background:transparent!important;
+}
+.lac-together.lac-together--detail .lac-together__post-meta>div{padding:0 17px;border-right:1px solid var(--tg25-dim)}
+.lac-together.lac-together--detail .lac-together__post-meta>div:first-child{padding-left:0}
+.lac-together.lac-together--detail .lac-together__post-meta>div:last-child{border:0}
+.lac-together.lac-together--detail .lac-together__post-status{
+ min-height:57px;padding:9px 0 11px;margin:0;display:flex;gap:10px;
+ border:0;border-bottom:1px solid var(--tg25-gold);background:transparent!important;
+}
+.lac-together.lac-together--detail .lac-together__progress{width:140px;max-width:21%}
+.lac-together.lac-together--detail .lac-together__post-body{
+ display:grid;grid-template-columns:minmax(260px,.84fr) minmax(0,1.16fr);
+ position:relative;min-width:0;min-height:310px;gap:0;
+ border:0;background:#0d1927 url('/hub/together/art/v25/panel-plate.webp') center/cover no-repeat!important;
+ border-radius:0 0 12px 12px;
+}
+.lac-together.lac-together--detail .lac-together__post-side,
+.lac-together.lac-together--detail .lac-together__post-chat{
+ position:relative;isolation:isolate;min-width:0;
+ background:transparent!important;box-shadow:none!important;border:0;
+}
+.lac-together.lac-together--detail .lac-together__post-side{border-right:1px solid var(--tg25-dim)}
+.lac-together.lac-together--detail .lac-together__post-side::before,
+.lac-together.lac-together--detail .lac-together__post-chat::before{
+ content:"";display:block;position:absolute;inset:0;z-index:0;pointer-events:none;
+ border:16px solid transparent;border-image:url('/hub/together/art/v25/roster-border.png') 56 / 16px / 0 stretch;opacity:1;
+}
+.lac-together.lac-together--detail .lac-together__post-chat::before{border-image-source:url('/hub/together/art/v25/chat-border.png')}
+.lac-together.lac-together--detail .lac-together__post-section{position:relative;z-index:1;padding:17px 23px 15px;background:transparent!important;border:0;box-shadow:none!important}
+.lac-together.lac-together--detail .lac-together__post-side>.lac-together__post-section+.lac-together__post-section{border-top:1px solid var(--tg25-dim)}
+.lac-together.lac-together--detail .lac-together__section-heading{min-height:28px;margin-bottom:11px;padding-bottom:8px;border-bottom:1px solid var(--tg25-gold);background:transparent}
+.lac-together.lac-together--detail .lac-together__people,
+.lac-together.lac-together--detail .lac-together__person,
+.lac-together.lac-together--detail .lac-together__messages,
+.lac-together.lac-together--detail .lac-together__chat-form{background:transparent!important;box-shadow:none!important}
+.lac-together.lac-together--detail .lac-together__messages{flex:1;min-height:140px;max-height:245px;overflow-y:auto;border:0;padding:7px 3px}
+.lac-together.lac-together--detail .lac-together__chat-form{margin-top:auto;padding-top:9px;border-top:1px solid var(--tg25-dim)}
+.lac-together.lac-together--detail .lac-together__chat-form input{background:rgba(7,15,24,.58)!important}
+/* Create/edit: the generated crest informs an outer image frame only. Control slots
+   are created by real HTML and can grow without desynchronizing raster separators. */
+.lac-together.lac-together--create .lac-together__create,
+.lac-together.lac-together--edit .lac-together__create{
+ max-width:620px;position:relative;isolation:isolate;padding:25px 27px 24px;
+ background-image:linear-gradient(180deg,rgba(9,18,29,.30),rgba(9,18,29,.96) 104px),url('/hub/together/art/v25/scenic.webp');
+ background-position:top center; background-size:100% 100%,100% 105px;
+ background-repeat:no-repeat;background-color:#0e1927;border:0;border-radius:13px;
+ box-shadow:0 17px 38px rgba(0,0,0,.38);
+}
+.lac-together.lac-together--create .lac-together__create::before,
+.lac-together.lac-together--edit .lac-together__create::before{display:none!important}
+.lac-together.lac-together--create .lac-together__create::after,
+.lac-together.lac-together--edit .lac-together__create::after{
+ content:"";position:absolute;z-index:4;pointer-events:none;inset:0;
+ border:17px solid transparent;border-image:url('/hub/together/art/v25/form-border.png') 56 / 17px / 0 stretch;
+}
+.lac-together .lac-together__form-title{padding:4px 0 15px;margin:0 0 7px;min-height:62px;border-bottom:1px solid var(--tg25-gold);background:transparent}
+.lac-together .lac-together__create select,
+.lac-together .lac-together__create input,
+.lac-together .lac-together__create textarea{background:rgba(7,16,26,.55);border-color:rgba(167,151,127,.43)}
+@media(min-width:761px) and (max-height:850px){
+ .lac-together.lac-together--detail .lac-together__post-header{padding-top:15px;padding-bottom:8px}
+ .lac-together.lac-together--detail .lac-together__post-status{min-height:48px;padding:7px 0 8px}
+ .lac-together.lac-together--detail .lac-together__post-body{min-height:260px}
+ .lac-together.lac-together--detail .lac-together__post-section{padding-top:13px;padding-bottom:11px}
+ .lac-together.lac-together--detail .lac-together__messages{max-height:216px;min-height:113px}
+}
+@media(min-width:761px) and (max-width:1090px){.lac-together .lac-together__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+ .lac-together .lac-together__grid{grid-template-columns:1fr}
+ .lac-together .lac-together__item{min-height:270px;padding-top:138px}
+ .lac-together.lac-together--detail .lac-together__post-header{padding:19px 19px 11px}
+ .lac-together.lac-together--detail .lac-together__post-meta{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .lac-together.lac-together--detail .lac-together__post-meta>div{padding:0 8px;border-right:0}
+ .lac-together.lac-together--detail .lac-together__post-meta>div:first-child{padding-left:0}
+ .lac-together.lac-together--detail .lac-together__post-body{grid-template-columns:1fr;min-height:0}
+ .lac-together.lac-together--detail .lac-together__post-side{border-right:0;border-bottom:1px solid var(--tg25-dim)}
+ .lac-together.lac-together--detail .lac-together__post-description{max-width:100%;max-height:none}
+ .lac-together.lac-together--detail .lac-together__post-section{padding:18px 19px}
+ .lac-together.lac-together--detail .lac-together__progress{max-width:32%}
+}
+@media(max-width:390px){
+ .lac-together .lac-together__item{padding:133px 15px 13px}
+ .lac-together .lac-together__item-top{inset:13px 15px auto!important}
+ .lac-together.lac-together--detail .lac-together__post-header{padding:17px 16px 9px}
+ .lac-together.lac-together--detail .lac-together__post-section{padding:16px 15px}
+}
