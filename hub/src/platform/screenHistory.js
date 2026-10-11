@@ -5,7 +5,7 @@ export const SCREEN_HISTORY_KEY = 'lac_hub_primary_screen_v1';
 export const AUTH_RETURN_STORAGE_KEY = 'lac_hub_auth_return_v1';
 
 const SCREENS = new Set([
-  'hub', 'hub-board', 'company-start', 'paid-content-guide',
+  'hub', 'hub-board', 'together', 'company-start', 'paid-content-guide',
   'dashboard', 'fund', 'members', 'assets', 'accounts', 'questions',
   'suggestions', 'settings', 'info', 'combat', 'game-info', 'platform', 'layout',
 ]);
@@ -98,6 +98,7 @@ export function routeForPathname(pathname) {
   const gameRoute = routeFromMap(path, GAME_INFO_PATHS, { kind: 'app', page: 'game-info' });
   if (gameRoute) return { ...gameRoute, infoTable: gameRoute.key };
 
+  if (path === '/together') return { kind: 'app', page: 'together', canonicalPath: '/together/' };
   if (path === '/notices') return { kind: 'app', page: 'hub-board', hubBoardTab: 'notices', canonicalPath: '/notices/' };
   if (path === '/support') return { kind: 'app', page: 'hub-board', hubBoardTab: 'support', canonicalPath: '/support/' };
   if (path === '/company/start') return { kind: 'app', page: 'company-start', canonicalPath: '/company/start/' };
@@ -137,6 +138,7 @@ export function routePathForScreen(screen, {
   platformInboxFilter = 'all',
 } = {}) {
   if (screen === 'hub') return '/';
+  if (screen === 'together') return '/together/';
   if (screen === 'game-info') return GAME_INFO_PATHS[infoTable] || GAME_INFO_PATHS.info_crafts;
   if (screen === 'hub-board') return hubBoardTab === 'notices' ? '/notices/' : '/support/';
   if (screen === 'company-start') return '/company/start/';

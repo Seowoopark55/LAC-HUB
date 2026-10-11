@@ -62,6 +62,8 @@
       "source": "/game/:path*",
       "destination": "/index.html"
     },
+    {"source":"/together","destination":"/index.html"},
+    {"source":"/together/","destination":"/index.html"},
     {
       "source": "/company",
       "destination": "/index.html"

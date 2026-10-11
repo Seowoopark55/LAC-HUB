@@ -2,6 +2,7 @@ import { renderHubBoard } from './hubBoard.js';
 import { renderInfoPage } from './infoPage.js';
 import { renderGameInfoAdmin, renderPlatformModbookReview } from './gameInfoAdmin.js';
 import { renderHubHome, renderHubAccountControl } from './hubHome.js';
+import {renderTogetherPage} from '../features/together.js';
 import {canOpenWebContent,contentAccessPending,hasCompany,hasUnifiedPass,companySetupComplete} from '../platform/contentPolicy.js';
 import {renderCompanyPassNotice} from '../platform/unifiedPassGuide.js';
 import { hubReturnButton } from './hubReturnButton.js';
@@ -90,7 +91,7 @@ export function renderShell(root, state) {
   root.innerHTML = `
     ${state.error ? `<div class="runtime-banner runtime-banner--error"><span>${esc(state.error)}</span><button data-action="dismiss-error">×</button></div>` : ''}
     ${state.notice ? `<div class="runtime-banner runtime-banner--notice">${esc(state.notice)}</div>` : ''}
-    ${!state.envReady ? renderEnvironmentMissing() : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : state.page === 'hub-board' ? renderHubBoard(state) : gameInfoGatePending ? renderHubLoading('이용권을 확인하고 있습니다.') : state.page === 'game-info' ? (canOpenWebContent(state,'game_info') ? renderStandaloneGameInfo(state) : renderHubHome(state) + renderModal(state)) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : companyGatePending || guideGatePending ? renderHubLoading(companyGatePending?'회사 관리 정보를 확인하고 있습니다.':'이용권을 확인하고 있습니다.') : state.page === 'paid-content-guide' || !hasUnifiedPass(state) ? renderCompanyPassLanding(state) + renderModal(state) : !companySetupComplete(state) ? renderCompanySetupRequired(state) + renderModal(state) : renderAuthed(state)}
+    ${!state.envReady ? renderEnvironmentMissing() : state.page==='together' ? renderTogetherPage(state) : !user ? renderLogin(state) : !state.ready ? renderStartupLoading() : state.page === 'hub' ? renderHubHome(state) + renderModal(state) : state.page === 'hub-board' ? renderHubBoard(state) : gameInfoGatePending ? renderHubLoading('이용권을 확인하고 있습니다.') : state.page === 'game-info' ? (canOpenWebContent(state,'game_info') ? renderStandaloneGameInfo(state) : renderHubHome(state) + renderModal(state)) : (state.page === 'platform' || state.page === 'layout') ? (state.platformAdmin ? renderManagementCenter(state) : renderHubHome(state) + renderModal(state)) : !state.companies?.length ? state.platformAdmin && ['platform','layout'].includes(state.page) ? renderAuthed(state) : state.page === 'company-start' ? renderOnboarding(state) + renderModal(state) : renderHubHome(state) + renderModal(state) : companyGatePending || guideGatePending ? renderHubLoading(companyGatePending?'회사 관리 정보를 확인하고 있습니다.':'이용권을 확인하고 있습니다.') : state.page === 'paid-content-guide' || !hasUnifiedPass(state) ? renderCompanyPassLanding(state) + renderModal(state) : !companySetupComplete(state) ? renderCompanySetupRequired(state) + renderModal(state) : renderAuthed(state)}
   `;
 }
 
@@ -132,6 +133,7 @@ function renderLogin(state) {
           <div class="runtime-access-brand-compact"><strong>LAC HUB</strong><small>통합 플랫폼</small></div>
           <div class="runtime-access-panel-head"><h2>다시 오신 걸 환영해요.</h2><p>Discord 계정으로 로그인해 주세요.</p></div>
           <button type="button" class="runtime-access-discord" data-action="discord-login" ${state.loading ? 'disabled' : ''}><span class="runtime-access-discord-mark" aria-hidden="true"><i></i><i></i></span><strong>Discord로 로그인</strong><em aria-hidden="true">→</em></button>
+          <div class="lac-together__login-link"><a href="/together/">함께하기 · 모집글 둘러보기 →</a></div>
           <div class="runtime-access-trust"><div class="runtime-access-privacy"><i aria-hidden="true">✓</i><span><strong>Discord 계정 하나로 이용해요.</strong><small>로그인 상태는 HUB와 BUILD에서 공유됩니다.</small></span></div></div>
         </div>
       </div>

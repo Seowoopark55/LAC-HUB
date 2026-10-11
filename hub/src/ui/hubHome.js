@@ -86,6 +86,7 @@ function renderHubContentSection(state,{current,companyAction}) {
   return `<section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><h2 id="hub-contents-title">LAC 콘텐츠</h2></div>${tabs}</div>
     ${!state.contentPoliciesLoaded?'<p class="hub-content-policy-note" role="status">콘텐츠 이용 조건을 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>':''}
     <div class="hub-features${categories.length>1?' hub-features--categorized':''}" data-hub-content-category="${esc(active)}">${cards.map(item=>item.card()).join('')}</div>
+    <button type="button" class="lac-together__home-link" data-action="open-together"><span class="lac-together__home-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></span><span><strong>함께하기</strong><small>보스 · 범죄 · WWE · 자유 활동, 함께할 플레이어를 찾아보세요.</small></span><span class="lac-together__home-enter" aria-hidden="true">→</span></button>
   </section>`;
 }
 

@@ -2,9 +2,11 @@ import './styles.css';
 import './styles/playerProfile.css';
 import './styles/unifiedAccount.css';
 import './styles/sharedAccountTrigger.css'; // Exact HUB-home chip sizes for company and HUB.
+import './styles/together.css';
 import {renderHubAccountControl} from './ui/hubHome.js';
 import {loadPlayerProfile, upsertPlayerProfile} from './lib/playerProfileApi.js';
 import {renderPlayerProfileModal, playerProfileFormData} from './ui/playerProfile.js';
+import {refreshTogether, togetherOnFilter, togetherOnInput, togetherAction, togetherSubmit, togetherProfileUpdated} from './features/together.js';
 import './styles/passApplication.css'; // Customer application styles, loaded after shared modal styles.
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
@@ -508,7 +510,7 @@ window.addEventListener('lac:open-player-profile', () => {
 });
 const now = new Date();
 const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-const validPages = ['paid-content-guide','hub','hub-board','dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','combat','game-info','layout'];
+const validPages = ['together','paid-content-guide','hub','hub-board','dashboard','fund','members','assets','accounts','questions','suggestions','settings','platform','combat','game-info','layout'];
 
 const state = {
   envReady,
@@ -1140,6 +1142,7 @@ function finalizeSupabaseAuthNavigation() {
 
 function allowedHistoryPage(target) {
   const companyAvailable = Boolean(state.companyId && state.companies.some(company => company.id === state.companyId));
+  if (target === 'together') return target; // Public listings remain accessible without OAuth.
   if (!state.session?.user) return 'hub';
   if (target === 'hub' || target === 'hub-board') return target;
   if (target === 'company-start') return state.companies.length ? 'hub' : target;
@@ -1182,6 +1185,7 @@ function installPrimaryScreenHistory() {
     }
     render();
     if (state.page === 'hub-board') void loadHubBoard();
+    if (state.page === 'together') void refreshTogether(state,render);
     if (state.page==='game-info' && !state.info.loaded && !state.info.loading) void loadGameInfo();
     if (['dashboard','fund','members','assets','accounts','questions','suggestions','settings','combat','platform'].includes(state.page)) void queueCompanyPageData(state.page);
   });
@@ -2132,6 +2136,7 @@ async function boot() {
   try{state.session=await getSession();if(state.session){const exp=Number(state.session.expires_at||0)*1000;if(!exp||exp-Date.now()<5*60*1000)state.session=await refreshSession()||state.session;}}catch(error){state.error=String(error?.message||error);}
   finalizeSupabaseAuthNavigation();
   render(); await refreshAll();
+  if(state.page==='together')void refreshTogether(state,render);
   installSessionResumeRecovery();
   if(discordCatalogPending()) startCatalogStatusPoll();
   try{await handleDiscordOAuthReturn();}catch(error){setError(error);}
@@ -2680,6 +2685,8 @@ async function gameAdminSaveForm(form){
 }
 
 async function handlePrimaryClick(event) {
+  const togetherButton=event.target.closest('[data-together-action]');
+  if(togetherButton){event.preventDefault();await togetherAction(togetherButton,state,{render,openProfile:openHubPlayerProfile,login:signInWithDiscord});return;}
   const gameAdminButton=event.target.closest('[data-game-admin-action]');
   if(gameAdminButton){event.preventDefault();try{await gameAdminAction(gameAdminButton);}catch(error){setError(error);}return;}
   const pageBtn=event.target.closest('[data-page]');
@@ -2751,6 +2758,7 @@ async function handlePrimaryClick(event) {
     !['refresh-company-subscription','close-account-menu'].includes(action))closeAccountPortal();
   if(action==='close-account-menu' && event.currentTarget===accountMenuHost)closeAccountPortal();
   if(action==='open-player-profile'){await openHubPlayerProfile();return;}
+  if(action==='open-together'){navigatePrimaryScreen('together');state.accountMenuOpen=false;render();void refreshTogether(state,render);return;}
   if(action==='combat-select-member'){const id=String(actionEl.dataset.membershipId||'');if(!id||id===state.combat.selectedMembershipId)return;await loadCombatMember(id);return;}
   if(action==='combat-period'){const period=String(actionEl.dataset.period||'30d');if(!['7d','30d','all'].includes(period))return;state.combat.period=period;render();return;}
   if(action==='combat-rank-mode'){const mode=String(actionEl.dataset.rankMode||'kd');if(!['kd','kills','activity'].includes(mode))return;state.combat.rankMode=mode;render();return;}
@@ -3817,6 +3825,8 @@ async function submitPlayerProfileForm(form){
     if(state.session?.user?.id!==userId)return;
     state.playerProfile=saved;
     window.dispatchEvent(new Event('lac:player-profile-updated'));
+    togetherProfileUpdated(state);
+    if(state.page==='together')void refreshTogether(state,render);
     if(state.modal!==savingModal)return;
     state.modal=null;
     setNotice('인게임 프로필이 저장되었습니다.');
@@ -3841,7 +3851,11 @@ playerProfileHost.addEventListener('submit', async event => {
   await submitPlayerProfileForm(form);
 });
 
+root.addEventListener('change',event=>{if(event.target?.matches('[data-together-filter]'))togetherOnFilter(event.target.value,render);else togetherOnInput(event.target);});
+root.addEventListener('input',event=>togetherOnInput(event.target));
 root.addEventListener('submit', async event => {
+  const togetherForm=event.target.closest('form[data-together-form]');
+  if(togetherForm){event.preventDefault();await togetherSubmit(togetherForm,state,{render,openProfile:openHubPlayerProfile});return;}
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
   if(type==='player-profile'){await submitPlayerProfileForm(form);return;}
   if(type==='game-admin-save'){try{await gameAdminSaveForm(form);}catch(error){gameAdminInlineError(error);}return;}
@@ -4168,6 +4182,7 @@ root.addEventListener('submit', async event => {
 
 cleanupLegacyPwa();
 boot();
+setInterval(()=>{if(state.page==='together'&&document.visibilityState==='visible')void refreshTogether(state,render,{quiet:true});},8000);
 
 // New applications surface in the owner's account menu while HUB remains open.
 // The DB inbox is authoritative; Discord DM delivery is supplemental.
