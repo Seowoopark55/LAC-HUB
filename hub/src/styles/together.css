@@ -103,3 +103,8 @@
 .lac-together__time-sep{text-align:center;color:#9caabd;font-weight:700;font-size:13px;}
 .lac-together__duration-field{max-width:235px;}
 @media(max-width:460px){.lac-together__create .lac-together__form-grid{gap:10px;}.lac-together__time-inputs input{padding-right:20px;padding-left:8px;}.lac-together__time-inputs>label>span{right:6px;}}
+
+/* Together v1.2: compact host management actions and shared create/edit form. */
+.lac-together__form-title{margin:-2px 0 1px;font-size:15px;font-weight:750;letter-spacing:-.025em;}
+.lac-together__danger{color:#f0c0c0;border-color:#65424a;}
+.lac-together__danger:hover{background:#3a252c;border-color:#95616b;}

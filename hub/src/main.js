@@ -2685,6 +2685,11 @@ async function gameAdminSaveForm(form){
 }
 
 async function handlePrimaryClick(event) {
+  // Stay in the same SPA instance when returning from Together: avoid full page reload.
+  if(state.page==='together' && event.target.closest('.lac-together__brand')){
+    event.preventDefault();
+    navigatePrimaryScreen('hub');state.accountMenuOpen=false;state.companyMenuOpen=false;render();return;
+  }
   const togetherButton=event.target.closest('[data-together-action]');
   if(togetherButton){event.preventDefault();await togetherAction(togetherButton,state,{render,openProfile:openHubPlayerProfile,login:signInWithDiscord});return;}
   const gameAdminButton=event.target.closest('[data-game-admin-action]');
