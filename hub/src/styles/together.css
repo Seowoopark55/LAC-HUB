@@ -1,5 +1,6 @@
 @import './togetherArt.css';
 @import './togetherArtV22.css';
+@import './togetherDetailSkeleton.css';
 /* LAC HUB Together v2: one cohesive skin.  All copy, state and controls remain DOM elements.
    The existing /hub/community.webp only supplies a subtle decorative hero texture. */
 .lac-together{--tg-bg:#0d131b;--tg-surface:#151e29;--tg-ink:#e7edf3;--tg-muted:#9bacbd;--tg-line:#314152;--tg-gold:#c5a47a;position:relative;min-height:100dvh;background:var(--tg-bg);color:var(--tg-ink);font:inherit;line-height:1.5;isolation:isolate}
