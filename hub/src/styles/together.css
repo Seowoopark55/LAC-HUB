@@ -108,3 +108,67 @@
 .lac-together__form-title{margin:-2px 0 1px;font-size:15px;font-weight:750;letter-spacing:-.025em;}
 .lac-together__danger{color:#f0c0c0;border-color:#65424a;}
 .lac-together__danger:hover{background:#3a252c;border-color:#95616b;}
+
+
+/* Together v1.3 — one article, contextual management, private party roster. */
+.lac-together__detail{max-width:890px;gap:0;}
+.lac-together__post{background:#151e29;border:1px solid #324052;border-radius:13px;min-width:0;}
+.lac-together__post-header{padding:24px 26px 22px;}
+.lac-together__post-top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:27px;}
+.lac-together__post-tags{display:flex;align-items:center;gap:10px;}
+.lac-together__post-header h2{font-size:22px;font-weight:750;letter-spacing:-.035em;line-height:1.34;margin:13px 0 8px;overflow-wrap:anywhere;}
+.lac-together__post-description{font-size:13px;color:#c0cbd6;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;margin:0 0 18px;}
+.lac-together__post-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;border-top:1px solid #303d4c;padding:16px 0;}
+.lac-together__post-meta>div{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.lac-together__post-meta span{color:#8f9eb0;font-size:10px;}
+.lac-together__post-meta strong{font-size:12px;color:#dce4ed;font-weight:650;overflow-wrap:anywhere;}
+.lac-together__post-status{padding:14px 16px;background:#111923;border:1px solid #303e4f;border-radius:9px;}
+.lac-together__post-status-top{display:flex;justify-content:space-between;gap:9px;align-items:center;}
+.lac-together__post-status-top>div{display:flex;flex-direction:column;gap:4px;}
+.lac-together__post-status-top strong{font-size:12px;color:#e6edf3;}
+.lac-together__post-status-top span{font-size:11px;color:#a1afbf;}
+.lac-together__post-count{font-size:12px!important;color:#c3ceda!important;white-space:nowrap;}
+.lac-together__post-count b{font-size:18px;color:#d7b68c;}
+.lac-together__progress{height:5px;background:#303c4a;border-radius:4px;overflow:hidden;margin-top:12px;}
+.lac-together__progress i{display:block;height:100%;border-radius:4px;background:#bf9e75;}
+.lac-together__post-join{display:flex;justify-content:flex-end;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+.lac-together__post-join .lac-together__primary,.lac-together__post-join .lac-together__ghost{min-height:34px;padding:7px 12px;}
+.lac-together__manage{position:relative;margin-left:auto;flex-shrink:0;}
+.lac-together__manage summary{display:flex;align-items:center;gap:5px;list-style:none;cursor:pointer;padding:5px 9px;border:1px solid #3a4959;border-radius:7px;background:#1d2936;color:#c9d4e0;font-size:12px;line-height:1.2;}
+.lac-together__manage summary::-webkit-details-marker{display:none;}
+.lac-together__manage summary span{font-size:11px;}
+.lac-together__manage-items{position:absolute;right:0;top:calc(100% + 6px);z-index:6;min-width:142px;border:1px solid #475568;border-radius:9px;background:#192432;padding:5px;box-shadow:0 10px 22px #060b1499;}
+.lac-together__manage-items button{display:block;width:100%;border:0;background:none;color:#d6e0e9;border-radius:6px;text-align:left;font-family:inherit;font-size:12px;cursor:pointer;padding:9px 10px;}
+.lac-together__manage-items button:hover{background:#2a394b;}
+.lac-together__manage-items button.is-danger{color:#e5acaf;}
+.lac-together__post-body{display:grid;grid-template-columns:minmax(270px,.82fr) minmax(0,1.2fr);border-top:1px solid #303d4c;min-width:0;}
+.lac-together__post-side{min-width:0;border-right:1px solid #303d4c;}
+.lac-together__post-section{padding:20px 22px;min-width:0;}
+.lac-together__post-side>.lac-together__post-section + .lac-together__post-section{border-top:1px solid #303d4c;}
+.lac-together__section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px;}
+.lac-together__section-heading h3{margin:0;font-size:13px;color:#e5ebf2;font-weight:750;}
+.lac-together__section-heading>span{font-size:11px;color:#9daebf;white-space:nowrap;}
+.lac-together__people{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0;}
+.lac-together__person{display:flex;align-items:center;gap:10px;min-width:0;border-bottom:1px solid #2c3949;padding:11px 0;}
+.lac-together__person:first-child{padding-top:0;}
+.lac-together__person:last-child{border-bottom:0;padding-bottom:0;}
+.lac-together__person-num{font-size:10px;color:#758ba3;font-variant-numeric:tabular-nums;flex-shrink:0;}
+.lac-together__person-name{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px;}
+.lac-together__person-name strong{font-size:12px;overflow-wrap:anywhere;font-weight:700;}
+.lac-together__person-name small{font-size:10px;color:#97a9bd;}
+.lac-together__person-phone{display:flex;align-items:flex-end;flex-direction:column;gap:2px;min-width:90px;}
+.lac-together__person-phone>span{font-size:10px;color:#90a0b2;}
+.lac-together__person-phone strong{font-size:12px;font-variant-numeric:tabular-nums;color:#d7e2ed;font-weight:650;overflow-wrap:anywhere;text-align:right;}
+.lac-together__privacy{margin:16px 0 0;color:#879aaa;font-size:10.5px;line-height:1.55;}
+.lac-together__private-note{background:#121c28;border:1px dashed #394b5d;border-radius:8px;padding:20px 14px;color:#a9b7c5;text-align:center;}
+.lac-together__private-note>span{display:block;font-size:19px;color:#9fadc0;}
+.lac-together__private-note strong{display:block;font-size:12px;color:#d5dfe8;margin:7px 0;}
+.lac-together__private-note p{font-size:11px;color:#9cacbb;line-height:1.6;margin:0;}
+.lac-together__private-note--chat{min-height:178px;display:flex;flex-direction:column;justify-content:center;}
+.lac-together__post-chat{display:flex;flex-direction:column;gap:0;}
+.lac-together__post-chat .lac-together__messages{flex:1;min-height:215px;max-height:330px;}
+.lac-together__post-chat .lac-together__chat-form{margin-top:11px;}
+.lac-together__request{padding:8px 0;border:0;border-bottom:1px solid #2b3947;border-radius:0;}
+.lac-together__request:last-child{border-bottom:0;}
+@media(max-width:750px){.lac-together__post-body{grid-template-columns:1fr;}.lac-together__post-side{border-right:0;border-bottom:1px solid #303d4c;}.lac-together__post-meta{grid-template-columns:repeat(2,minmax(0,1fr));}.lac-together__post-header{padding:18px 16px;}.lac-together__post-section{padding:18px 16px;}.lac-together__post-header h2{font-size:19px;}}
+@media(max-width:420px){.lac-together__post-meta{gap:12px;}.lac-together__post-header{padding:15px;}.lac-together__post-section{padding:17px 15px;}.lac-together__person{gap:8px;}.lac-together__person-phone{min-width:76px;}}
