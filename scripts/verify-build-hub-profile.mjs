@@ -39,5 +39,26 @@ assert.ok(home.includes('export function renderHubAccountControl') && home.inclu
 assert.ok(company.includes('renderHubAccountControl(state)') && !company.includes('runtime-account-menu" role="menu"'), 'Company header must use the HUB account menu, not its legacy account menu.');
 assert.ok(hub.includes("accountMenuHost.addEventListener('click',handlePrimaryClick)") && hub.includes('renderHubAccountControl(state,{expanded:true})'), 'BUILD account portal must reuse HUB markup and actions.');
 assert.ok(hub.includes("import './styles/unifiedAccount.css'") && accountCss.includes('.lac-hub-account-portal'), 'HUB account portal stylesheet must be connected.');
-assert.ok(build.includes('내 계정 ▾') && build.includes('!onHubReturn && <button onClick={onLogout}>'), 'Embedded BUILD must not show a second logout action outside the shared menu.');
+// Embedded BUILD now uses a single large account-card <button>, rather than the
+// old narrow "내 계정 ▾" text button. Verify actual conditional JSX structure:
+// embedded card opens HUB account portal, standalone BUILD alone retains logout.
+const headerActions = build.split('  const accountActions = (')[1]?.split('\n  return (\n    <header')[0] || '';
+const embeddedAccountButton = headerActions.match(/onHubReturn\s*\?\s*\(\s*(<button\b[\s\S]*?<\/button>)\s*\)\s*:\s*\(/)?.[1] || '';
+assert.ok(
+  embeddedAccountButton.includes('className="user-chip user-chip--hub-account"') &&
+  embeddedAccountButton.includes('onClick={onProfile}') &&
+  embeddedAccountButton.includes('user-chip__identity') &&
+  embeddedAccountButton.includes('user-chip__chevron'),
+  'Embedded BUILD must offer one full-card account trigger that opens the shared HUB menu.'
+);
+assert.ok(
+  !embeddedAccountButton.includes('onLogout') && !embeddedAccountButton.includes('로그아웃'),
+  'Embedded BUILD must not expose a separate logout action outside the shared HUB account menu.'
+);
+const standaloneAccountActions = headerActions.slice(headerActions.indexOf(embeddedAccountButton) + embeddedAccountButton.length);
+assert.ok(
+  standaloneAccountActions.includes('<button onClick={onLogout}>로그아웃</button>') &&
+  (headerActions.match(/onClick=\{onLogout\}/g) || []).length === 1,
+  'Standalone BUILD must retain exactly one standalone logout button; embedded BUILD must have none.'
+);
 console.log('PASS: one HUB account renderer reused in company header and BUILD overlay, with shared account actions.');
