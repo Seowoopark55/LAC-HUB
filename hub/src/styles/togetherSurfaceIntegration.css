@@ -1,0 +1,105 @@
+/* Together v2.4 — artwork IS the surface.  No opaque HTML cards over image skins.
+   Scoped to Together only; live text, interactions, privacy and routing are unchanged.
+   Detailed header, roster and lounge inherit one painted panel.  */
+
+/* Recruit list: the existing painted blank card is the background, not an
+   opaque CSS rectangle laid over it. Keep only UI text and status labels. */
+.lac-together .lac-together__item,
+.lac-together .lac-together__item:hover{
+  background: url('/hub/together/art/list-card.webp') center / 100% 100% no-repeat;
+  border-color:transparent;
+  box-shadow:0 12px 29px rgba(0,0,0,.24);
+}
+.lac-together .lac-together__item{min-height:275px;padding:122px 18px 16px;gap:7px}
+.lac-together .lac-together__item::before{height:113px;background-blend-mode:normal;}
+.lac-together .lac-together__item-heading{margin-top:4px}
+.lac-together .lac-together__item-symbol{display:none}
+.lac-together .lac-together__item-desc{padding-left:0;min-height:17px;line-height:1.5;white-space:nowrap;display:block;overflow:hidden;text-overflow:ellipsis}
+.lac-together .lac-together__item-progress{margin-top:4px}
+.lac-together .lac-together__item-footer{position:absolute;top:70%;left:18px;right:18px;height:41px;min-height:0;margin:0;border-top:0;padding:0;align-items:center}
+
+/* One image-led post background. Former solid 95% CSS panels obscured the
+   original texture: show the scene once, on the actual article surface. */
+.lac-together.lac-together--detail .lac-together__post{
+  background-image:linear-gradient(180deg,rgba(7,14,23,.14) 0%,rgba(7,13,22,.26) 37%,rgba(6,12,20,.32) 100%),
+                   url('/hub/together/art/v22/cinematic-ribbon.webp');
+  background-position:center,center top;
+  background-size:100% 100%,100% 190px;
+  background-repeat:no-repeat;
+  background-color:rgba(6,13,22,.27);
+  border-color:transparent;
+  box-shadow:0 18px 45px rgba(0,0,0,.22);
+}
+.lac-together.lac-together--detail .lac-together__post-header,
+.lac-together.lac-together--detail .lac-together__post-meta,
+.lac-together.lac-together--detail .lac-together__post-status,
+.lac-together.lac-together--detail .lac-together__post-body,
+.lac-together.lac-together--detail .lac-together__post-side,
+.lac-together.lac-together--detail .lac-together__post-chat,
+.lac-together.lac-together--detail .lac-together__post-section,
+.lac-together.lac-together--detail .lac-together__people,
+.lac-together.lac-together--detail .lac-together__person,
+.lac-together.lac-together--detail .lac-together__messages,
+.lac-together.lac-together--detail .lac-together__chat-form,
+.lac-together.lac-together--detail .lac-together__private-note{
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+/* The v2.3 header pseudo-image was painted under its own heavy navy veil.
+   The scene is now on the shared article surface, so remove that veil. */
+.lac-together.lac-together--detail .lac-together__post-header::before{display:none!important}
+.lac-together.lac-together--detail .lac-together__post-section,
+.lac-together.lac-together--detail .lac-together__post-side,
+.lac-together.lac-together--detail .lac-together__post-chat{isolation:auto}
+.lac-together.lac-together--detail .lac-together__post-meta{border-top-color:rgba(206,174,129,.37)}
+.lac-together.lac-together--detail .lac-together__post-status{border-top-color:rgba(206,174,129,.24);border-bottom-color:rgba(206,174,129,.39)}
+/* Preserve borders drawn by the actual art fragments, not flat inner cards. */
+.lac-together.lac-together--detail .lac-together__post-side::before,
+.lac-together.lac-together--detail .lac-together__post-chat::before{opacity:1}
+.lac-together.lac-together--detail .lac-together__message p{
+  background:rgba(26,39,52,.58);
+  border-color:rgba(186,160,116,.18);
+}
+.lac-together.lac-together--detail .lac-together__message.is-mine p{background:rgba(97,77,53,.61)}
+/* Functional input, not another full-width opaque panel. */
+.lac-together.lac-together--detail .lac-together__chat-form input{
+  background:rgba(7,13,21,.24)!important;
+  border-color:rgba(180,163,138,.38);
+}
+/* Popup must be legible; keep a single translucency layer, not a nested solid block. */
+.lac-together.lac-together--detail .lac-together__manage-items{
+  background:rgba(11,21,32,.82);
+  backdrop-filter:blur(9px);
+}
+
+/* Form: the blank crest is a real painted base, not hidden under a 98%-opaque
+   generic form background. Inputs stay lightly shaded for legibility. */
+.lac-together.lac-together--create .lac-together__create,
+.lac-together.lac-together--edit .lac-together__create{
+  background-image:linear-gradient(180deg,rgba(7,15,24,.10),rgba(8,16,26,.30)),
+                   url('/hub/together/art/form-crest.webp');
+  background-position:center,center top;
+  background-size:100% 100%,100% 205px;
+  background-repeat:no-repeat;
+  background-color:rgba(7,15,24,.26);
+  border-color:transparent;
+  box-shadow:0 16px 37px rgba(0,0,0,.24);
+}
+.lac-together.lac-together--create .lac-together__create::before,
+.lac-together.lac-together--edit .lac-together__create::before{display:none}
+.lac-together.lac-together--create .lac-together__create .lac-together__form-grid--schedule,
+.lac-together.lac-together--edit .lac-together__create .lac-together__form-grid--schedule{border-top-color:rgba(197,167,118,.28)}
+.lac-together.lac-together--create .lac-together__create input,
+.lac-together.lac-together--create .lac-together__create select,
+.lac-together.lac-together--create .lac-together__create textarea,
+.lac-together.lac-together--edit .lac-together__create input,
+.lac-together.lac-together--edit .lac-together__create select,
+.lac-together.lac-together--edit .lac-together__create textarea{
+  background:rgba(6,14,23,.42);
+  border-color:rgba(157,170,181,.43);
+}
+@media(max-width:760px){
+  .lac-together .lac-together__item{min-height:265px;padding-top:116px}
+  .lac-together.lac-together--detail .lac-together__post{background-size:100% 100%,auto 175px}
+}
