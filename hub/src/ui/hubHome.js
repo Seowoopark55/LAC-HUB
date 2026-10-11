@@ -11,7 +11,7 @@ function esc(value) {
 // HUB and BUILD are served under the same origin; keep the independent BUILD deployment unchanged.
 const BUILD_PUBLIC_URL = '/build/';
 const ASSETS = '/hub/';
-const HUB_CONTENT_PAGE_SIZE = 4;
+const HUB_CONTENT_PAGE_SIZE = 5;
 const HUB_CONTENT_CATEGORIES = [
   { key:'main', label:'메인', order:10 },
 ];
@@ -69,6 +69,7 @@ function hubContentDefinitions(state,{current,companyAction}) {
     { key:'lac_build', category:'main', order:20, visible:contentIsVisible(state,'lac_build'), card:()=>contentCard({title:HUB_CONTENT.build.name,description:'개조서를 미리 조합하고 구성을 살펴보세요.',image:'build.webp',tag:status('lac_build'),tagType:tagType('lac_build'),href:canOpenWebContent(state,'lac_build')?BUILD_PUBLIC_URL:'',action:canOpenWebContent(state,'lac_build')?'':current?'open-paid-content-guide':'open-company-start',contentKey:'lac_build'}) },
     { key:'company_management', category:'main', order:30, visible:contentIsVisible(state,'company_management'), card:()=>{const locked=!canOpenWebContent(state,'company_management');return contentCard({title:HUB_CONTENT.company.name,description:'멤버·계좌·자산, 회사 운영을 한곳에서.',image:'company.webp',tag:locked?'회사 전용 · BETA':status('company_management'),tagType:locked?'beta':tagType('company_management'),action:companyAction,contentKey:'company_management',locked});} },
     { key:'lac_cook', category:'main', order:40, visible:contentIsVisible(state,'lac_cook'), card:()=>{const locked=!canOpenWebContent(state,'lac_cook');return contentCard({title:HUB_CONTENT.cook.name,description:'요리 제작 계산과 작업을 간편하게 관리하세요.',image:'cook.webp',tag:locked?'회사 전용 · BETA':status('lac_cook'),tagType:locked?'beta':tagType('lac_cook'),href:'/cook/',contentKey:'lac_cook',locked});} },
+    { key:'together', category:'main', order:50, visible:true, card:()=>contentCard({title:'함께하기',description:'함께할 플레이어를 찾고 다양한 활동에 참여하세요.',image:'community.webp',tag:'자유 이용',tagType:'free',action:'open-together',contentKey:'together'}) },
   ];
 }
 
@@ -86,7 +87,7 @@ function renderHubContentSection(state,{current,companyAction}) {
   return `<section class="hub-contents" id="hub-contents" aria-labelledby="hub-contents-title"><div class="hub-contents__title"><div><h2 id="hub-contents-title">LAC 콘텐츠</h2></div>${tabs}</div>
     ${!state.contentPoliciesLoaded?'<p class="hub-content-policy-note" role="status">콘텐츠 이용 조건을 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>':''}
     <div class="hub-features${categories.length>1?' hub-features--categorized':''}" data-hub-content-category="${esc(active)}">${cards.map(item=>item.card()).join('')}</div>
-    <button type="button" class="lac-together__home-link" data-action="open-together"><span class="lac-together__home-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></span><span><strong>함께하기</strong><small>보스 · 범죄 · WWE · 자유 활동, 함께할 플레이어를 찾아보세요.</small></span><span class="lac-together__home-enter" aria-hidden="true">→</span></button>
+
   </section>`;
 }
 

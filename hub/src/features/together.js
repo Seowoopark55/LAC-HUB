@@ -8,10 +8,9 @@ const ui={mode:'list',category:'전체',items:[],detail:null,messages:[],id:null
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
 const pad=n=>String(n).padStart(2,'0');
-const timeOptions=Array.from({length:48},(_,i)=>`${pad(Math.floor(i/2))}:${i%2?'30':'00'}`);
 const localDate=t=>`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;
 const today=()=>localDate(new Date());
-function defaultStart(){const d=new Date(Date.now()+60*60_000);d.setMinutes(Math.ceil(d.getMinutes()/30)*30,0,0);return {date:localDate(d),time:`${pad(d.getHours())}:${pad(d.getMinutes())}`};}
+function defaultStart(){const d=new Date(Date.now()+60*60_000);d.setMinutes(Math.ceil(d.getMinutes()/30)*30,0,0);return {date:localDate(d),hour:pad(d.getHours()),minute:pad(d.getMinutes())};}
 function check(){if(!supabase)throw Error('Supabase 연결이 필요합니다.');return supabase;}
 async function rpc(method,params={}){const {data,error}=await check().rpc(`together_${method}`,params);if(error)throw error;return data;}
 function displayError(e){return String(e?.message||e||'잠시 후 다시 시도해 주세요.').replace(/^Error:\s*/, '');}
@@ -29,14 +28,20 @@ function listCards(){let rows=ui.items.filter(row=>ui.category==='전체'||row.c
     <span class="lac-together__item-footer"><span>◷ ${esc(when(row.starts_at))} 시작</span><span>♙ ${Number(row.confirmed_count)||1} / ${Number(row.capacity)||2}명</span></span>
   </button>`).join(''):empty('해당 카테고리에 등록된 활동이 없습니다.');}
 function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||{};return `<form class="lac-together__create" data-together-form="create">
-  <div class="lac-together__form-grid"><label>활동 카테고리<select name="category" required>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${f.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select></label>
-  <label>모집 인원 <small>모집자 포함</small><select name="capacity" required>${Array.from({length:9},(_,i)=>`<option value="${i+2}" ${Number(f.capacity||5)===i+2?'selected':''}>${i+2}명</option>`).join('')}</select></label></div>
-  <label>모집 제목<input name="title" maxlength="90" minlength="5" value="${esc(f.title||'')}" placeholder="어떤 활동을 함께할 예정인가요?" required></label>
-  <label>상세 내용 <small>선택</small><textarea name="description" maxlength="600" rows="3" placeholder="준비 사항, 참가 조건 등을 자유롭게 작성해 주세요.">${esc(f.description||'')}</textarea></label>
-  <div class="lac-together__form-grid"><label>활동 날짜<input type="date" name="date" value="${esc(f.date||defaults.date)}" min="${d}" required></label>
-  <label>시작 시각<select name="time" required>${timeOptions.map(v=>`<option value="${v}" ${v===(f.time||defaults.time)?'selected':''}>${v}</option>`).join('')}</select></label></div>
-  <label>시작 후 유지 시간<select name="duration">${DURATIONS.map(d=>`<option value="${d.value}" ${Number(f.duration||60)===d.value?'selected':''}>${d.label}</option>`).join('')}</select></label>
-  <p class="lac-together__tip">시작 시각에 모집이 자동 마감되고, 선택한 시간이 지나면 채팅도 종료됩니다. 이후 15분 유예를 두고 기록을 삭제합니다.</p>
+  <div class="lac-together__form-grid lac-together__form-grid--basics">
+    <label class="lac-together__field"><span class="lac-together__field-label">활동 카테고리</span><select name="category" required>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${f.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select></label>
+    <label class="lac-together__field"><span class="lac-together__field-label">모집 인원 <small>모집자 포함</small></span><select name="capacity" required>${Array.from({length:9},(_,i)=>`<option value="${i+2}" ${Number(f.capacity||5)===i+2?'selected':''}>${i+2}명</option>`).join('')}</select></label>
+  </div>
+  <label class="lac-together__field"><span class="lac-together__field-label">모집 제목</span><input name="title" maxlength="90" minlength="5" value="${esc(f.title||'')}" placeholder="어떤 활동을 함께할 예정인가요?" required></label>
+  <label class="lac-together__field"><span class="lac-together__field-label">상세 내용 <small>선택</small></span><textarea name="description" maxlength="600" rows="3" placeholder="준비 사항, 참가 조건 등을 자유롭게 작성해 주세요.">${esc(f.description||'')}</textarea></label>
+  <div class="lac-together__form-grid lac-together__form-grid--schedule">
+    <label class="lac-together__field"><span class="lac-together__field-label">활동 날짜</span><input type="date" name="date" value="${esc(f.date||defaults.date)}" min="${d}" required></label>
+    <div class="lac-together__field lac-together__time-field" role="group" aria-label="시작 시각"><span class="lac-together__field-label">시작 시각</span>
+      <div class="lac-together__time-inputs"><label><input name="hour" type="number" inputmode="numeric" min="0" max="23" step="1" placeholder="시" value="${esc(f.hour??defaults.hour)}" required aria-label="시작 시간, 시"><span>시</span></label><span class="lac-together__time-sep">:</span><label><input name="minute" type="number" inputmode="numeric" min="0" max="59" step="1" placeholder="분" value="${esc(f.minute??defaults.minute)}" required aria-label="시작 시간, 분"><span>분</span></label></div>
+    </div>
+  </div>
+  <label class="lac-together__field lac-together__duration-field"><span class="lac-together__field-label">시작 후 유지 시간</span><select name="duration">${DURATIONS.map(d=>`<option value="${d.value}" ${Number(f.duration||60)===d.value?'selected':''}>${d.label}</option>`).join('')}</select></label>
+  <p class="lac-together__tip">시작 시각에 모집이 마감됩니다. 활동 종료 후 15분 유예를 두고 기록이 자동 정리됩니다.</p>
   <div class="lac-together__actions"><button class="lac-together__ghost" type="button" data-together-action="back">취소</button><button type="submit" class="lac-together__primary" ${ui.busy?'disabled':''}>${ui.busy?'등록 중…':'모집 등록'}</button></div>
   </form>`;}
 function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보를 찾을 수 없거나 보관 기간이 종료되었습니다.');
@@ -109,9 +114,12 @@ export async function togetherSubmit(form,state,{render,openProfile}){
   if(!await ensureProfile(state,openProfile)){render();return;}
   const data=new FormData(form);
   if(form.dataset.togetherForm==='create'){
-    const date=String(data.get('date')||''),time=String(data.get('time')||'');
-    const starts=new Date(`${date}T${time}:00`);
-    if(!Number.isFinite(starts.getTime())){ui.error='활동 날짜와 시각을 확인해 주세요.';render();return;}
+    const date=String(data.get('date')||'');
+    const hourText=String(data.get('hour')??'').trim(), minuteText=String(data.get('minute')??'').trim();
+    const hour=Number(hourText),minute=Number(minuteText);
+    const validClock=/^\d{1,2}$/.test(hourText)&&/^\d{1,2}$/.test(minuteText)&&Number.isInteger(hour)&&Number.isInteger(minute)&&hour>=0&&hour<=23&&minute>=0&&minute<=59;
+    const starts=validClock&&/^\d{4}-\d{2}-\d{2}$/.test(date)?new Date(`${date}T${pad(hour)}:${pad(minute)}:00`):new Date(NaN);
+    if(!Number.isFinite(starts.getTime())||localDate(starts)!==date||starts.getHours()!==hour||starts.getMinutes()!==minute){ui.error='활동 날짜와 시작 시각을 정확히 입력해 주세요. (시 0~23, 분 0~59)';render();return;}
     // Do not pass a fabricated timezone; Date preserves the browser's local input time.
     await runMutation(async()=>{
       const id=await rpc('create_post',{p_category:data.get('category'),p_title:String(data.get('title')||'').trim(),p_description:String(data.get('description')||'').trim(),p_capacity:Number(data.get('capacity')),p_starts_at:starts.toISOString(),p_duration_minutes:Number(data.get('duration'))});

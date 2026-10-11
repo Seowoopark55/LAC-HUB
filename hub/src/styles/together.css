@@ -86,3 +86,20 @@
 .lac-together__head-login{border:1px solid #485c73;background:#1b2838;color:#d9e3ed;border-radius:8px;min-height:34px;padding:7px 12px;font-size:11px;cursor:pointer;}
 .lac-together__head .hub-account {margin-left:0;}
 @media(max-width:530px){.lac-together__head-right>.lac-together__eyebrow{display:none;}}
+
+/* Together v1.1 / compact recruitment form, consistent field baselines. */
+.lac-together__create{gap:14px;}
+.lac-together__create .lac-together__field{min-width:0;display:flex;flex-direction:column;gap:7px;}
+.lac-together__field-label{min-height:18px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;line-height:18px;color:#dae3ec;}
+.lac-together__field-label small{margin:0;font-size:10px;font-weight:400;line-height:1;color:#93a3b3;white-space:nowrap;}
+.lac-together__create .lac-together__form-grid{gap:12px;align-items:start;}
+.lac-together__create .lac-together__form-grid>label,.lac-together__create .lac-together__form-grid>div{min-width:0;}
+.lac-together__create input,.lac-together__create select,.lac-together__create textarea{min-height:40px;height:auto;}
+.lac-together__create .lac-together__time-inputs{display:grid;grid-template-columns:minmax(0,1fr) 10px minmax(0,1fr);align-items:center;gap:6px;}
+.lac-together__time-inputs>label{position:relative;display:block;min-width:0;}
+.lac-together__time-inputs input{width:100%;padding:9px 23px 9px 11px;min-width:0;appearance:textfield;-moz-appearance:textfield;}
+.lac-together__time-inputs input::-webkit-inner-spin-button,.lac-together__time-inputs input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+.lac-together__time-inputs>label>span{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:11px;color:#a8b5c2;pointer-events:none;}
+.lac-together__time-sep{text-align:center;color:#9caabd;font-weight:700;font-size:13px;}
+.lac-together__duration-field{max-width:235px;}
+@media(max-width:460px){.lac-together__create .lac-together__form-grid{gap:10px;}.lac-together__time-inputs input{padding-right:20px;padding-left:8px;}.lac-together__time-inputs>label>span{right:6px;}}
