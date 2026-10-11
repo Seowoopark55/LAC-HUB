@@ -1,4 +1,7 @@
 import './styles.css';
+import './styles/playerProfile.css';
+import {loadPlayerProfile, upsertPlayerProfile} from './lib/playerProfileApi.js';
+import {renderPlayerProfileModal, playerProfileFormData} from './ui/playerProfile.js';
 import './styles/passApplication.css'; // Customer application styles, loaded after shared modal styles.
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
@@ -440,6 +443,8 @@ const validPages = ['paid-content-guide','hub','hub-board','dashboard','fund','m
 const state = {
   envReady,
   session: null,
+  playerProfile: null,
+  playerProfileBusy: false,
   companies: [],
   companyId: localStorage.getItem('axe_product_company_id') || null,
   memberships: [],
@@ -1112,7 +1117,13 @@ function installPrimaryScreenHistory() {
   });
 }
 
-function render() { renderShell(root, state); suppressBrowserFormHistory(); }
+function render() {
+  renderShell(root, state);
+  if(state.session?.user && state.ready && state.modal?.type==='player-profile'){
+    root.insertAdjacentHTML('beforeend',renderPlayerProfileModal(state));
+  }
+  suppressBrowserFormHistory();
+}
 // Phase 6: Keep confirmation above the existing HUB modal without replacing its DOM.
 // A cancelled/escaped dialog must never reach the destructive API call.
 function confirmHubDeletion({ title, message, confirmLabel }) {
@@ -1839,7 +1850,7 @@ async function loadPlatformContentSettings() {
 
 async function refreshAll() {
   resetScopedGameInfo();
-  if (!state.session?.user) { state.contentPolicies=[];state.contentPoliciesLoaded=false;state.contentPolicyError='';state.adminPassRequests=[];state.adminPassRequestsError='';state.companyPassRequest=null;state.companyPassRequestError='';state.ready=true;render();if(isCookRoute())showCookPreview();return; }
+  if (!state.session?.user) { state.playerProfile=null; state.contentPolicies=[];state.contentPoliciesLoaded=false;state.contentPolicyError='';state.adminPassRequests=[];state.adminPassRequestsError='';state.companyPassRequest=null;state.companyPassRequestError='';state.ready=true;render();if(isCookRoute())showCookPreview();return; }
   state.loading=true; state.error=''; render();
   try {
     state.platformAdmin=await isPlatformAdmin().catch(()=>false);
@@ -2054,7 +2065,7 @@ async function boot() {
       if(event==='SIGNED_OUT' && Date.now()>manualSignOutUntil){await recoverSessionOnResume({force:true});return;}
       const before=state.session?.user?.id||null; const after=session?.user?.id||null;
       state.session=session;
-      if(before!==after){state.canCreateCompany=false;state.companyCreatePermissionError=false;state.ready=false;await refreshAll();}
+      if(before!==after){state.playerProfile=null;state.playerProfileBusy=false;state.canCreateCompany=false;state.companyCreatePermissionError=false;state.ready=false;await refreshAll();}
     },0);
   });
 }
@@ -2660,6 +2671,23 @@ root.addEventListener('click', async event => {
   if(event.target.matches('[data-modal-backdrop]')){ if(['cooking-menu'].includes(state.modal?.type))return; closeModal(); return; }
 
   const actionEl=event.target.closest('[data-action]'); if(!actionEl)return; const action=actionEl.dataset.action;
+  if(action==='open-player-profile'){
+    if(!state.session?.user){setError('먼저 Discord로 로그인해 주세요.');return;}
+    state.accountMenuOpen=false;
+    root.querySelector('.hub-account__profile[open]')?.removeAttribute('open');
+    state.modal={type:'player-profile',loading:true,error:''};render();
+    const openedModal=state.modal,userId=state.session.user.id;
+    try{
+      const profile=await loadPlayerProfile(userId);
+      if(state.modal!==openedModal || state.session?.user?.id!==userId)return;
+      state.playerProfile=profile;
+      state.modal={type:'player-profile',loading:false,error:''};
+    }catch(error){
+      if(state.modal!==openedModal || state.session?.user?.id!==userId)return;
+      state.modal={type:'player-profile',loading:false,error:String(error?.message||error||'프로필 정보를 불러오지 못했습니다.'),loadFailed:true};
+    }
+    render();return;
+  }
   if(action==='combat-select-member'){const id=String(actionEl.dataset.membershipId||'');if(!id||id===state.combat.selectedMembershipId)return;await loadCombatMember(id);return;}
   if(action==='combat-period'){const period=String(actionEl.dataset.period||'30d');if(!['7d','30d','all'].includes(period))return;state.combat.period=period;render();return;}
   if(action==='combat-rank-mode'){const mode=String(actionEl.dataset.rankMode||'kd');if(!['kd','kills','activity'].includes(mode))return;state.combat.rankMode=mode;render();return;}
@@ -3698,6 +3726,29 @@ root.addEventListener('change', event => {
 
 root.addEventListener('submit', async event => {
   const form=event.target.closest('form[data-form]'); if(!form)return; event.preventDefault(); const type=form.dataset.form; const data=new FormData(form);
+  if(type==='player-profile'){
+    if(!state.session?.user || state.modal?.type!=='player-profile' || state.playerProfileBusy)return;
+    const userId=state.session.user.id;
+    let payload;
+    try{payload=playerProfileFormData(data);}
+    catch(error){state.modal={...state.modal,draft:{ingame_nickname:String(data.get('ingame_nickname')||''),ingame_phone:String(data.get('ingame_phone')||'')},error:String(error.message||error)};render();return;}
+    state.playerProfileBusy=true;
+    const savingModal=state.modal;
+    const saveButton=form.querySelector('[type="submit"]');if(saveButton)saveButton.disabled=true;
+    try{
+      const saved=await upsertPlayerProfile(userId,payload);
+      if(state.session?.user?.id!==userId)return;
+      state.playerProfile=saved;
+      if(state.modal!==savingModal)return;
+      state.modal=null;
+      setNotice('인게임 프로필이 저장되었습니다.');
+    }catch(error){
+      if(state.session?.user?.id!==userId || state.modal?.type!=='player-profile')return;
+      state.modal={...state.modal,draft:{ingame_nickname:String(data.get('ingame_nickname')||''),ingame_phone:String(data.get('ingame_phone')||'')},error:String(error?.message||error||'프로필 저장에 실패했습니다.')};
+      render();
+    }finally{state.playerProfileBusy=false;}
+    return;
+  }
   if(type==='game-admin-save'){try{await gameAdminSaveForm(form);}catch(error){gameAdminInlineError(error);}return;}
   if(type==='member-register') { await submitMemberRegistration(form,data); return; }
   if(type==='platform-subscription'){setError('이전 이용권 편집 방식은 지원하지 않습니다. 관리 화면에서 새로 발급하거나 즉시 만료해 주세요.');return;}
