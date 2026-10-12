@@ -3861,7 +3861,7 @@ playerProfileHost.addEventListener('submit', async event => {
   await submitPlayerProfileForm(form);
 });
 
-root.addEventListener('change',event=>{if(event.target?.matches('[data-together-filter]'))togetherOnFilter(event.target.value,render);else togetherOnInput(event.target);});
+root.addEventListener('change',event=>{if(event.target?.matches('[data-together-filter]'))togetherOnFilter(event.target.value,state,render);else togetherOnInput(event.target);});
 root.addEventListener('input',event=>togetherOnInput(event.target));
 root.addEventListener('submit', async event => {
   const togetherForm=event.target.closest('form[data-together-form]');

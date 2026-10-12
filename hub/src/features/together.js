@@ -7,7 +7,8 @@ const CATEGORIES=['전체','보스','범죄','WWE','자유 활동','기타'];
 const BOSS_NAMES=['멧돼지','화학자','메이드'];
 const BOSS_DIFFICULTIES=['쉬움','보통','어려움'];
 const DURATIONS=[{value:30,label:'30분'},{value:60,label:'1시간'},{value:120,label:'2시간'},{value:240,label:'4시간'},{value:360,label:'6시간'}];
-const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0};
+const TOGETHER_PAGE_SIZE=6; // PC 3 columns × 2 rows; pagination is invisible until post 7.
+const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',page:1,total:0,items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0};
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
 // Show the real end deadline as a live countdown. This is presentation only:
@@ -43,10 +44,25 @@ function pageTop(state){const account=state.session?.user && state.ready
   return `<header class="lac-together__head"><a href="/" class="lac-together__brand" aria-label="메인으로 이동"><span class="lac-together__brand-arrow" aria-hidden="true">←</span><span>메인으로</span></a><div class="lac-together__head-right"><span class="lac-together__eyebrow">PLAY TOGETHER</span>${account}</div></header>`;}
 function empty(message){return `<div class="lac-together__empty">${esc(message)}</div>`;}
 function controlState(state){return {loggedIn:Boolean(state.session?.user),profile:Boolean(ui.profile && ui.profile.user_id===state.session?.user?.id),busy:ui.busy};}
-function filteredRows(){return ui.items.filter(row=>
-  (ui.category==='전체'||row.category===ui.category)&&
-  (ui.category!=='보스'||ui.bossFilter==='전체'||row.boss_name===ui.bossFilter)&&
-  (ui.category!=='보스'||ui.difficultyFilter==='전체'||row.boss_difficulty===ui.difficultyFilter));}
+// Filtering + pagination happen in the DB, not in the browser's former 80-post snapshot.
+function filteredRows(){return ui.items;}
+function renderPagination(){
+  const pages=Math.ceil(ui.total/TOGETHER_PAGE_SIZE);
+  if(pages<=1 || ui.mode!=='list')return '';
+  const current=Math.min(Math.max(1,ui.page),pages);
+  const begin=Math.max(1,Math.min(current-2,pages-4));
+  const end=Math.min(pages,begin+4);
+  const button=(page,label,{currentPage=false,disabled=false,edge=false}={})=>
+    `<button type="button" class="lac-together__page-button${currentPage?' is-current':''}${edge?' is-edge':''}" data-together-action="page" data-page="${page}" aria-label="${page}페이지${edge?' 이동':''}" ${currentPage?'aria-current="page"':''} ${disabled||ui.loading?'disabled':''}>${label}</button>`;
+  const links=[];
+  if(begin>1){links.push(button(1,'1'));if(begin>2)links.push('<span class="lac-together__page-ellipsis" aria-hidden="true">…</span>');}
+  for(let n=begin;n<=end;n++)links.push(button(n,String(n),{currentPage:n===current}));
+  if(end<pages){if(end<pages-1)links.push('<span class="lac-together__page-ellipsis" aria-hidden="true">…</span>');links.push(button(pages,String(pages)));}
+  return `<nav class="lac-together__pagination" aria-label="모집 목록 페이지">
+    <span class="lac-together__page-summary">총 ${ui.total}개 · ${current} / ${pages}페이지</span>
+    <div class="lac-together__page-controls">${button(Math.max(1,current-1),'← 이전',{disabled:current===1,edge:true})}<span class="lac-together__page-links">${links.join('')}</span>${button(Math.min(pages,current+1),'다음 →',{disabled:current===pages,edge:true})}</div>
+  </nav>`;
+}
 function bossFilterToolbar(){if(ui.mode!=='list'||ui.category!=='보스')return '';
   const options=(kind,values,current)=>`<div class="lac-together__boss-filter-row"><span>${kind==='name'?'보스 종류':'난이도'}</span><div class="lac-together__boss-filter-options">${values.map(v=>`<button type="button" data-together-action="${kind==='name'?'boss-filter':'difficulty-filter'}" data-value="${esc(v)}" class="lac-together__boss-filter ${current===v?'is-selected':''} ${kind==='difficulty'&&v!=='전체'?'lac-together__difficulty lac-together__difficulty--'+(v==='쉬움'?'easy':v==='보통'?'normal':'hard'):''}" aria-pressed="${current===v}">${esc(kind==='name'?bossPublicName(v):v)}</button>`).join('')}</div></div>`;
   return `<div class="lac-together__boss-filters" aria-label="보스 모집 세부 필터">${options('name',['전체',...BOSS_NAMES],ui.bossFilter)}${options('difficulty',['전체',...BOSS_DIFFICULTIES],ui.difficultyFilter)}</div>`;}
@@ -177,8 +193,8 @@ export function renderTogetherPage(state){const {loggedIn,profile}=controlState(
   return `<div class="lac-together lac-together--${esc(ui.mode)}" id="lac-together"><div class="lac-together__shell">${pageTop(state)}<main class="lac-together__main"><div class="lac-together__hero"><div><span class="lac-together__eyebrow">LAC HUB · PLAY TOGETHER</span><h1>함께하기 <span class="lac-together__hero-accent">/ 함께하는 토벌</span></h1><p>함께할 동료를 찾아 다양한 활동에 도전하세요.</p><span class="lac-together__hero-caption">RECRUIT · MEET · PLAY</span></div><div class="lac-together__hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></div></div><div class="lac-together__toolbar"><div class="lac-together__toolbar-left">${ui.mode==='list'?`<label for="lac-together-filter">활동 카테고리</label><select id="lac-together-filter" data-together-filter><option value="전체">전체 활동</option>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${ui.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`:`<button class="lac-together__ghost lac-together__return-list" type="button" data-together-action="back" aria-label="모집 목록으로 돌아가기"><span class="lac-together__return-arrow" aria-hidden="true">←</span><span>모집 목록</span></button>`}</div><div>${ui.mode==='list'?`<button type="button" class="lac-together__primary" data-together-action="create">+ 모집하기</button>`:''}</div></div>
   ${bossFilterToolbar()}
   ${ui.error?`<div class="lac-together__error" role="alert">${esc(ui.error)}</div>`:''}
-  ${ui.mode==='list'?`<div class="lac-together__list-heading"><h2>모집 목록</h2><span>총 ${filteredRows().length}개의 모집글</span></div>`:''}
-  ${['create','edit'].includes(ui.mode)?renderCreate():ui.mode==='detail'?renderDetail(state):`<div class="lac-together__grid">${listCards()}</div>`}
+  ${ui.mode==='list'?`<div class="lac-together__list-heading"><h2>모집 목록</h2><span>총 ${ui.total}개의 모집글</span></div>`:''}
+  ${['create','edit'].includes(ui.mode)?renderCreate():ui.mode==='detail'?renderDetail(state):`<div class="lac-together__grid">${ui.loading&&!ui.items.length?empty('모집글을 불러오는 중입니다…'):listCards()}</div>${renderPagination()}`}
   ${ui.mode==='list'?`<p class="lac-together__foot">모집 목록은 로그인 없이 볼 수 있습니다. 모집·참가·채팅에는 Discord 로그인과 인게임 프로필이 필요합니다.${!loggedIn?' <button type="button" data-together-action="login">Discord 로그인</button>':!profile?' <button type="button" data-together-action="profile">인게임 프로필 등록</button>':''}</p>`:''}
   </main></div></div>`;
 }
@@ -189,7 +205,23 @@ async function hydrateBossDetails(rows){
   const lookup=new Map((details||[]).map(row=>[row.id,row]));
   for(const row of targets){const detail=lookup.get(row.id);row.boss_name=detail?.boss_name||null;row.boss_difficulty=detail?.boss_difficulty||null;}
 }
-async function fetchList(){ui.items=await rpc('list_posts',{p_category:null})||[];await hydrateBossDetails(ui.items);}
+async function fetchList(){
+  const params={p_category:ui.category==='전체'?null:ui.category,
+    p_boss_name:ui.category==='보스'&&ui.bossFilter!=='전체'?ui.bossFilter:null,
+    p_boss_difficulty:ui.category==='보스'&&ui.difficultyFilter!=='전체'?ui.difficultyFilter:null,
+    p_page:ui.page,p_page_size:TOGETHER_PAGE_SIZE};
+  let response=await rpc('list_page',params);
+  if(!response||!Array.isArray(response.items)||!Number.isInteger(response.total)||response.total<0)
+    throw Error('목록 조회 응답을 확인할 수 없습니다. 함께하기 v2.15 SQL 적용 여부를 확인해 주세요.');
+  const maxPage=Math.max(1,Math.ceil(response.total/TOGETHER_PAGE_SIZE));
+  if(ui.page>maxPage){
+    ui.page=maxPage;
+    response=await rpc('list_page',{...params,p_page:maxPage});
+    if(!response||!Array.isArray(response.items))throw Error('목록 페이지를 불러올 수 없습니다.');
+  }
+  ui.items=response.items;ui.total=Number(response.total)||0;
+  await hydrateBossDetails(ui.items);
+}
 async function fetchDetail(){if(!ui.id)return;const data=await rpc('get_post',{p_id:ui.id});ui.detail=data||null;
   if(ui.detail)await hydrateBossDetails([ui.detail]);
   ui.roster=[];ui.rosterLoaded=false;
@@ -212,13 +244,20 @@ export async function refreshTogether(state,render,{quiet=false}={}){
     ui.error='';ui.lastSync=Date.now();
   }catch(e){if(!quiet)ui.error=`함께하기 데이터를 불러오지 못했습니다: ${displayError(e)}`;}
   finally{ui.loading=false;
+    const needsRefetch=Boolean(ui.refetchAfterCurrent);ui.refetchAfterCurrent=false;
     // Background polling must not steal focus from chat typing or collapse the shared account menu.
     const active=typeof document!=='undefined'?document.activeElement:null;
     const editing=quiet && typeof document!=='undefined' && ((active?.closest?.('#lac-together') && active?.matches?.('input,textarea,select')) || document.querySelector('#lac-together .hub-account__profile[open]'));
     if(state.page==='together'&&!editing)render();
+    if(needsRefetch && state.page==='together' && ui.mode==='list')void refreshTogether(state,render);
   }
 }
-export function togetherOnFilter(value,render){if(!CATEGORIES.includes(value))return;ui.category=value;render();}
+export function togetherOnFilter(value,state,render){
+  if(!CATEGORIES.includes(value)||ui.category===value)return;
+  ui.category=value;ui.page=1;ui.items=[];ui.total=0;
+  if(ui.loading){ui.refetchAfterCurrent=true;render();return;}
+  render();void refreshTogether(state,render);
+}
 export function togetherOnInput(target){if(target?.closest('form[data-together-form="chat"]')&&target.name==='body')ui.chatDraft=target.value;
   const form=target?.closest('form[data-together-form="create"],form[data-together-form="edit"]');
   if(form&&target.name){
@@ -241,8 +280,25 @@ async function ensureProfile(state,openProfile){if(!state.session?.user)return f
 async function runMutation(task,state,render){if(ui.busy)return;ui.busy=true;ui.error='';render();try{await task();if(ui.mode==='detail')await fetchDetail();else await fetchList();}catch(e){ui.error=displayError(e);}finally{ui.busy=false;render();}}
 export async function togetherAction(button,state,{render,openProfile,login}){
   const action=button.dataset.togetherAction;
-  if(action==='boss-filter'){if(['전체',...BOSS_NAMES].includes(button.dataset.value)){ui.bossFilter=button.dataset.value;render();}return;}
-  if(action==='difficulty-filter'){if(['전체',...BOSS_DIFFICULTIES].includes(button.dataset.value)){ui.difficultyFilter=button.dataset.value;render();}return;}
+  if(action==='boss-filter'||action==='difficulty-filter'){
+    const key=action==='boss-filter'?'bossFilter':'difficultyFilter';
+    const valid=action==='boss-filter'?['전체',...BOSS_NAMES]:['전체',...BOSS_DIFFICULTIES];
+    if(valid.includes(button.dataset.value)&&ui[key]!==button.dataset.value){
+      ui[key]=button.dataset.value;ui.page=1;ui.items=[];ui.total=0;
+      if(ui.loading)ui.refetchAfterCurrent=true;
+      else void refreshTogether(state,render);
+      render();
+    }
+    return;
+  }
+  if(action==='page'){
+    const next=Number(button.dataset.page),last=Math.max(1,Math.ceil(ui.total/TOGETHER_PAGE_SIZE));
+    if(ui.mode!=='list'||ui.loading||!Number.isInteger(next)||next<1||next>last||next===ui.page)return;
+    ui.page=next;ui.items=[];render();await refreshTogether(state,render);
+    // Returning users should see the new page rather than remain below the card grid.
+    if(typeof document!=='undefined')document.querySelector('#lac-together .lac-together__list-heading')?.scrollIntoView?.({block:'start',behavior:'auto'});
+    return;
+  }
   if(action==='login'){await login();return;}
   if(action==='profile'){await openProfile();return;}
   if(action==='back'){ui.formDraft={};ui.mode='list';ui.id=null;ui.detail=null;ui.roster=[];ui.rosterLoaded=false;ui.messages=[];ui.error='';render();await refreshTogether(state,render);return;}
