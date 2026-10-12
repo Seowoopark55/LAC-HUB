@@ -18,7 +18,7 @@ const HUB_CONTENT_CATEGORIES = [
 
 const chevron = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const settingsIcon = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 3.3 13.9 4l1.5-.6 2.5 2.5-.6 1.5.7 1.9 1.5.6v3.5l-1.5.6-.7 1.9.6 1.5-2.5 2.5-1.5-.6-1.9.7-.6 1.5h-3.5l-.6-1.5-1.9-.7-1.5.6-2.5-2.5.6-1.5-.7-1.9-1.5-.6V9.9l1.5-.6.7-1.9-.6-1.5L6.4 3.4l1.5.6 1.9-.7.6-1.5h3.5z" transform="translate(1 1) scale(.85)" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
-function accountName(state) {
+export function accountName(state) {
   const user = state.session?.user || {};
   const meta = user.user_metadata || {};
   // The company alias is an existing field in company_memberships. Do not use

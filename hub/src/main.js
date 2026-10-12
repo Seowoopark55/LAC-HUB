@@ -585,6 +585,8 @@ let reconnectPollAttempts = 0;
 let catalogPollTimer = null;
 let catalogPollAttempts = 0;
 let catalogPollGeneration = 0;
+let catalogInstantSyncAttemptKey = '';
+let catalogInstantSyncPromise = null;
 let sessionRecoveryBusy = false;
 let lastSessionRecoveryAt = 0;
 let manualSignOutUntil = 0;
@@ -2020,24 +2022,45 @@ function discordCatalogPending(status = state.onboardingStatus) {
 // Poll until the external Discord worker finishes; it can take ~10 minutes in
 // older deployments. Generation IDs prevent late requests from updating a new
 // company or reactivating a cancelled poll. No full-page reload is required.
-async function tryImmediateDiscordCatalogSync(companyId) {
-  try {
-    const result=await requestImmediateDiscordCatalogSync(companyId);
-    if(String(state.companyId||'')!==String(companyId))return;
-    state.catalogSyncError='';
-    if(result?.ok && discordCatalogPending())startCatalogStatusPoll();
-  }catch(error){
-    if(String(state.companyId||'')!==String(companyId))return;
-    state.catalogSyncError=String(error?.message||'즉시 동기화 지연');
-    console.warn('LAC HUB immediate catalog sync deferred to existing worker',error);
-    render();
-  }
+function catalogSyncConnectionKey(companyId) {
+  // Do not reuse an earlier successful or failed attempt after reconnection.
+  return [state.session?.user?.id,companyId,state.discordConnection?.guild_id,state.discordConnection?.connected_at].map(v=>String(v||'')).join(':');
+}
+
+async function tryImmediateDiscordCatalogSync(companyId,{force=false}={}) {
+  const key=catalogSyncConnectionKey(companyId);
+  if(!companyId||!state.session?.user?.id||!discordCatalogPending())return;
+  if(catalogInstantSyncPromise)return catalogInstantSyncPromise;
+  if(!force&&catalogInstantSyncAttemptKey===key)return;
+  catalogInstantSyncAttemptKey=key;
+  state.catalogSyncError='';
+  const pending=(async()=>{
+    try {
+      const result=await requestImmediateDiscordCatalogSync(companyId);
+      if(catalogSyncConnectionKey(companyId)!==key)return;
+      if(!result?.ok)throw new Error('즉시 동기화 응답이 올바르지 않습니다.');
+      state.catalogSyncError='';
+      // The status RPC may need another round trip after the server writes the catalog.
+      if(discordCatalogPending()&&!catalogPollTimer)startCatalogStatusPoll();
+    }catch(error){
+      if(catalogSyncConnectionKey(companyId)!==key)return;
+      const status=Number(error?.statusCode||0);
+      state.catalogSyncError=`${String(error?.message||'서버 동기화 요청 오류')}${error?.code?` [${error.code}]`:''}${status?` (HTTP ${status})`:''}`;
+      console.warn('LAC HUB Discord immediate catalog sync failed; background catalog watcher remains active',status);
+      render();
+    }
+  })();
+  catalogInstantSyncPromise=pending;
+  try{return await pending;}finally{if(catalogInstantSyncPromise===pending)catalogInstantSyncPromise=null;}
 }
 
 function startCatalogStatusPoll() {
   clearCatalogPoll();
   const generation=catalogPollGeneration;
   const companyId=String(state.companyId||'');
+  // Important: an existing company can enter the pending state without a new
+  // OAuth callback. Run the server-side fast path once for each connection.
+  void tryImmediateDiscordCatalogSync(companyId);
   const userId=String(state.session?.user?.id||'');
   const started=Date.now();
   const maxMs=15*60*1000;
@@ -2065,7 +2088,8 @@ function startCatalogStatusPoll() {
         setNotice(`Discord 역할 ${Number(status.role_count??roles.length)}개 · 채널 ${Number(status.channel_count??channels.length)}개 동기화 완료`);
         return;
       }
-      render();
+      // Avoid remounting user inputs and resetting selections every 3 seconds.
+      // Only the transition into the ready state needs a full render.
     }catch(error){
       if(!current())return;
       console.warn('LAC HUB Discord catalog status retry',error);
@@ -2130,7 +2154,7 @@ async function handleDiscordOAuthReturn() {
   if(!token&&!error)return; history.replaceState(history.state,'',`${location.pathname}${location.search}`);
   if(error) throw new Error(discordOAuthErrorMessage(error));
   if(!state.session?.user) throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
-  const {connection,resumeGuide:serverResumeGuide}=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.catalogSyncError=''; void tryImmediateDiscordCatalogSync(connection.company_id); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.settingsTab='basic'; localStorage.setItem('axe_product_settings_tab','basic'); navigatePrimaryScreen('settings',{replace:true}); localStorage.setItem('axe_product_page','settings');
+  const {connection,resumeGuide:serverResumeGuide}=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.catalogSyncError=''; catalogInstantSyncAttemptKey=''; state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.settingsTab='basic'; localStorage.setItem('axe_product_settings_tab','basic'); navigatePrimaryScreen('settings',{replace:true}); localStorage.setItem('axe_product_page','settings');
   const resumeGuide=serverResumeGuide||localStorage.getItem('axe_product_setup_resume')==='1';
   const resumeStepRaw=Number(localStorage.getItem('axe_product_setup_resume_step'));
   localStorage.removeItem('axe_product_setup_resume');
@@ -3128,11 +3152,12 @@ async function handlePrimaryClick(event) {
     const requestedStep=saved&&!saved.completed?Math.max(0,Math.min(6,Number(saved.step||0))):0;
     openSetupGuide(resolveSetupGuideResumeStep(requestedStep)); return;
   }
-  if(action==='setup-guide-check-sync'){
+  if(action==='setup-guide-check-sync'||action==='retry-discord-catalog-sync'){
     if(!state.companyId||state.discordConnection?.status!=='connected')return;
+    if(!canAdmin(state))throw new Error('Discord 서버 정보를 동기화하려면 회사 관리자 권한이 필요합니다.');
     state.catalogSyncError='';
-    void tryImmediateDiscordCatalogSync(state.companyId);
     startCatalogStatusPoll();
+    void tryImmediateDiscordCatalogSync(state.companyId,{force:true});
     return;
   }
   if(action==='setup-guide-back'){if(!state.setupGuide)return;state.setupGuide.step=Math.max(0,Number(state.setupGuide.step||0)-1);render();return;}

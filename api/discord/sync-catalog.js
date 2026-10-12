@@ -5,15 +5,15 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 const SNOWFLAKE=/^\d{15,22}$/;
 const DISCORD_API='https://discord.com/api/v10';
 
-function fail(message,status=502){const error=new Error(message);error.statusCode=status;throw error;}
+function fail(message,status=502,code='SYNC_FAILED'){const error=new Error(message);error.statusCode=status;error.code=code;throw error;}
 async function readJson(response){try{return await response.json();}catch{return null;}}
 async function discordList(guildId,type,botToken){
   const response=await fetch(`${DISCORD_API}/guilds/${guildId}/${type}`,{
     headers:{Authorization:`Bot ${botToken}`,'User-Agent':'LACHUB (https://lachub.cloud, 1.0)'},
   });
   const data=await readJson(response);
-  if(response.status===429)fail('Discord API 요청 제한이 적용됐습니다. 잠시 후 다시 시도해 주세요.',429);
-  if(!response.ok)fail('Discord 봇이 서버의 역할·채널을 읽지 못했습니다. 봇 설치 및 권한을 확인해 주세요.',502);
+  if(response.status===429)fail('Discord API 요청 제한이 적용됐습니다. 잠시 후 다시 시도해 주세요.',429,'DISCORD_RATE_LIMIT');
+  if(!response.ok)fail('Discord 봇이 서버의 역할·채널을 읽지 못했습니다. 봇 설치 및 권한을 확인해 주세요.',502,'DISCORD_BOT_ACCESS');
   if(!Array.isArray(data))fail('Discord 응답 형식이 올바르지 않습니다.');
   return data;
 }
@@ -29,7 +29,7 @@ async function upsertCatalog(table,conflict,rows,env){
     const detail=await readJson(response);
     // Avoid sending schema internals or credentials to browsers.
     console.error('LAC HUB catalog upsert failed',table,response.status,detail?.code||'',detail?.message||'');
-    fail('Supabase 역할·채널 동기화 저장에 실패했습니다. 관리자에게 DB 권한과 고유 인덱스를 확인해 달라고 요청해 주세요.');
+    fail('Supabase 역할·채널 동기화 저장에 실패했습니다. 관리자에게 DB 권한과 고유 인덱스를 확인해 달라고 요청해 주세요.',502,'CATALOG_DB_WRITE');
   }
 }
 
@@ -48,9 +48,9 @@ export default async function handler(req,res){
     // instant sync without waiting for the separate bot's 10-minute worker.
     const serviceKey=String(process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();
     const supabaseUrl=String(process.env.VITE_SUPABASE_URL||'').trim().replace(/\/+$/,'');
-    if(!serviceKey||!supabaseUrl)fail('즉시 동기화 서버 설정이 아직 준비되지 않았습니다. 기존 봇 동기화를 계속 기다립니다.',503);
+    if(!serviceKey||!supabaseUrl)fail('즉시 동기화 서버 설정이 아직 준비되지 않았습니다. 기존 봇 동기화를 계속 기다립니다.',503,'SYNC_ENV_MISSING');
     let botToken;
-    try{botToken=getDiscordBotToken();}catch{fail('Discord 봇 토큰이 서버에 설정되지 않았습니다.',503);}
+    try{botToken=getDiscordBotToken();}catch{fail('Discord 봇 토큰이 서버에 설정되지 않았습니다.',503,'BOT_TOKEN_MISSING');}
     const [roles,channels]=await Promise.all([
       discordList(guildId,'roles',botToken),discordList(guildId,'channels',botToken),
     ]);
@@ -82,6 +82,6 @@ export default async function handler(req,res){
   }catch(error){
     const status=Number(error?.statusCode||500);
     if(status>=500)console.error('LAC HUB immediate catalog sync failed',status,error.message);
-    return res.status(status).json({error:status>=500&&status!==503?'Discord 즉시 동기화를 완료하지 못했습니다. 기존 동기화로 다시 시도합니다.':error.message});
+    return res.status(status).json({error:status>=500&&status!==503?'Discord 즉시 동기화를 완료하지 못했습니다. 기존 동기화로 다시 시도합니다.':error.message,code:error?.code||'SYNC_FAILED'});
   }
 }

@@ -211,3 +211,10 @@
 .setup-guide-sync-note button{padding:7px 11px;background:#16202d;border:1px solid rgba(179,150,78,.34);color:#e1c891;border-radius:7px;cursor:pointer;white-space:nowrap}
 .setup-guide-sync-note small{width:100%;color:#e3aa9e}
 .lac-discord-return-cover{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;background:#090d14;color:#e4dcc5;font-size:14px;letter-spacing:.01em}
+
+/* Catalog sync diagnosis / retry — unobtrusive and aligned with company UI. */
+.ops-onboarding-strip.is-catalog>div:not(.ops-onboarding-spinner){min-width:0;flex:1}
+.ops-onboarding-strip.is-catalog small{color:#e3aa9e;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.ops-onboarding-strip.is-catalog button[data-action="retry-discord-catalog-sync"]{justify-self:start;margin-top:5px;padding:5px 10px;border:1px solid rgba(179,150,78,.33);border-radius:7px;background:#15202b;color:#e1c891;font-size:10px;cursor:pointer}
+.ops-onboarding-strip.is-catalog button[data-action="retry-discord-catalog-sync"]:hover{background:#1b2a38}
+@media(max-width:700px){.ops-onboarding-strip.is-catalog button[data-action="retry-discord-catalog-sync"]{font-size:11px}}
