@@ -34,6 +34,7 @@ export default async function handler(req, res) {
         kind: 'discord-start',
         companyId,
         userId: user.id,
+        resumeGuide: req.body?.resume_guide === true,
         nonce: randomNonce(),
         iat: now,
         exp: now + 10 * 60,

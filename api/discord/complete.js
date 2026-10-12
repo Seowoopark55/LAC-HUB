@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       guildName: payload.guildName,
     });
 
-    return res.status(200).json({ connection });
+    return res.status(200).json({ connection, resume_guide: payload.resumeGuide === true });
   } catch (error) {
     const status = Number(error?.statusCode || 400);
     return res.status(status).json({

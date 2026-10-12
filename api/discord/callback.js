@@ -85,6 +85,7 @@ export default async function handler(req, res) {
         userId: state.userId,
         guildId,
         guildName: guildName || null,
+        resumeGuide: state.resumeGuide === true,
         nonce: randomNonce(),
         iat: now,
         exp: now + 5 * 60,
