@@ -10,6 +10,18 @@ const DURATIONS=[{value:30,label:'30분'},{value:60,label:'1시간'},{value:120,
 const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0};
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
+// Show the real end deadline as a live countdown. This is presentation only:
+// Supabase continues to own closing, posting, and cleanup authorization.
+export function togetherRemainingTime(endsAt,status,now=Date.now()){
+  if(status==='종료')return '활동 종료';
+  const end=Date.parse(String(endsAt??''));
+  if(!Number.isFinite(end))return '시간 확인';
+  const seconds=Math.max(0,Math.ceil((end-now)/1000));
+  const hours=Math.floor(seconds/3600),minutes=Math.floor((seconds%3600)/60),secs=seconds%60;
+  return hours ? `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(secs).padStart(2,'0')}`
+    : `${String(minutes).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+}
+
 const pad=n=>String(n).padStart(2,'0');
 const localDate=t=>`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;
 const today=()=>localDate(new Date());
@@ -108,7 +120,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   const isHost=Boolean(p.is_host), logged=Boolean(state.session?.user), active=p.status==='모집 중';
   const canMessage=Boolean(p.can_chat)&&p.status!=='종료';
   const canApply=active&&!isHost&&!['pending','accepted'].includes(p.my_status);
-  const canWithdraw=['pending','accepted'].includes(p.my_status)&&p.status!=='종료';
+  const canWithdraw=!isHost&&['pending','accepted'].includes(p.my_status)&&p.status!=='종료';
   const editAllowed=isHost&&Date.parse(p.starts_at)>Date.now()&&p.status!=='종료';
   const structuredBoss=p.category==='보스'&&BOSS_NAMES.includes(p.boss_name)&&BOSS_DIFFICULTIES.includes(p.boss_difficulty);
   const detailHeading=structuredBoss?bossPublicName(p.boss_name):p.title;
@@ -138,7 +150,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
         <div class="lac-together__raid-intel" aria-label="모집 정보">
           <div class="lac-together__raid-cell"><span class="lac-together__raid-icon" aria-hidden="true">◷</span><div><small>활동 일시</small><strong>${esc(when(p.starts_at))}</strong></div></div>
           <div class="lac-together__raid-cell"><span class="lac-together__raid-icon" aria-hidden="true">♙</span><div><small>모집자</small><strong>${esc(p.host_nickname)}</strong></div></div>
-          <div class="lac-together__raid-cell"><span class="lac-together__raid-icon" aria-hidden="true">◴</span><div><small>자동 종료</small><strong>${esc(when(p.ends_at))}</strong></div></div>
+          <div class="lac-together__raid-cell lac-together__raid-cell--countdown"><span class="lac-together__raid-icon" aria-hidden="true">◴</span><div><small>남은 시간</small><strong class="lac-together__countdown" data-together-countdown="${esc(p.ends_at||'')}" data-status="${esc(p.status||'')}">${esc(togetherRemainingTime(p.ends_at,p.status))}</strong><span class="lac-together__countdown-deadline">종료 예정 ${esc(when(p.ends_at))}</span></div></div>
           <div class="lac-together__raid-cell lac-together__raid-cell--count"><span class="lac-together__raid-icon" aria-hidden="true">♧</span><div><small>참가 현황</small><strong><em>${confirmed}</em> / ${capacity}명</strong><span class="lac-together__raid-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${capacity}" aria-valuenow="${confirmed}" aria-label="현재 확정 인원"><i style="width:${ratio}%"></i></span></div></div>
         </div>
         ${participantAction?`<div class="lac-together__raid-actions">${participantAction}${p.my_status==='pending'?'<span class="lac-together__tip">모집자 승인 대기 중</span>':''}</div>`:''}
@@ -294,6 +306,19 @@ export async function togetherSubmit(form,state,{render,openProfile}){
   }
 }
 export function togetherProfileUpdated(state){if(state.session?.user){ui.profile=null;ui.profileChecked=false;ui.profileUser=null;}}
+
+// One timer for all Together detail views; rerenders reuse it rather than
+// accumulating timers. No network traffic or server-side state is changed.
+if(typeof window!=='undefined' && typeof document!=='undefined'){
+  window.setInterval(()=>{
+    if(document.visibilityState==='hidden')return;
+    document.querySelectorAll('#lac-together [data-together-countdown]').forEach(node=>{
+      const next=togetherRemainingTime(node.getAttribute('data-together-countdown'),node.getAttribute('data-status'));
+      if(node.textContent!==next)node.textContent=next;
+    });
+  },1000);
+}
+
 
 // Shared account menus are independent. This listener only closes the Together host management menu.
 if (typeof document !== 'undefined') {
