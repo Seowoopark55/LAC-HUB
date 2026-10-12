@@ -113,3 +113,22 @@
 .lac-together .lac-together__item--boss .lac-together__boss-stat:first-child{padding-left:34px}
 .lac-together .lac-together__item--boss .lac-together__boss-stat--count{padding-left:36px}
 @media(max-width:370px){.lac-together .lac-together__item--boss .lac-together__boss-stat:first-child{padding-left:29px}.lac-together .lac-together__item--boss .lac-together__boss-stat--count{padding-left:30px}}
+
+/* V210A: keep the adopted boss card skin but correct title/difficulty alignment.
+   The title/difficulty row sits on the decorative plate as one balanced line. */
+.lac-together .lac-together__item--boss .lac-together__boss-summary{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  column-gap:10px!important;
+}
+.lac-together .lac-together__item--boss .lac-together__boss-primary{
+  margin:0!important;
+  align-self:center!important;
+  line-height:1.16!important;
+}
+.lac-together .lac-together__item--boss .lac-together__difficulty{
+  align-self:center!important;
+  justify-self:end!important;
+  margin:0!important;
+}
