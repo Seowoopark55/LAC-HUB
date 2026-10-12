@@ -1,0 +1,87 @@
+/* Together v2.9 | Boss recruitment card visual system.
+   Imported after v2.8: only complete, structured boss posts receive this new
+   raster-art layout. Visuals are cropped character artwork ONLY: dynamic
+   names, difficulty, status, host and party size remain HTML/accessible.
+   The old gold shell applies to non-boss/legacy cards unchanged. */
+.lac-together .lac-together__item.lac-together__item--boss,
+.lac-together .lac-together__item.lac-together__item--boss:hover{
+  box-sizing:border-box;min-width:0;min-height:316px;height:316px;
+  padding:0!important;gap:0!important;isolation:isolate;
+  background:#0a1420!important;border:1px solid rgba(196,154,92,.67)!important;
+  border-radius:11px!important;overflow:hidden!important;
+  box-shadow:0 12px 25px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,225,175,.13)!important;
+  transition:transform .17s ease,border-color .17s ease,box-shadow .17s ease;
+}
+.lac-together .lac-together__item.lac-together__item--boss:hover{
+  transform:translateY(-3px);border-color:rgba(243,196,117,.93)!important;
+  box-shadow:0 17px 29px rgba(0,0,0,.43),0 0 0 1px rgba(231,178,96,.2)!important;
+}
+.lac-together .lac-together__item--boss::before{display:none!important}
+/* One complete framing image is kept around the perimeter only. */
+.lac-together .lac-together__item--boss::after{border-width:10px!important;border-image-width:10px!important;opacity:.78;z-index:6!important}
+.lac-together .lac-together__item--boss .lac-together__boss-art{
+  position:absolute;inset:0 0 auto 0;height:190px;pointer-events:none;z-index:0;
+  display:block;background-position:center 48%;background-size:cover;background-repeat:no-repeat;
+}
+.lac-together .lac-together__item--boss[data-boss="maid"] .lac-together__boss-art{background-image:url('/hub/together/art/v29/maid.webp')}
+.lac-together .lac-together__item--boss[data-boss="boar"] .lac-together__boss-art{background-image:url('/hub/together/art/v29/boar.webp')}
+.lac-together .lac-together__item--boss[data-boss="chemist"] .lac-together__boss-art{background-image:url('/hub/together/art/v29/chemist.webp')}
+.lac-together .lac-together__item--boss .lac-together__boss-art::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(5,13,21,.3) 0%,transparent 30%,rgba(7,15,24,.08) 68%,#0a1420 100%);
+}
+.lac-together .lac-together__item--boss .lac-together__item-top{
+  position:absolute!important;z-index:5!important;left:13px!important;right:13px!important;top:13px!important;min-height:25px;
+}
+.lac-together .lac-together__item--boss .lac-together__category{
+  padding:5px 9px;border:1px solid rgba(222,180,104,.75);border-radius:6px;
+  background:rgba(9,17,25,.83);color:#f3dcb8;backdrop-filter:blur(4px);
+}
+.lac-together .lac-together__item--boss .lac-together__badge{font-size:10px;backdrop-filter:blur(4px)}
+.lac-together .lac-together__item--boss .lac-together__boss-summary{
+  position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  flex:0 0 auto;margin-top:176px;min-height:62px;padding:10px 17px 9px;
+  background:linear-gradient(90deg,#0a1420,#0b1826 76%,#0a1420);
+  border-top:1px solid rgba(221,170,98,.62);border-bottom:1px solid rgba(212,170,104,.25);
+}
+.lac-together .lac-together__item--boss .lac-together__boss-primary{
+  min-width:0;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:22px;letter-spacing:-.046em;font-weight:850;line-height:1.25;color:#f5e5c9;
+  text-shadow:0 1px 2px rgba(0,0,0,.55)
+}
+.lac-together .lac-together__item--boss .lac-together__difficulty{
+  flex:0 0 auto;min-height:30px;padding:5px 11px;border-radius:6px;
+  font-size:11px;font-weight:820;line-height:1.2;
+}
+.lac-together .lac-together__item--boss .lac-together__boss-bottom{
+  position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) minmax(94px,.85fr);
+  align-items:center;flex:1 1 auto;gap:0;width:100%;padding:12px 16px 13px;
+  background:linear-gradient(90deg,rgba(9,17,27,.94),rgba(14,27,40,.92));
+}
+.lac-together .lac-together__item--boss .lac-together__boss-stat{
+  display:flex;gap:9px;align-items:center;min-width:0;color:#d1b17e;
+}
+.lac-together .lac-together__item--boss .lac-together__boss-stat--count{
+  padding-left:12px;border-left:1px solid rgba(195,153,91,.24)
+}
+.lac-together .lac-together__item--boss .lac-together__boss-stat>svg{flex:0 0 20px}
+.lac-together .lac-together__item--boss .lac-together__boss-stat-copy{
+  min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+}
+.lac-together .lac-together__item--boss .lac-together__boss-stat-copy small{
+  font-size:10px;letter-spacing:.01em;font-weight:580;color:#91a3b3
+}
+.lac-together .lac-together__item--boss .lac-together__boss-stat-copy strong{
+  display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:13px;font-weight:790;color:#f0e5d3;font-variant-numeric:tabular-nums;
+}
+.lac-together .lac-together__item--boss .lac-together__boss-stat-copy em{font-style:normal;color:#e8c68c}
+@media(max-width:760px){
+ .lac-together .lac-together__item.lac-together__item--boss{height:314px;min-height:314px}
+}
+@media(max-width:360px){
+ .lac-together .lac-together__item--boss .lac-together__boss-summary{padding-inline:13px}
+ .lac-together .lac-together__item--boss .lac-together__boss-primary{font-size:20px}
+ .lac-together .lac-together__item--boss .lac-together__boss-bottom{padding-inline:12px}
+ .lac-together .lac-together__item--boss .lac-together__boss-stat{gap:6px}
+}

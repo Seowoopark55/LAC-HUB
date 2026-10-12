@@ -22,7 +22,7 @@ function bossTags(row){
   // Legacy posts continue to show their original title; structured tags are optional.
   const kind=BOSS_NAMES.includes(row.boss_name)?row.boss_name:'';
   const level=BOSS_DIFFICULTIES.includes(row.boss_difficulty)?row.boss_difficulty:'';
-  return (kind||level)?`<span class="lac-together__boss-tags" aria-label="보스 상세 정보">${kind?`<span class="lac-together__boss-name">${esc(kind)}</span>`:''}${level?`<span class="lac-together__difficulty lac-together__difficulty--${level==='쉬움'?'easy':level==='보통'?'normal':'hard'}">${esc(level)}</span>`:''}</span>`:'';
+  return (kind||level)?`<span class="lac-together__boss-tags" aria-label="보스 상세 정보">${kind?`<span class="lac-together__boss-name">${esc(bossPublicName(kind))}</span>`:''}${level?`<span class="lac-together__difficulty lac-together__difficulty--${level==='쉬움'?'easy':level==='보통'?'normal':'hard'}">${esc(level)}</span>`:''}</span>`:'';
 }
 function statusBadge(status){const kind=status==='모집 중'?'open':status==='모집 마감'?'full':status==='진행 중'?'active':'ended';return `<span class="lac-together__badge lac-together__badge--${kind}">${esc(status||'모집 중')}</span>`;}
 function pageTop(state){const account=state.session?.user && state.ready
@@ -36,14 +36,44 @@ function filteredRows(){return ui.items.filter(row=>
   (ui.category!=='보스'||ui.bossFilter==='전체'||row.boss_name===ui.bossFilter)&&
   (ui.category!=='보스'||ui.difficultyFilter==='전체'||row.boss_difficulty===ui.difficultyFilter));}
 function bossFilterToolbar(){if(ui.mode!=='list'||ui.category!=='보스')return '';
-  const options=(kind,values,current)=>`<div class="lac-together__boss-filter-row"><span>${kind==='name'?'보스 종류':'난이도'}</span><div class="lac-together__boss-filter-options">${values.map(v=>`<button type="button" data-together-action="${kind==='name'?'boss-filter':'difficulty-filter'}" data-value="${esc(v)}" class="lac-together__boss-filter ${current===v?'is-selected':''} ${kind==='difficulty'&&v!=='전체'?'lac-together__difficulty lac-together__difficulty--'+(v==='쉬움'?'easy':v==='보통'?'normal':'hard'):''}" aria-pressed="${current===v}">${esc(v)}</button>`).join('')}</div></div>`;
+  const options=(kind,values,current)=>`<div class="lac-together__boss-filter-row"><span>${kind==='name'?'보스 종류':'난이도'}</span><div class="lac-together__boss-filter-options">${values.map(v=>`<button type="button" data-together-action="${kind==='name'?'boss-filter':'difficulty-filter'}" data-value="${esc(v)}" class="lac-together__boss-filter ${current===v?'is-selected':''} ${kind==='difficulty'&&v!=='전체'?'lac-together__difficulty lac-together__difficulty--'+(v==='쉬움'?'easy':v==='보통'?'normal':'hard'):''}" aria-pressed="${current===v}">${esc(kind==='name'?bossPublicName(v):v)}</button>`).join('')}</div></div>`;
   return `<div class="lac-together__boss-filters" aria-label="보스 모집 세부 필터">${options('name',['전체',...BOSS_NAMES],ui.bossFilter)}${options('difficulty',['전체',...BOSS_DIFFICULTIES],ui.difficultyFilter)}</div>`;}
-function listCards(){let rows=filteredRows();
-  return rows.length?rows.map((row,index)=>{const capacity=Math.max(2,Number(row.capacity)||2),confirmed=Math.min(capacity,Math.max(1,Number(row.confirmed_count)||1));return `<button type="button" class="lac-together__item" data-together-category="${esc(row.category)}" data-together-action="detail" data-id="${esc(row.id)}">
+const bossPublicName=name=>name==='화학자'?'미친 화학자':name;
+function personSymbol(kind){
+  return kind==='host'
+  ?`<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>`
+  :`<svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+}
+function bossRecruitmentCard(row,capacity,confirmed){
+  const kind=row.boss_name;
+  const level=row.boss_difficulty;
+  const cssLevel=level==='쉬움'?'easy':level==='보통'?'normal':'hard';
+  const cssBoss=kind==='멧돼지'?'boar':kind==='메이드'?'maid':'chemist';
+  const visibleName=bossPublicName(kind);
+  const label=`${visibleName} ${level} 보스 모집 · 모집자 ${row.host_nickname||'플레이어'} · 참가 현황 ${confirmed} / ${capacity}명 · ${row.status||'모집 중'}`;
+  return `<button type="button" class="lac-together__item lac-together__item--boss" data-together-category="보스" data-boss="${cssBoss}" data-together-action="detail" data-id="${esc(row.id)}" aria-label="${esc(label)}">
+    <span class="lac-together__boss-art" aria-hidden="true"></span>
+    <span class="lac-together__item-top"><span class="lac-together__category">보스</span>${statusBadge(row.status)}</span>
+    <span class="lac-together__boss-summary"><span class="lac-together__boss-primary">${esc(visibleName)}</span><span class="lac-together__difficulty lac-together__difficulty--${cssLevel}">${esc(level)}</span></span>
+    <span class="lac-together__boss-bottom">
+      <span class="lac-together__boss-stat">${personSymbol('host')}<span class="lac-together__boss-stat-copy"><small>모집자</small><strong>${esc(row.host_nickname||'플레이어')}</strong></span></span>
+      <span class="lac-together__boss-stat lac-together__boss-stat--count">${personSymbol('group')}<span class="lac-together__boss-stat-copy"><small>참가 현황</small><strong><em>${confirmed}</em> / ${capacity}명</strong></span></span>
+    </span>
+  </button>`;
+}
+function listCards(){const rows=filteredRows();
+  return rows.length?rows.map(row=>{
+    const capacity=Math.max(2,Number(row.capacity)||2),confirmed=Math.min(capacity,Math.max(1,Number(row.confirmed_count)||1));
+    // Historical boss posts without both structured fields retain their title and description.
+    if(row.category==='보스'&&BOSS_NAMES.includes(row.boss_name)&&BOSS_DIFFICULTIES.includes(row.boss_difficulty))
+      return bossRecruitmentCard(row,capacity,confirmed);
+    return `<button type="button" class="lac-together__item" data-together-category="${esc(row.category)}" data-together-action="detail" data-id="${esc(row.id)}">
     <span class="lac-together__item-top"><span class="lac-together__category">${esc(row.category)}</span>${statusBadge(row.status)}</span>
     <span class="lac-together__item-heading"><strong>${esc(row.title)}</strong></span>${bossTags(row)}<span class="lac-together__item-desc">${esc(row.description||'함께할 플레이어를 모집합니다.')}</span>
-    <span class="lac-together__item-footer"><span class="lac-together__item-info"><span>◷ ${esc(when(row.starts_at))}</span><span>모집자 ${esc(row.host_nickname||'플레이어')}</span></span><span class="lac-together__item-count" aria-label="참가 현황 ${confirmed} / ${capacity}명"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span><small>참가 현황</small><strong>${confirmed} / ${capacity}명</strong></span></span></span>
-  </button>`;}).join(''):empty('해당 카테고리에 등록된 활동이 없습니다.');}
+    <span class="lac-together__item-footer"><span class="lac-together__item-info"><span>◷ ${esc(when(row.starts_at))}</span><span>모집자 ${esc(row.host_nickname||'플레이어')}</span></span><span class="lac-together__item-count" aria-label="참가 현황 ${confirmed} / ${capacity}명">${personSymbol('group')}<span><small>참가 현황</small><strong>${confirmed} / ${capacity}명</strong></span></span></span>
+  </button>`;
+  }).join(''):empty('해당 카테고리에 등록된 활동이 없습니다.');
+}
 function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||{},editing=ui.mode==='edit';return `<form class="lac-together__create" data-together-form="${editing?'edit':'create'}"><h2 class="lac-together__form-title">${editing?'모집글 수정':'모집 등록'}</h2>
   <div class="lac-together__form-grid lac-together__form-grid--basics">
     <label class="lac-together__field"><span class="lac-together__field-label">활동 카테고리</span><select name="category" required>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${f.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select></label>
@@ -52,10 +82,10 @@ function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||
   <div class="lac-together__boss-fields" data-together-boss-fields ${(!f.category||f.category==='보스')?'':'hidden'}>
     <div class="lac-together__boss-heading"><span>보스 세부 설정</span><small>선택한 보스와 난이도가 모집글에 표시됩니다.</small></div>
     <div class="lac-together__form-grid lac-together__form-grid--boss">
-      <label class="lac-together__field"><span class="lac-together__field-label">보스 종류</span><select name="boss_name" ${(!f.category||f.category==='보스')?'required':''}>${BOSS_NAMES.map(v=>`<option value="${v}" ${f.boss_name===v?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label class="lac-together__field"><span class="lac-together__field-label">보스 종류</span><select name="boss_name" ${(!f.category||f.category==='보스')?'required':''}>${BOSS_NAMES.map(v=>`<option value="${v}" ${f.boss_name===v?'selected':''}>${esc(bossPublicName(v))}</option>`).join('')}</select></label>
       <label class="lac-together__field"><span class="lac-together__field-label">난이도</span><select name="boss_difficulty" ${(!f.category||f.category==='보스')?'required':''}>${BOSS_DIFFICULTIES.map(v=>`<option value="${v}" ${f.boss_difficulty===v?'selected':''}>${v}</option>`).join('')}</select></label>
     </div>
-    <div class="lac-together__boss-preview" aria-live="polite"><span data-together-boss-preview-name>${esc(f.boss_name||'멧돼지')}</span><span data-together-boss-preview-difficulty class="lac-together__difficulty lac-together__difficulty--${(f.boss_difficulty||'쉬움')==='쉬움'?'easy':(f.boss_difficulty||'쉬움')==='보통'?'normal':'hard'}">${esc(f.boss_difficulty||'쉬움')}</span></div>
+    <div class="lac-together__boss-preview" aria-live="polite"><span data-together-boss-preview-name>${esc(bossPublicName(f.boss_name||'멧돼지'))}</span><span data-together-boss-preview-difficulty class="lac-together__difficulty lac-together__difficulty--${(f.boss_difficulty||'쉬움')==='쉬움'?'easy':(f.boss_difficulty||'쉬움')==='보통'?'normal':'hard'}">${esc(f.boss_difficulty||'쉬움')}</span></div>
   </div>
   <label class="lac-together__field"><span class="lac-together__field-label">모집 제목</span><input name="title" maxlength="90" minlength="5" value="${esc(f.title||'')}" placeholder="어떤 활동을 함께할 예정인가요?" required></label>
   <label class="lac-together__field"><span class="lac-together__field-label">상세 내용 <small>선택</small></span><textarea name="description" maxlength="600" rows="3" placeholder="준비 사항, 참가 조건 등을 자유롭게 작성해 주세요.">${esc(f.description||'')}</textarea></label>
@@ -159,7 +189,7 @@ export function togetherOnInput(target){if(target?.closest('form[data-together-f
     if(isBoss){
       const name=form.querySelector('[data-together-boss-preview-name]');
       const difficulty=form.querySelector('[data-together-boss-preview-difficulty]');
-      if(name)name.textContent=form.elements.boss_name?.value||'멧돼지';
+      if(name)name.textContent=bossPublicName(form.elements.boss_name?.value||'멧돼지');
       if(difficulty){const level=form.elements.boss_difficulty?.value||'쉬움';difficulty.textContent=level;difficulty.className='lac-together__difficulty lac-together__difficulty--'+(level==='쉬움'?'easy':level==='보통'?'normal':'hard');}
     }
   }}
