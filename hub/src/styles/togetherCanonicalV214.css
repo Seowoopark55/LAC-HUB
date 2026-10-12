@@ -399,3 +399,37 @@
 .lac-together__item--art .lac-together__item-top .lac-together__category{font-weight:790}
 .lac-together__item--art .lac-together__boss-bottom{border-top:1px solid rgba(207,161,99,.15)}
 @media(max-width:355px){.lac-together__item--activity .lac-together__boss-primary{font-size:17px}}
+
+
+/* v2.18 — All Together categories share the existing boss detail layout.
+   Only the category art differs. Existing actions, roster/privacy and countdown are unchanged. */
+.lac-together__post--raid[data-together-detail-category='WWE'] .lac-together__raid-hero::before{
+  background-image:url('/hub/together/art/v217/wwe.webp');background-position:center 42%;
+}
+.lac-together__post--raid[data-together-detail-category='범죄'] .lac-together__raid-hero::before{
+  background-image:url('/hub/together/art/v217/crime.webp');background-position:center 43%;
+}
+.lac-together__post--raid[data-together-detail-category='자유 활동'] .lac-together__raid-hero::before{
+  background-image:url('/hub/together/art/v217/free.webp');background-position:center 44%;
+}
+.lac-together__post--raid[data-together-detail-category='기타'] .lac-together__raid-hero::before{
+  background-image:url('/hub/together/art/v217/other.webp');background-position:center 45%;
+}
+/* Historical boss posts have no structured boss name. Show a neutral game scene instead. */
+.lac-together__post--raid[data-together-detail-category='보스'][data-boss=''] .lac-together__raid-hero::before{
+  background-image:url('/hub/together/art/v213/hall_banner.webp');background-position:center 48%;
+}
+/* Non-boss details may have a user-supplied long title. Keep it readable and within the art-safe region. */
+.lac-together__post--raid:not([data-together-detail-category='보스']) .lac-together__raid-heading h2{
+  font-size:clamp(23px,2.6vw,34px);line-height:1.22;overflow-wrap:anywhere;
+}
+.lac-together__post--raid:not([data-together-detail-category='보스']) .lac-together__raid-hero::after{
+  background:linear-gradient(90deg,#071422ec 0%,#071422cf 33%,#07142240 66%,#07142218 100%);
+}
+.lac-together__hero h1{margin-bottom:9px}
+@media(max-width:760px){
+  .lac-together__post--raid:not([data-together-detail-category='보스']) .lac-together__raid-heading h2{font-size:clamp(21px,5.5vw,29px)}
+  .lac-together__post--raid:not([data-together-detail-category='보스']) .lac-together__raid-hero::after{
+    background:linear-gradient(90deg,#071422ed 0%,#071422a8 62%,#07142240 100%);
+  }
+}
