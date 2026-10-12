@@ -4,8 +4,10 @@ import {renderHubAccountControl} from '../ui/hubHome.js';
 import {formatStoredIngamePhone} from '../lib/ingamePhone.js';
 
 const CATEGORIES=['전체','보스','범죄','WWE','자유 활동','기타'];
+const BOSS_NAMES=['멧돼지','화학자','메이드'];
+const BOSS_DIFFICULTIES=['쉬움','보통','어려움'];
 const DURATIONS=[{value:30,label:'30분'},{value:60,label:'1시간'},{value:120,label:'2시간'},{value:240,label:'4시간'},{value:360,label:'6시간'}];
-const ui={mode:'list',category:'전체',items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0};
+const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0};
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
 const pad=n=>String(n).padStart(2,'0');
@@ -15,6 +17,13 @@ function defaultStart(){const d=new Date(Date.now()+60*60_000);d.setMinutes(Math
 function check(){if(!supabase)throw Error('Supabase 연결이 필요합니다.');return supabase;}
 async function rpc(method,params={}){const {data,error}=await check().rpc(`together_${method}`,params);if(error)throw error;return data;}
 function displayError(e){return String(e?.message||e||'잠시 후 다시 시도해 주세요.').replace(/^Error:\s*/, '');}
+function bossTags(row){
+  if(row?.category!=='보스')return '';
+  // Legacy posts continue to show their original title; structured tags are optional.
+  const kind=BOSS_NAMES.includes(row.boss_name)?row.boss_name:'';
+  const level=BOSS_DIFFICULTIES.includes(row.boss_difficulty)?row.boss_difficulty:'';
+  return (kind||level)?`<span class="lac-together__boss-tags" aria-label="보스 상세 정보">${kind?`<span class="lac-together__boss-name">${esc(kind)}</span>`:''}${level?`<span class="lac-together__difficulty lac-together__difficulty--${level==='쉬움'?'easy':level==='보통'?'normal':'hard'}">${esc(level)}</span>`:''}</span>`:'';
+}
 function statusBadge(status){const kind=status==='모집 중'?'open':status==='모집 마감'?'full':status==='진행 중'?'active':'ended';return `<span class="lac-together__badge lac-together__badge--${kind}">${esc(status||'모집 중')}</span>`;}
 function pageTop(state){const account=state.session?.user && state.ready
     ? `<div class="hub-account">${renderHubAccountControl(state)}</div>`
@@ -22,16 +31,31 @@ function pageTop(state){const account=state.session?.user && state.ready
   return `<header class="lac-together__head"><a href="/" class="lac-together__brand" aria-label="메인으로 이동"><span class="lac-together__brand-arrow" aria-hidden="true">←</span><span>메인으로</span></a><div class="lac-together__head-right"><span class="lac-together__eyebrow">PLAY TOGETHER</span>${account}</div></header>`;}
 function empty(message){return `<div class="lac-together__empty">${esc(message)}</div>`;}
 function controlState(state){return {loggedIn:Boolean(state.session?.user),profile:Boolean(ui.profile && ui.profile.user_id===state.session?.user?.id),busy:ui.busy};}
-function listCards(){let rows=ui.items.filter(row=>ui.category==='전체'||row.category===ui.category);
+function filteredRows(){return ui.items.filter(row=>
+  (ui.category==='전체'||row.category===ui.category)&&
+  (ui.category!=='보스'||ui.bossFilter==='전체'||row.boss_name===ui.bossFilter)&&
+  (ui.category!=='보스'||ui.difficultyFilter==='전체'||row.boss_difficulty===ui.difficultyFilter));}
+function bossFilterToolbar(){if(ui.mode!=='list'||ui.category!=='보스')return '';
+  const options=(kind,values,current)=>`<div class="lac-together__boss-filter-row"><span>${kind==='name'?'보스 종류':'난이도'}</span><div class="lac-together__boss-filter-options">${values.map(v=>`<button type="button" data-together-action="${kind==='name'?'boss-filter':'difficulty-filter'}" data-value="${esc(v)}" class="lac-together__boss-filter ${current===v?'is-selected':''} ${kind==='difficulty'&&v!=='전체'?'lac-together__difficulty lac-together__difficulty--'+(v==='쉬움'?'easy':v==='보통'?'normal':'hard'):''}" aria-pressed="${current===v}">${esc(v)}</button>`).join('')}</div></div>`;
+  return `<div class="lac-together__boss-filters" aria-label="보스 모집 세부 필터">${options('name',['전체',...BOSS_NAMES],ui.bossFilter)}${options('difficulty',['전체',...BOSS_DIFFICULTIES],ui.difficultyFilter)}</div>`;}
+function listCards(){let rows=filteredRows();
   return rows.length?rows.map((row,index)=>{const capacity=Math.max(2,Number(row.capacity)||2),confirmed=Math.min(capacity,Math.max(1,Number(row.confirmed_count)||1));return `<button type="button" class="lac-together__item" data-together-category="${esc(row.category)}" data-together-action="detail" data-id="${esc(row.id)}">
     <span class="lac-together__item-top"><span class="lac-together__category">${esc(row.category)}</span>${statusBadge(row.status)}</span>
-    <span class="lac-together__item-heading"><span class="lac-together__item-symbol" aria-hidden="true">${pad(index+1)}</span><strong>${esc(row.title)}</strong></span><span class="lac-together__item-desc">${esc(row.description||'함께할 플레이어를 모집합니다.')}</span>
+    <span class="lac-together__item-heading"><strong>${esc(row.title)}</strong></span>${bossTags(row)}<span class="lac-together__item-desc">${esc(row.description||'함께할 플레이어를 모집합니다.')}</span>
     <span class="lac-together__item-footer"><span class="lac-together__item-info"><span>◷ ${esc(when(row.starts_at))}</span><span>모집자 ${esc(row.host_nickname||'플레이어')}</span></span><span class="lac-together__item-count" aria-label="참가 현황 ${confirmed} / ${capacity}명"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span><small>참가 현황</small><strong>${confirmed} / ${capacity}명</strong></span></span></span>
   </button>`;}).join(''):empty('해당 카테고리에 등록된 활동이 없습니다.');}
 function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||{},editing=ui.mode==='edit';return `<form class="lac-together__create" data-together-form="${editing?'edit':'create'}"><h2 class="lac-together__form-title">${editing?'모집글 수정':'모집 등록'}</h2>
   <div class="lac-together__form-grid lac-together__form-grid--basics">
     <label class="lac-together__field"><span class="lac-together__field-label">활동 카테고리</span><select name="category" required>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${f.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select></label>
     <label class="lac-together__field"><span class="lac-together__field-label">모집 인원 <small>모집자 포함</small></span><select name="capacity" required>${Array.from({length:9},(_,i)=>`<option value="${i+2}" ${Number(f.capacity||5)===i+2?'selected':''}>${i+2}명</option>`).join('')}</select></label>
+  </div>
+  <div class="lac-together__boss-fields" data-together-boss-fields ${(!f.category||f.category==='보스')?'':'hidden'}>
+    <div class="lac-together__boss-heading"><span>보스 세부 설정</span><small>선택한 보스와 난이도가 모집글에 표시됩니다.</small></div>
+    <div class="lac-together__form-grid lac-together__form-grid--boss">
+      <label class="lac-together__field"><span class="lac-together__field-label">보스 종류</span><select name="boss_name" ${(!f.category||f.category==='보스')?'required':''}>${BOSS_NAMES.map(v=>`<option value="${v}" ${f.boss_name===v?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label class="lac-together__field"><span class="lac-together__field-label">난이도</span><select name="boss_difficulty" ${(!f.category||f.category==='보스')?'required':''}>${BOSS_DIFFICULTIES.map(v=>`<option value="${v}" ${f.boss_difficulty===v?'selected':''}>${v}</option>`).join('')}</select></label>
+    </div>
+    <div class="lac-together__boss-preview" aria-live="polite"><span data-together-boss-preview-name>${esc(f.boss_name||'멧돼지')}</span><span data-together-boss-preview-difficulty class="lac-together__difficulty lac-together__difficulty--${(f.boss_difficulty||'쉬움')==='쉬움'?'easy':(f.boss_difficulty||'쉬움')==='보통'?'normal':'hard'}">${esc(f.boss_difficulty||'쉬움')}</span></div>
   </div>
   <label class="lac-together__field"><span class="lac-together__field-label">모집 제목</span><input name="title" maxlength="90" minlength="5" value="${esc(f.title||'')}" placeholder="어떤 활동을 함께할 예정인가요?" required></label>
   <label class="lac-together__field"><span class="lac-together__field-label">상세 내용 <small>선택</small></span><textarea name="description" maxlength="600" rows="3" placeholder="준비 사항, 참가 조건 등을 자유롭게 작성해 주세요.">${esc(f.description||'')}</textarea></label>
@@ -69,7 +93,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
     `<div class="lac-together__private-note lac-together__private-note--chat"><span aria-hidden="true">♧</span><strong>참가자 전용 대화 공간</strong><p>모집자와 참가가 확정된 사람만 채팅을 읽고 작성할 수 있습니다.</p></div>`;
   return `<div class="lac-together__detail"><article class="lac-together__post">
     <header class="lac-together__post-header">
-      <div class="lac-together__post-top"><div class="lac-together__post-tags"><span class="lac-together__category">${esc(p.category)}</span>${statusBadge(p.status)}</div>${management}</div>
+      <div class="lac-together__post-top"><div class="lac-together__post-tags"><span class="lac-together__category">${esc(p.category)}</span>${bossTags(p)}${statusBadge(p.status)}</div>${management}</div>
       <div class="lac-together__post-caption">TOGETHER / RECRUITMENT DETAIL</div><h2>${esc(p.title)}</h2><p class="lac-together__post-description">${esc(p.description||'상세 안내가 없습니다.')}</p>
       <div class="lac-together__post-meta"><div><span>활동 일시</span><strong>${esc(when(p.starts_at))}</strong></div><div><span>모집자</span><strong>${esc(p.host_nickname)}</strong></div><div><span>자동 종료</span><strong>${esc(when(p.ends_at))}</strong></div></div>
       <div class="lac-together__post-status"><div class="lac-together__post-status-top"><div><strong>모집 현황</strong><span>모집자 1명 · 확정 파티원 ${confirmedOthers}명</span></div><span class="lac-together__post-count"><b>${confirmed}</b> / ${capacity}명</span></div><div class="lac-together__progress" role="progressbar" aria-valuemin="0" aria-valuemax="${capacity}" aria-valuenow="${confirmed}" aria-label="현재 확정 인원"><i style="width:${ratio}%"></i></div>${participantAction?`<div class="lac-together__post-join">${participantAction}${p.my_status==='pending'?'<span class="lac-together__tip">모집자의 승인을 기다리는 중입니다.</span>':''}</div>`:''}</div>
@@ -81,14 +105,23 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
 }
 export function renderTogetherPage(state){const {loggedIn,profile}=controlState(state);
   return `<div class="lac-together lac-together--${esc(ui.mode)}" id="lac-together"><div class="lac-together__shell">${pageTop(state)}<main class="lac-together__main"><div class="lac-together__hero"><div><span class="lac-together__eyebrow">LAC HUB · PLAY TOGETHER</span><h1>함께하기 <span class="lac-together__hero-accent">/ 모집 광장</span></h1><p>다양한 활동의 동료를 모집하고, 게임 속에서 함께하세요.</p><span class="lac-together__hero-caption">RECRUIT · MEET · PLAY</span></div><div class="lac-together__hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></div></div><div class="lac-together__toolbar"><div class="lac-together__toolbar-left">${ui.mode==='list'?`<label for="lac-together-filter">활동 카테고리</label><select id="lac-together-filter" data-together-filter><option value="전체">전체 활동</option>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${ui.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`:`<button class="lac-together__ghost" type="button" data-together-action="back">← 모집 목록</button>`}</div><div>${ui.mode==='list'?`<button type="button" class="lac-together__primary" data-together-action="create">+ 모집하기</button>`:''}</div></div>
+  ${bossFilterToolbar()}
   ${ui.error?`<div class="lac-together__error" role="alert">${esc(ui.error)}</div>`:''}
-  ${ui.mode==='list'?`<div class="lac-together__list-heading"><h2>모집 목록</h2><span>총 ${ui.items.filter(row=>ui.category==='전체'||row.category===ui.category).length}개의 모집글</span></div>`:''}
+  ${ui.mode==='list'?`<div class="lac-together__list-heading"><h2>모집 목록</h2><span>총 ${filteredRows().length}개의 모집글</span></div>`:''}
   ${['create','edit'].includes(ui.mode)?renderCreate():ui.mode==='detail'?renderDetail(state):`<div class="lac-together__grid">${listCards()}</div>`}
   ${ui.mode==='list'?`<p class="lac-together__foot">모집 목록은 로그인 없이 볼 수 있습니다. 모집·참가·채팅에는 Discord 로그인과 인게임 프로필이 필요합니다.${!loggedIn?' <button type="button" data-together-action="login">Discord 로그인</button>':!profile?' <button type="button" data-together-action="profile">인게임 프로필 등록</button>':''}</p>`:''}
   </main></div></div>`;
 }
-async function fetchList(){ui.items=await rpc('list_posts',{p_category:null})||[];}
+async function hydrateBossDetails(rows){
+  const targets=(rows||[]).filter(row=>row.category==='보스');
+  if(!targets.length)return;
+  const details=await rpc('get_boss_details',{p_post_ids:targets.map(row=>row.id)});
+  const lookup=new Map((details||[]).map(row=>[row.id,row]));
+  for(const row of targets){const detail=lookup.get(row.id);row.boss_name=detail?.boss_name||null;row.boss_difficulty=detail?.boss_difficulty||null;}
+}
+async function fetchList(){ui.items=await rpc('list_posts',{p_category:null})||[];await hydrateBossDetails(ui.items);}
 async function fetchDetail(){if(!ui.id)return;const data=await rpc('get_post',{p_id:ui.id});ui.detail=data||null;
+  if(ui.detail)await hydrateBossDetails([ui.detail]);
   ui.roster=[];ui.rosterLoaded=false;
   if(data?.can_chat){
     const [messages,roster]=await Promise.allSettled([
@@ -117,7 +150,19 @@ export async function refreshTogether(state,render,{quiet=false}={}){
 }
 export function togetherOnFilter(value,render){if(!CATEGORIES.includes(value))return;ui.category=value;render();}
 export function togetherOnInput(target){if(target?.closest('form[data-together-form="chat"]')&&target.name==='body')ui.chatDraft=target.value;
-  if(target?.closest('form[data-together-form="create"],form[data-together-form="edit"]')&&target.name)ui.formDraft[target.name]=target.value;}
+  const form=target?.closest('form[data-together-form="create"],form[data-together-form="edit"]');
+  if(form&&target.name){
+    ui.formDraft[target.name]=target.value;
+    const section=form.querySelector('[data-together-boss-fields]');
+    const isBoss=form.elements.category?.value==='보스';
+    if(section){section.hidden=!isBoss;section.querySelectorAll('select').forEach(select=>{select.required=isBoss;select.disabled=!isBoss;});}
+    if(isBoss){
+      const name=form.querySelector('[data-together-boss-preview-name]');
+      const difficulty=form.querySelector('[data-together-boss-preview-difficulty]');
+      if(name)name.textContent=form.elements.boss_name?.value||'멧돼지';
+      if(difficulty){const level=form.elements.boss_difficulty?.value||'쉬움';difficulty.textContent=level;difficulty.className='lac-together__difficulty lac-together__difficulty--'+(level==='쉬움'?'easy':level==='보통'?'normal':'hard');}
+    }
+  }}
 async function ensureProfile(state,openProfile){if(!state.session?.user)return false;
   if(!ui.profile||ui.profileUser!==state.session.user.id){ui.profileUser=state.session.user.id;ui.profile=await loadPlayerProfile(ui.profileUser).catch(()=>null);ui.profileChecked=true;}
   if(ui.profile)return true;
@@ -126,6 +171,8 @@ async function ensureProfile(state,openProfile){if(!state.session?.user)return f
 async function runMutation(task,state,render){if(ui.busy)return;ui.busy=true;ui.error='';render();try{await task();if(ui.mode==='detail')await fetchDetail();else await fetchList();}catch(e){ui.error=displayError(e);}finally{ui.busy=false;render();}}
 export async function togetherAction(button,state,{render,openProfile,login}){
   const action=button.dataset.togetherAction;
+  if(action==='boss-filter'){if(['전체',...BOSS_NAMES].includes(button.dataset.value)){ui.bossFilter=button.dataset.value;render();}return;}
+  if(action==='difficulty-filter'){if(['전체',...BOSS_DIFFICULTIES].includes(button.dataset.value)){ui.difficultyFilter=button.dataset.value;render();}return;}
   if(action==='login'){await login();return;}
   if(action==='profile'){await openProfile();return;}
   if(action==='back'){ui.formDraft={};ui.mode='list';ui.id=null;ui.detail=null;ui.roster=[];ui.rosterLoaded=false;ui.messages=[];ui.error='';render();await refreshTogether(state,render);return;}
@@ -133,7 +180,7 @@ export async function togetherAction(button,state,{render,openProfile,login}){
   if(action==='edit'){
     if(!ui.detail?.is_host||Date.parse(ui.detail.starts_at)<=Date.now())return;
     const p=ui.detail,start=new Date(p.starts_at);
-    ui.formDraft={category:p.category,title:p.title,description:p.description||'',capacity:String(p.capacity),date:localDate(start),period:start.getHours()>=12?'pm':'am',hour:String(start.getHours()%12||12),minute:pad(start.getMinutes()),duration:String(Math.round((Date.parse(p.ends_at)-Date.parse(p.starts_at))/60000))};
+    ui.formDraft={category:p.category,boss_name:p.boss_name||'',boss_difficulty:p.boss_difficulty||'',title:p.title,description:p.description||'',capacity:String(p.capacity),date:localDate(start),period:start.getHours()>=12?'pm':'am',hour:String(start.getHours()%12||12),minute:pad(start.getMinutes()),duration:String(Math.round((Date.parse(p.ends_at)-Date.parse(p.starts_at))/60000))};
     ui.mode='edit';ui.error='';render();return;
   }
   if(action==='create'){
@@ -169,7 +216,11 @@ export async function togetherSubmit(form,state,{render,openProfile}){
     // Do not pass a fabricated timezone; Date preserves the browser's local input time.
     await runMutation(async()=>{
       const fields={p_category:data.get('category'),p_title:String(data.get('title')||'').trim(),p_description:String(data.get('description')||'').trim(),p_capacity:Number(data.get('capacity')),p_starts_at:starts.toISOString(),p_duration_minutes:Number(data.get('duration'))};
-      const id=form.dataset.togetherForm==='edit'?(await rpc('update_post',{p_post_id:ui.id,...fields}),ui.id):await rpc('create_post',fields);
+      const boss=fields.p_category==='보스';
+      const boss_name=boss?String(data.get('boss_name')||''):null;
+      const boss_difficulty=boss?String(data.get('boss_difficulty')||''):null;
+      if(boss&&(!BOSS_NAMES.includes(boss_name)||!BOSS_DIFFICULTIES.includes(boss_difficulty)))throw Error('보스 종류와 난이도를 선택해 주세요.');
+      const id=await rpc('save_post_v28',{p_post_id:form.dataset.togetherForm==='edit'?ui.id:null,...fields,p_boss_name:boss_name,p_boss_difficulty:boss_difficulty});
       ui.id=id;ui.mode='detail';ui.detail=null;ui.roster=[];ui.rosterLoaded=false;ui.messages=[];ui.formDraft={};
     },state,render);
   }else if(form.dataset.togetherForm==='chat'){

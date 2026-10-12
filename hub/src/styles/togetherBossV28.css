@@ -1,0 +1,69 @@
+/* Together 2.8 — in-game recruitment card and structured boss controls.
+   Loaded last, after the legacy art and content styles. Existing art frames
+   remain structural: no opaque nested card masks over the scene. */
+.lac-together .lac-together__item{
+  min-height:294px;padding:142px 17px 14px;gap:7px;
+  background-color:#0a1421;
+}
+.lac-together .lac-together__item-heading{min-height:25px;align-items:center}
+.lac-together .lac-together__item-heading strong{font-size:17px;font-weight:820;letter-spacing:-.035em;color:#f2eee7}
+.lac-together .lac-together__item-desc{font-size:11px;min-height:17px;opacity:.9}
+.lac-together .lac-together__item-top{display:flex;justify-content:space-between;align-items:center}
+.lac-together .lac-together__item .lac-together__item-footer{
+  border-top:0!important;
+  margin-top:auto;padding-top:10px;min-height:49px;
+}
+.lac-together .lac-together__item-info{gap:4px}
+.lac-together .lac-together__item-count{border-radius:9px;background:rgba(10,19,29,.31);border-color:rgba(211,178,121,.39)}
+.lac-together .lac-together__boss-tags{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:25px;max-width:100%;position:relative;z-index:4}
+.lac-together .lac-together__boss-name,
+.lac-together .lac-together__difficulty{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:24px;padding:3px 9px;white-space:nowrap;
+  font-size:10.5px;line-height:1.2;font-weight:780;letter-spacing:-.01em;
+  border-radius:6px;border:1px solid rgba(205,175,128,.53);
+  background:rgba(16,25,36,.80);color:#e9d7ba;
+  box-shadow:inset 0 1px rgba(255,255,255,.035);
+}
+.lac-together .lac-together__boss-name::before{content:'✦';font-size:10px;margin-right:5px;color:#d7b47b}
+.lac-together .lac-together__difficulty--easy{border-color:rgba(104,194,142,.65);background:rgba(20,65,49,.83);color:#a5ebbc}
+.lac-together .lac-together__difficulty--normal{border-color:rgba(225,174,80,.70);background:rgba(93,61,22,.80);color:#ffd599}
+.lac-together .lac-together__difficulty--hard{border-color:rgba(233,104,104,.80);background:rgba(104,31,39,.89);color:#ffc0bd}
+.lac-together .lac-together__post-tags{gap:7px;flex-wrap:wrap}
+.lac-together .lac-together__post-tags>.lac-together__boss-tags{margin-inline:2px 4px}
+.lac-together .lac-together__boss-fields{
+  position:relative;padding:13px 14px 12px;display:flex;flex-direction:column;gap:10px;
+  border:1px solid rgba(196,160,103,.43);border-radius:9px;
+  background:linear-gradient(115deg,rgba(20,30,43,.55),rgba(10,17,28,.2));
+}
+.lac-together .lac-together__boss-fields[hidden]{display:none!important}
+.lac-together .lac-together__boss-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;font-weight:790;color:#f3dec0}
+.lac-together .lac-together__boss-heading small{font-size:10px;font-weight:500;color:#96aabe}
+.lac-together .lac-together__form-grid--boss{gap:11px}
+.lac-together .lac-together__boss-preview{display:flex;align-items:center;gap:8px;padding-top:2px;color:#98a9b9}
+.lac-together .lac-together__boss-preview:before{content:'모집글 표시';font-size:10px;color:#9cabb9;margin-right:2px}
+.lac-together .lac-together__boss-preview [data-together-boss-preview-name]{font-size:11px;color:#e8d8c1;font-weight:760}
+.lac-together .lac-together__boss-filters{display:flex;flex-direction:column;gap:8px;padding:13px 17px;margin:-2px 0 17px;border:1px solid rgba(189,157,109,.36);border-radius:10px;background:linear-gradient(100deg,rgba(15,27,38,.86),rgba(12,21,31,.73));}
+.lac-together .lac-together__boss-filter-row{display:flex;align-items:center;gap:13px;min-width:0}
+.lac-together .lac-together__boss-filter-row>span{flex:0 0 61px;font-size:11px;font-weight:740;color:#cbb087}
+.lac-together .lac-together__boss-filter-options{display:flex;flex-wrap:wrap;align-items:center;gap:7px;min-width:0}
+.lac-together .lac-together__boss-filter{cursor:pointer;padding:6px 11px;min-height:28px;border:1px solid rgba(115,132,148,.56);border-radius:7px;background:rgba(16,26,37,.77);color:#b8c7d5;font:inherit;font-size:11px;font-weight:700;line-height:1.1}
+.lac-together .lac-together__boss-filter:is(:hover,:focus-visible),
+.lac-together .lac-together__boss-filter.is-selected{border-color:rgba(217,176,112,.80);background:rgba(174,122,48,.22);color:#ffdfad;outline-offset:2px}
+.lac-together .lac-together__boss-filter.lac-together__difficulty--easy{color:#a5ebbc;border-color:rgba(104,194,142,.45);background:rgba(20,65,49,.45)}
+.lac-together .lac-together__boss-filter.lac-together__difficulty--normal{color:#ffd599;border-color:rgba(225,174,80,.50);background:rgba(93,61,22,.45)}
+.lac-together .lac-together__boss-filter.lac-together__difficulty--hard{color:#ffc0bd;border-color:rgba(233,104,104,.50);background:rgba(104,31,39,.45)}
+.lac-together .lac-together__boss-filter.is-selected.lac-together__difficulty--easy{border-color:#7ce4a6;background:rgba(29,90,58,.84)}
+.lac-together .lac-together__boss-filter.is-selected.lac-together__difficulty--normal{border-color:#f3c074;background:rgba(100,68,26,.88)}
+.lac-together .lac-together__boss-filter.is-selected.lac-together__difficulty--hard{border-color:#ff9999;background:rgba(119,37,46,.93)}
+@media(max-width:760px){
+  .lac-together .lac-together__boss-filter-row{align-items:flex-start;gap:7px;flex-direction:column}
+  .lac-together .lac-together__boss-filter-row>span{flex:0 0 auto}
+  .lac-together .lac-together__boss-filters{padding:12px}
+  .lac-together .lac-together__item{padding-top:139px}
+}
+@media(max-width:420px){
+  .lac-together .lac-together__form-grid--boss{grid-template-columns:1fr}
+  .lac-together .lac-together__boss-heading{align-items:flex-start;flex-direction:column;gap:3px}
+  .lac-together .lac-together__item{padding:134px 15px 13px}
+}

@@ -10,6 +10,7 @@ import {maskIngamePhoneInput} from './lib/ingamePhone.js';
 import {refreshTogether, togetherOnFilter, togetherOnInput, togetherAction, togetherSubmit, togetherProfileUpdated} from './features/together.js';
 import './styles/passApplication.css'; // Customer application styles, loaded after shared modal styles.
 import './styles/contentConsistencyV27.css'; // Shared return controls and Together shell/card refinement.
+import './styles/togetherBossV28.css'; // Boss name, difficulty and premium recruitment-card anatomy.
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
 import { memberChanges } from './lib/memberChanges.js';
