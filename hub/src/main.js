@@ -12,6 +12,7 @@ import './styles/passApplication.css'; // Customer application styles, loaded af
 import './styles/togetherBossV28.css';
 import './styles/togetherBossArtV29.css';
 import './styles/togetherPolishV210.css'; // Fitted live UI and clear return-to-list action.
+import './styles/togetherAppDetailV211.css'; // Rebuilt raid article and fitted boss-card slots.
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
 import { memberChanges } from './lib/memberChanges.js';

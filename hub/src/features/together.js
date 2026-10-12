@@ -124,6 +124,31 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
     `<div class="lac-together__private-note"><span aria-hidden="true">♧</span><strong>파티원 정보는 비공개입니다.</strong><p>참가가 확정되면 닉네임과 인게임 연락처를 확인할 수 있습니다.</p></div>`;
   const chat=p.can_chat?`<div class="lac-together__messages" aria-label="참가자 채팅 메시지">${ui.messages.length?ui.messages.map(m=>`<div class="lac-together__message${m.mine?' is-mine':''}"><span>${esc(m.nickname)} · ${esc(when(m.created_at))}</span><p>${esc(m.body)}</p></div>`).join(''):empty('아직 메시지가 없습니다. 먼저 인사해 보세요.')}</div>${canMessage?`<form data-together-form="chat" class="lac-together__chat-form"><input type="text" name="body" maxlength="500" placeholder="파티원에게 메시지 보내기" value="${esc(ui.chatDraft)}" required aria-label="채팅 메시지"><button class="lac-together__primary" type="submit" ${ui.busy?'disabled':''}>전송</button></form>`:'<p class="lac-together__tip">종료된 활동입니다. 채팅은 읽기 전용입니다.</p>'}`:
     `<div class="lac-together__private-note lac-together__private-note--chat"><span aria-hidden="true">♧</span><strong>참가자 전용 대화 공간</strong><p>모집자와 참가가 확정된 사람만 채팅을 읽고 작성할 수 있습니다.</p></div>`;
+  // A structured boss post uses its own integrated raid view. Non-boss posts keep their existing article view.
+  if(structuredBoss){
+    const bossKey=p.boss_name==='메이드'?'maid':p.boss_name==='멧돼지'?'boar':'chemist';
+    const description=p.description?`<p class="lac-together__raid-note">${esc(p.description)}</p>`:'';
+    return `<div class="lac-together__detail"><article class="lac-together__post lac-together__post--raid" data-boss="${bossKey}">
+      <header class="lac-together__raid-header">
+        <div class="lac-together__raid-hero">
+          <div class="lac-together__raid-top"><div class="lac-together__post-tags"><span class="lac-together__category">보스</span>${statusBadge(p.status)}</div>${management}</div>
+          <div class="lac-together__raid-heading"><span class="lac-together__raid-eyebrow">PLAY TOGETHER <b aria-hidden="true">✦</b> BOSS RECRUITMENT</span>
+            <h2><span>${esc(detailHeading)}</span>${detailSubheading}</h2><p class="lac-together__raid-subtitle">함께 도전할 파티원을 모집합니다.</p>${description}</div>
+        </div>
+        <div class="lac-together__raid-intel" aria-label="모집 정보">
+          <div class="lac-together__raid-cell"><span class="lac-together__raid-icon" aria-hidden="true">◷</span><div><small>활동 일시</small><strong>${esc(when(p.starts_at))}</strong></div></div>
+          <div class="lac-together__raid-cell"><span class="lac-together__raid-icon" aria-hidden="true">♙</span><div><small>모집자</small><strong>${esc(p.host_nickname)}</strong></div></div>
+          <div class="lac-together__raid-cell"><span class="lac-together__raid-icon" aria-hidden="true">◴</span><div><small>자동 종료</small><strong>${esc(when(p.ends_at))}</strong></div></div>
+          <div class="lac-together__raid-cell lac-together__raid-cell--count"><span class="lac-together__raid-icon" aria-hidden="true">♧</span><div><small>참가 현황</small><strong><em>${confirmed}</em> / ${capacity}명</strong><span class="lac-together__raid-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${capacity}" aria-valuenow="${confirmed}" aria-label="현재 확정 인원"><i style="width:${ratio}%"></i></span></div></div>
+        </div>
+        ${participantAction?`<div class="lac-together__raid-actions">${participantAction}${p.my_status==='pending'?'<span class="lac-together__tip">모집자 승인 대기 중</span>':''}</div>`:''}
+      </header>
+      <div class="lac-together__post-body lac-together__raid-deck">
+        <div class="lac-together__post-side"><section class="lac-together__post-section"><div class="lac-together__section-heading"><h3>파티원 정보 <small>PARTY ROSTER</small></h3><span>${confirmed} / ${capacity}명</span></div>${people}</section>${requests}</div>
+        <section class="lac-together__post-section lac-together__post-chat"><div class="lac-together__section-heading"><h3>파티 채팅 <small>PARTY LOUNGE</small></h3><span>${p.can_chat?'참가자 전용':'비공개'}</span></div>${chat}</section>
+      </div>
+    </article></div>`;
+  }
   return `<div class="lac-together__detail"><article class="lac-together__post">
     <header class="lac-together__post-header">
       <div class="lac-together__post-top"><div class="lac-together__post-tags"><span class="lac-together__category">${esc(p.category)}</span>${structuredBoss?'':bossTags(p)}${statusBadge(p.status)}</div>${management}</div>
