@@ -192,7 +192,7 @@
 .lac-together__foot{padding:12px 15px;margin-top:16px;border:1px solid #6c5a443f;border-radius:8px;background:#07101bcf;color:#b1c2d2;font-size:11px}
 /* === General activity & legacy cards (preserve pre-boss semantics) === */
 .lac-together__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
-.lac-together__item:not(.lac-together__item--boss){min-height:250px;justify-content:flex-start;padding:23px 21px;gap:10px;border-color:#ac845c8c;background:linear-gradient(160deg,#0b1b27cc,#08121ed9),url('/hub/together/art/list-card.webp') center/100% 100% no-repeat}
+.lac-together__item:not(.lac-together__item--art){min-height:250px;justify-content:flex-start;padding:23px 21px;gap:10px;border-color:#ac845c8c;background:linear-gradient(160deg,#0b1b27cc,#08121ed9),url('/hub/together/art/list-card.webp') center/100% 100% no-repeat}
 .lac-together__item:hover{transform:translateY(-2px);border-color:#dfb77e}
 .lac-together__item:focus-visible{outline:2px solid #e9c38a;outline-offset:3px}
 .lac-together__category{display:inline-flex;align-items:center;justify-content:center;min-height:26px;padding:5px 9px;border-radius:5px;border:1px solid #ad854f;background:#111921d9;font-size:11px;font-weight:750;color:#f1dfc2;white-space:nowrap}
@@ -213,16 +213,16 @@
 .lac-together__difficulty--normal{background:#584020;border-color:#c28e47;color:#ffdda3}
 .lac-together__difficulty--hard{background:#672a32;border-color:#cd676a;color:#ffd0cf}
 /* Boss card: one continuous art gradient; all information remains real DOM. */
-.lac-together__item.lac-together__item--boss{height:298px;min-height:298px;padding:0;gap:0;position:relative;isolation:isolate;border:1px solid rgba(212,158,91,.8);border-radius:12px;overflow:hidden;background:#071724;box-shadow:0 10px 26px #0007;transition:transform .16s,border-color .16s}
-.lac-together__item--boss::before{display:none}
+.lac-together__item.lac-together__item--art{height:298px;min-height:298px;padding:0;gap:0;position:relative;isolation:isolate;border:1px solid rgba(212,158,91,.8);border-radius:12px;overflow:hidden;background:#071724;box-shadow:0 10px 26px #0007;transition:transform .16s,border-color .16s}
+.lac-together__item--art::before{display:none}
 .lac-together__boss-art{position:absolute;z-index:0;inset:0 0 auto;height:273px;pointer-events:none;background-position:center 30%;background-size:cover;background-repeat:no-repeat}
-.lac-together__item--boss[data-boss='boar'] .lac-together__boss-art{background-image:url('/hub/together/art/v29/boar.webp')}
-.lac-together__item--boss[data-boss='chemist'] .lac-together__boss-art{background-image:url('/hub/together/art/v29/chemist.webp')}
-.lac-together__item--boss[data-boss='maid'] .lac-together__boss-art{background-image:url('/hub/together/art/v29/maid.webp')}
+.lac-together__item--art[data-boss='boar'] .lac-together__boss-art{background-image:url('/hub/together/art/v29/boar.webp')}
+.lac-together__item--art[data-boss='chemist'] .lac-together__boss-art{background-image:url('/hub/together/art/v29/chemist.webp')}
+.lac-together__item--art[data-boss='maid'] .lac-together__boss-art{background-image:url('/hub/together/art/v29/maid.webp')}
 .lac-together__boss-art::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#05111a12 0%,transparent 30%,#07172421 51%,#071724dc 84%,#071724 100%)}
 /* v2.16 | One status group at top-left, one title/difficulty group below.
    All labels are live HTML, never painted into the boss artwork. */
-.lac-together__item--boss .lac-together__item-top{
+.lac-together__item--art .lac-together__item-top{
   position:absolute;top:12px;left:12px;right:auto;z-index:3;
   display:inline-flex;align-items:stretch;justify-content:flex-start;gap:0;
   width:max-content;max-width:calc(100% - 24px);min-height:28px;
@@ -230,25 +230,25 @@
   background:rgba(7,19,30,.91);box-shadow:0 4px 12px #0007;
   backdrop-filter:blur(5px)
 }
-.lac-together__item--boss .lac-together__item-top .lac-together__category{
+.lac-together__item--art .lac-together__item-top .lac-together__category{
   display:inline-flex;align-items:center;flex:0 0 auto;
   min-height:28px;padding:5px 10px;border:0;border-radius:0;
   color:#f5d6a5;background:transparent;font-size:11px;line-height:1.15
 }
-.lac-together__item--boss .lac-together__item-top .lac-together__badge{
+.lac-together__item--art .lac-together__item-top .lac-together__badge{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
   flex:0 0 auto;min-height:28px;padding:5px 11px;
   border:0;border-left:1px solid #bd925c6b;border-radius:0;
   background:rgba(9,20,32,.45);font-size:11px;font-weight:800;line-height:1.15;
 }
-.lac-together__item--boss .lac-together__item-top .lac-together__badge::before{
+.lac-together__item--art .lac-together__item-top .lac-together__badge::before{
   content:"";display:block;width:6px;height:6px;border-radius:50%;
   flex:0 0 6px;background:currentColor;box-shadow:0 0 6px currentColor
 }
-.lac-together__item--boss .lac-together__item-top .lac-together__badge--open{color:#9fe3b4}
-.lac-together__item--boss .lac-together__item-top .lac-together__badge--active{color:#f6cf8c}
-.lac-together__item--boss .lac-together__item-top .lac-together__badge--full{color:#f1b0a6}
-.lac-together__item--boss .lac-together__item-top .lac-together__badge--ended{color:#b0b8c2}
+.lac-together__item--art .lac-together__item-top .lac-together__badge--open{color:#9fe3b4}
+.lac-together__item--art .lac-together__item-top .lac-together__badge--active{color:#f6cf8c}
+.lac-together__item--art .lac-together__item-top .lac-together__badge--full{color:#f1b0a6}
+.lac-together__item--art .lac-together__item-top .lac-together__badge--ended{color:#b0b8c2}
 .lac-together__boss-info-skin{
   position:relative;z-index:1;display:flex;flex-direction:column;align-items:stretch;
   width:100%;height:112px;flex:0 0 112px;margin-top:auto;
@@ -356,7 +356,7 @@
 @media(min-width:900px){.lac-together__head .lac-together__eyebrow{position:absolute;left:50%;transform:translateX(-50%)}}
 @media(max-width:990px){.lac-together__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lac-together__raid-intel{grid-template-columns:repeat(2,minmax(0,1fr))}.lac-together__raid-cell:nth-child(2){border-right:0}.lac-together__raid-cell:nth-child(-n+2){border-bottom:1px solid #caa06a50}}
 @media(max-width:760px){.lac-together__shell{width:calc(100% - 14px)}.lac-together .lac-together__head{height:58px;padding:0 13px}.lac-together .lac-together__main{padding:16px 13px 30px}.lac-together__head-right>.lac-together__eyebrow{display:none}.lac-together__raid-hero{min-height:236px;padding:15px}.lac-together__raid-heading{max-width:63%;padding-top:18px}.lac-together__raid-heading h2{font-size:29px}.lac-together__raid-deck{grid-template-columns:1fr}.lac-together__post--raid .lac-together__post-side{border:0;border-bottom:1px solid #ad835a82}.lac-together__post--raid .lac-together__post-chat{min-height:260px}.lac-together__post--raid .lac-together__messages{min-height:165px}}
-@media(max-width:560px){.lac-together__grid{grid-template-columns:1fr}.lac-together__shell{width:calc(100% - 8px);border-radius:12px}.lac-together .lac-together__head{border-radius:11px 11px 0 0;padding:0 10px}.lac-together .lac-together__main{padding:13px 10px 25px}.lac-together__brand{min-width:100px;font-size:11px}.lac-together__hero{padding:20px 17px}.lac-together--list .lac-together__hero{min-height:145px;padding:17px 15px}.lac-together--list .lac-together__hero h1{font-size:24px}.lac-together--list .lac-together__hero-accent{font-size:12px}.lac-together--list .lac-together__hero p{font-size:11px}.lac-together__item.lac-together__item--boss{height:298px;min-height:298px}.lac-together__raid-hero{min-height:225px}.lac-together__raid-heading{max-width:66%;padding-top:12px}.lac-together__raid-heading h2{font-size:26px}.lac-together__raid-eyebrow{font-size:8px}.lac-together__raid-subtitle{font-size:11px}.lac-together__raid-note{font-size:10px}.lac-together__raid-cell{gap:7px;padding:9px 7px}.lac-together__raid-icon{flex:0 0 27px;width:27px;height:27px;font-size:15px}.lac-together__raid-cell small{font-size:9.5px}.lac-together__raid-cell strong{font-size:11.5px}.lac-together__countdown{font-size:17px}.lac-together__countdown-deadline{font-size:8.5px}.lac-together__post--raid .lac-together__post-section,.lac-together__post--raid .lac-together__post-chat{padding:13px 12px}.lac-together__post--raid .lac-together__section-heading h3{font-size:13px}}
+@media(max-width:560px){.lac-together__grid{grid-template-columns:1fr}.lac-together__shell{width:calc(100% - 8px);border-radius:12px}.lac-together .lac-together__head{border-radius:11px 11px 0 0;padding:0 10px}.lac-together .lac-together__main{padding:13px 10px 25px}.lac-together__brand{min-width:100px;font-size:11px}.lac-together__hero{padding:20px 17px}.lac-together--list .lac-together__hero{min-height:145px;padding:17px 15px}.lac-together--list .lac-together__hero h1{font-size:24px}.lac-together--list .lac-together__hero-accent{font-size:12px}.lac-together--list .lac-together__hero p{font-size:11px}.lac-together__item.lac-together__item--art{height:298px;min-height:298px}.lac-together__raid-hero{min-height:225px}.lac-together__raid-heading{max-width:66%;padding-top:12px}.lac-together__raid-heading h2{font-size:26px}.lac-together__raid-eyebrow{font-size:8px}.lac-together__raid-subtitle{font-size:11px}.lac-together__raid-note{font-size:10px}.lac-together__raid-cell{gap:7px;padding:9px 7px}.lac-together__raid-icon{flex:0 0 27px;width:27px;height:27px;font-size:15px}.lac-together__raid-cell small{font-size:9.5px}.lac-together__raid-cell strong{font-size:11.5px}.lac-together__countdown{font-size:17px}.lac-together__countdown-deadline{font-size:8.5px}.lac-together__post--raid .lac-together__post-section,.lac-together__post--raid .lac-together__post-chat{padding:13px 12px}.lac-together__post--raid .lac-together__section-heading h3{font-size:13px}}
 @media(max-width:355px){.lac-together__boss-primary{font-size:19px}.lac-together__boss-title-group{gap:7px}.lac-together__boss-bottom{padding-inline:11px}.lac-together__boss-stat{gap:6px}.lac-together__boss-summary{padding-inline:11px}.lac-together__boss-stat-copy strong{font-size:12px}.lac-together__raid-heading h2{font-size:23px}.lac-together__raid-heading{max-width:70%}.lac-together__raid-intel{padding-inline:3px}.lac-together__raid-cell{padding:7px 5px}}
 @media(prefers-reduced-motion:reduce){.lac-together__item{transition:none}}
 /* Portrait focal points: narrow viewports still show the recognizable boss face. */
@@ -383,3 +383,19 @@
 .lac-together__page-button.is-edge{min-width:68px}
 .lac-together__page-ellipsis{min-width:15px;color:#879bac;text-align:center;font-size:12px}
 @media(max-width:560px){.lac-together__pagination{justify-content:center;gap:10px;padding:11px 8px}.lac-together__page-controls{width:100%;gap:4px}.lac-together__page-links{gap:4px}.lac-together__page-button{min-width:31px;min-height:33px;padding:6px 8px}.lac-together__page-button.is-edge{min-width:59px}}
+
+/* v2.17 — one canonical illustrated card for every nonlegacy recruitment category. */
+.lac-together__item--art .lac-together__item-top{
+  top:12px;left:auto;right:12px;max-width:calc(100% - 24px);
+}
+.lac-together__item--art .lac-together__badge--active{color:#d9bd87}
+.lac-together__item--art[data-activity='wwe'] .lac-together__boss-art{background-image:url('/hub/together/art/v217/wwe.webp');background-position:center 34%}
+.lac-together__item--art[data-activity='crime'] .lac-together__boss-art{background-image:url('/hub/together/art/v217/crime.webp');background-position:center 36%}
+.lac-together__item--art[data-activity='free'] .lac-together__boss-art{background-image:url('/hub/together/art/v217/free.webp');background-position:center 38%}
+.lac-together__item--art[data-activity='other'] .lac-together__boss-art{background-image:url('/hub/together/art/v217/other.webp');background-position:center 42%}
+.lac-together__item--activity .lac-together__activity-title{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;max-width:100%;width:100%;}
+.lac-together__item--activity .lac-together__boss-primary{font-size:18.5px;max-width:100%;white-space:nowrap;text-overflow:ellipsis}
+.lac-together__item--activity .lac-together__activity-when{font-size:10.5px;line-height:1.15;white-space:nowrap;color:#c4cfda;text-shadow:0 1px 4px #000b;}
+.lac-together__item--art .lac-together__item-top .lac-together__category{font-weight:790}
+.lac-together__item--art .lac-together__boss-bottom{border-top:1px solid rgba(207,161,99,.15)}
+@media(max-width:355px){.lac-together__item--activity .lac-together__boss-primary{font-size:17px}}

@@ -37,7 +37,7 @@ function bossTags(row){
   const level=BOSS_DIFFICULTIES.includes(row.boss_difficulty)?row.boss_difficulty:'';
   return (kind||level)?`<span class="lac-together__boss-tags" aria-label="보스 상세 정보">${kind?`<span class="lac-together__boss-name">${esc(bossPublicName(kind))}</span>`:''}${level?`<span class="lac-together__difficulty lac-together__difficulty--${level==='쉬움'?'easy':level==='보통'?'normal':'hard'}">${esc(level)}</span>`:''}</span>`:'';
 }
-function statusBadge(status){const kind=status==='모집 중'?'open':status==='모집 마감'?'full':status==='진행 중'?'active':'ended';return `<span class="lac-together__badge lac-together__badge--${kind}">${esc(status||'모집 중')}</span>`;}
+function statusBadge(status){const kind=status==='모집 중'?'open':status==='모집 마감'?'full':status==='진행 중'?'active':'ended';const label=status==='진행 중'?'활동 중':status||'모집 중';return `<span class="lac-together__badge lac-together__badge--${kind}">${esc(label)}</span>`;}
 function pageTop(state){const account=state.session?.user && state.ready
     ? `<div class="hub-account">${renderHubAccountControl(state)}</div>`
     : `<button type="button" class="lac-together__head-login" data-together-action="login">Discord 로그인</button>`;
@@ -79,7 +79,7 @@ function bossRecruitmentCard(row,capacity,confirmed){
   const cssBoss=kind==='멧돼지'?'boar':kind==='메이드'?'maid':'chemist';
   const visibleName=bossPublicName(kind);
   const label=`${visibleName} ${level} 보스 모집 · 모집자 ${row.host_nickname||'플레이어'} · 참가 현황 ${confirmed} / ${capacity}명 · ${row.status||'모집 중'}`;
-  return `<button type="button" class="lac-together__item lac-together__item--boss" data-together-category="보스" data-boss="${cssBoss}" data-together-action="detail" data-id="${esc(row.id)}" aria-label="${esc(label)}">
+  return `<button type="button" class="lac-together__item lac-together__item--art lac-together__item--boss" data-together-category="보스" data-boss="${cssBoss}" data-together-action="detail" data-id="${esc(row.id)}" aria-label="${esc(label)}">
     <span class="lac-together__boss-art" aria-hidden="true"></span>
     <span class="lac-together__item-top lac-together__boss-status-cluster"><span class="lac-together__category">보스</span>${statusBadge(row.status)}</span>
     <span class="lac-together__boss-info-skin"><span class="lac-together__boss-summary"><span class="lac-together__boss-title-group"><span class="lac-together__boss-primary">${esc(visibleName)}</span><span class="lac-together__difficulty lac-together__difficulty--${cssLevel}">${esc(level)}</span></span></span>
@@ -95,11 +95,15 @@ function listCards(){const rows=filteredRows();
     // Historical boss posts without both structured fields retain their title and description.
     if(row.category==='보스'&&BOSS_NAMES.includes(row.boss_name)&&BOSS_DIFFICULTIES.includes(row.boss_difficulty))
       return bossRecruitmentCard(row,capacity,confirmed);
-    return `<button type="button" class="lac-together__item" data-together-category="${esc(row.category)}" data-together-action="detail" data-id="${esc(row.id)}">
-    <span class="lac-together__item-top"><span class="lac-together__category">${esc(row.category)}</span>${statusBadge(row.status)}</span>
-    <span class="lac-together__item-heading"><strong>${esc(row.title)}</strong></span>${bossTags(row)}<span class="lac-together__item-desc">${esc(row.description||'함께할 플레이어를 모집합니다.')}</span>
-    <span class="lac-together__item-footer"><span class="lac-together__item-info"><span>◷ ${esc(when(row.starts_at))}</span><span>모집자 ${esc(row.host_nickname||'플레이어')}</span></span><span class="lac-together__item-count" aria-label="참가 현황 ${confirmed} / ${capacity}명">${personSymbol('group')}<span><small>참가 현황</small><strong>${confirmed} / ${capacity}명</strong></span></span></span>
-  </button>`;
+    const activityKey=row.category==='WWE'?'wwe':row.category==='범죄'?'crime':row.category==='자유 활동'?'free':'other';
+    const aria=`${row.category} ${row.title} · ${row.status||'모집 중'} · 모집자 ${row.host_nickname||'플레이어'} · ${confirmed} / ${capacity}명`;
+    return `<button type="button" class="lac-together__item lac-together__item--art lac-together__item--activity" data-together-category="${esc(row.category)}" data-activity="${activityKey}" data-together-action="detail" data-id="${esc(row.id)}" aria-label="${esc(aria)}">
+      <span class="lac-together__boss-art" aria-hidden="true"></span>
+      <span class="lac-together__item-top lac-together__boss-status-cluster"><span class="lac-together__category">${esc(row.category)}</span>${statusBadge(row.status)}</span>
+      <span class="lac-together__boss-info-skin"><span class="lac-together__boss-summary"><span class="lac-together__boss-title-group lac-together__activity-title"><span class="lac-together__boss-primary" title="${esc(row.title)}">${esc(row.title)}</span><span class="lac-together__activity-when">◷ ${esc(when(row.starts_at))}</span></span></span>
+      <span class="lac-together__boss-bottom"><span class="lac-together__boss-stat">${personSymbol('host')}<span class="lac-together__boss-stat-copy"><small>모집자</small><strong>${esc(row.host_nickname||'플레이어')}</strong></span></span>
+      <span class="lac-together__boss-stat lac-together__boss-stat--count">${personSymbol('group')}<span class="lac-together__boss-stat-copy"><small>참가 현황</small><strong><em>${confirmed}</em> / ${capacity}명</strong></span></span></span></span>
+    </button>`;
   }).join(''):empty('해당 카테고리에 등록된 활동이 없습니다.');
 }
 function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||{},editing=ui.mode==='edit';return `<form class="lac-together__create" data-together-form="${editing?'edit':'create'}"><h2 class="lac-together__form-title">${editing?'모집글 수정':'모집 등록'}</h2>
@@ -361,6 +365,16 @@ export async function togetherSubmit(form,state,{render,openProfile}){
     }
   }
 }
+/** Return to the Together entrance on every fresh navigation from a different HUB page.
+ * No changes to persistent posts, membership or auth; page-internal Back remains intact. */
+export function resetTogetherLanding(){
+  ui.mode='list';ui.id=null;ui.detail=null;ui.roster=[];ui.rosterLoaded=false;
+  ui.messages=[];ui.chatDraft='';ui.formDraft={};ui.error='';
+  ui.category='전체';ui.bossFilter='전체';ui.difficultyFilter='전체';
+  ui.page=1;ui.total=0;ui.items=[];
+  if(ui.loading)ui.refetchAfterCurrent=true;
+}
+
 export function togetherProfileUpdated(state){if(state.session?.user){ui.profile=null;ui.profileChecked=false;ui.profileUser=null;}}
 
 // One timer for all Together detail views; rerenders reuse it rather than

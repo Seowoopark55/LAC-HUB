@@ -7,7 +7,7 @@ import {renderHubAccountControl} from './ui/hubHome.js';
 import {loadPlayerProfile, upsertPlayerProfile} from './lib/playerProfileApi.js';
 import {renderPlayerProfileModal, playerProfileFormData} from './ui/playerProfile.js';
 import {maskIngamePhoneInput} from './lib/ingamePhone.js';
-import {refreshTogether, togetherOnFilter, togetherOnInput, togetherAction, togetherSubmit, togetherProfileUpdated} from './features/together.js';
+import {refreshTogether, togetherOnFilter, togetherOnInput, togetherAction, togetherSubmit, togetherProfileUpdated, resetTogetherLanding} from './features/together.js';
 import './styles/passApplication.css'; // Customer application styles, loaded after shared modal styles.
 
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
@@ -1075,6 +1075,7 @@ function navigatePrimaryScreen(page, { replace = false } = {}) {
     if (replace) replacePrimaryScreen(window.history, page, path);
     else recordPrimaryScreen(window.history, page, path);
   }
+  if (page === 'together' && state.page !== 'together') resetTogetherLanding();
   state.page = page;
 }
 
@@ -1177,7 +1178,9 @@ function installPrimaryScreenHistory() {
     const target = route.kind==='app' ? route.page : readPrimaryScreen(event.state);
     if (!target) return;
     applyRouteContext(route);
+    const previousPage=state.page;
     state.page = allowedHistoryPage(target);
+    if(state.page==='together' && previousPage!=='together')resetTogetherLanding();
     if(state.page!==target)syncPrimaryScreenRoute({replace:true});
     state.accountMenuOpen = false;
     state.companyMenuOpen = false;
