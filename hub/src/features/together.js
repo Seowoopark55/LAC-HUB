@@ -81,8 +81,8 @@ function bossRecruitmentCard(row,capacity,confirmed){
   const label=`${visibleName} ${level} 보스 모집 · 모집자 ${row.host_nickname||'플레이어'} · 참가 현황 ${confirmed} / ${capacity}명 · ${row.status||'모집 중'}`;
   return `<button type="button" class="lac-together__item lac-together__item--boss" data-together-category="보스" data-boss="${cssBoss}" data-together-action="detail" data-id="${esc(row.id)}" aria-label="${esc(label)}">
     <span class="lac-together__boss-art" aria-hidden="true"></span>
-    <span class="lac-together__item-top"><span class="lac-together__category">보스</span>${statusBadge(row.status)}</span>
-    <span class="lac-together__boss-info-skin"><span class="lac-together__boss-summary"><span class="lac-together__boss-primary">${esc(visibleName)}</span><span class="lac-together__difficulty lac-together__difficulty--${cssLevel}">${esc(level)}</span></span>
+    <span class="lac-together__item-top lac-together__boss-status-cluster"><span class="lac-together__category">보스</span>${statusBadge(row.status)}</span>
+    <span class="lac-together__boss-info-skin"><span class="lac-together__boss-summary"><span class="lac-together__boss-title-group"><span class="lac-together__boss-primary">${esc(visibleName)}</span><span class="lac-together__difficulty lac-together__difficulty--${cssLevel}">${esc(level)}</span></span></span>
     <span class="lac-together__boss-bottom">
       <span class="lac-together__boss-stat">${personSymbol('host')}<span class="lac-together__boss-stat-copy"><small>모집자</small><strong>${esc(row.host_nickname||'플레이어')}</strong></span></span>
       <span class="lac-together__boss-stat lac-together__boss-stat--count">${personSymbol('group')}<span class="lac-together__boss-stat-copy"><small>참가 현황</small><strong><em>${confirmed}</em> / ${capacity}명</strong></span></span>

@@ -220,14 +220,57 @@
 .lac-together__item--boss[data-boss='chemist'] .lac-together__boss-art{background-image:url('/hub/together/art/v29/chemist.webp')}
 .lac-together__item--boss[data-boss='maid'] .lac-together__boss-art{background-image:url('/hub/together/art/v29/maid.webp')}
 .lac-together__boss-art::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#05111a12 0%,transparent 30%,#07172421 51%,#071724dc 84%,#071724 100%)}
-.lac-together__item--boss .lac-together__item-top{position:absolute;top:12px;left:12px;right:12px;z-index:3;display:flex;align-items:flex-start;justify-content:space-between;min-height:26px}
-.lac-together__item--boss .lac-together__category,.lac-together__item--boss .lac-together__badge{background-color:#0b1828ed;backdrop-filter:blur(3px)}
-.lac-together__item--boss .lac-together__badge--open{background:#153c30ed}
-.lac-together__item--boss .lac-together__badge--active{background:#584322ef}
-.lac-together__boss-info-skin{position:relative;z-index:1;display:flex;flex-direction:column;align-items:stretch;width:100%;height:112px;flex:0 0 112px;margin-top:auto;background:linear-gradient(180deg,#07172418,#0717249c 30%,#071724ee 62%,#071724 100%)}
-.lac-together__boss-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px;min-height:48px;padding:8px 16px 5px}
-.lac-together__boss-primary{font-size:22px;line-height:1.2;font-weight:850;letter-spacing:-.045em;color:#fff0d7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lac-together__boss-summary .lac-together__difficulty{justify-self:end;min-height:28px}
+/* v2.16 | One status group at top-left, one title/difficulty group below.
+   All labels are live HTML, never painted into the boss artwork. */
+.lac-together__item--boss .lac-together__item-top{
+  position:absolute;top:12px;left:12px;right:auto;z-index:3;
+  display:inline-flex;align-items:stretch;justify-content:flex-start;gap:0;
+  width:max-content;max-width:calc(100% - 24px);min-height:28px;
+  overflow:hidden;border:1px solid #bd925cc7;border-radius:7px;
+  background:rgba(7,19,30,.91);box-shadow:0 4px 12px #0007;
+  backdrop-filter:blur(5px)
+}
+.lac-together__item--boss .lac-together__item-top .lac-together__category{
+  display:inline-flex;align-items:center;flex:0 0 auto;
+  min-height:28px;padding:5px 10px;border:0;border-radius:0;
+  color:#f5d6a5;background:transparent;font-size:11px;line-height:1.15
+}
+.lac-together__item--boss .lac-together__item-top .lac-together__badge{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  flex:0 0 auto;min-height:28px;padding:5px 11px;
+  border:0;border-left:1px solid #bd925c6b;border-radius:0;
+  background:rgba(9,20,32,.45);font-size:11px;font-weight:800;line-height:1.15;
+}
+.lac-together__item--boss .lac-together__item-top .lac-together__badge::before{
+  content:"";display:block;width:6px;height:6px;border-radius:50%;
+  flex:0 0 6px;background:currentColor;box-shadow:0 0 6px currentColor
+}
+.lac-together__item--boss .lac-together__item-top .lac-together__badge--open{color:#9fe3b4}
+.lac-together__item--boss .lac-together__item-top .lac-together__badge--active{color:#f6cf8c}
+.lac-together__item--boss .lac-together__item-top .lac-together__badge--full{color:#f1b0a6}
+.lac-together__item--boss .lac-together__item-top .lac-together__badge--ended{color:#b0b8c2}
+.lac-together__boss-info-skin{
+  position:relative;z-index:1;display:flex;flex-direction:column;align-items:stretch;
+  width:100%;height:112px;flex:0 0 112px;margin-top:auto;
+  background:linear-gradient(180deg,#07172417,#07172498 29%,#071724e8 60%,#071724 100%)
+}
+.lac-together__boss-summary{
+  display:flex;align-items:center;justify-content:flex-start;
+  min-width:0;min-height:48px;padding:7px 16px 5px
+}
+.lac-together__boss-title-group{
+  display:inline-flex;align-items:center;justify-content:flex-start;
+  flex:0 1 auto;min-width:0;max-width:100%;gap:10px;
+}
+.lac-together__boss-primary{
+  flex:0 1 auto;min-width:0;font-size:23px;line-height:1.15;font-weight:850;
+  letter-spacing:-.045em;color:#fff1d9;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;text-shadow:0 2px 5px #000a
+}
+.lac-together__boss-title-group .lac-together__difficulty{
+  flex:0 0 auto;align-self:center;justify-self:auto;min-height:26px;
+  padding:4px 9px;font-size:11px;line-height:1.2;border-radius:6px
+}
 .lac-together__boss-bottom{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;min-height:60px;flex:1;padding:6px 12px 11px;gap:0}
 .lac-together__boss-stat{display:flex;justify-content:center;gap:8px;align-items:center;min-width:0;min-height:47px;color:#d4aa68}
 .lac-together__boss-stat--count{border-left:1px solid #c89c5a5b;padding-left:0}
@@ -314,7 +357,7 @@
 @media(max-width:990px){.lac-together__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lac-together__raid-intel{grid-template-columns:repeat(2,minmax(0,1fr))}.lac-together__raid-cell:nth-child(2){border-right:0}.lac-together__raid-cell:nth-child(-n+2){border-bottom:1px solid #caa06a50}}
 @media(max-width:760px){.lac-together__shell{width:calc(100% - 14px)}.lac-together .lac-together__head{height:58px;padding:0 13px}.lac-together .lac-together__main{padding:16px 13px 30px}.lac-together__head-right>.lac-together__eyebrow{display:none}.lac-together__raid-hero{min-height:236px;padding:15px}.lac-together__raid-heading{max-width:63%;padding-top:18px}.lac-together__raid-heading h2{font-size:29px}.lac-together__raid-deck{grid-template-columns:1fr}.lac-together__post--raid .lac-together__post-side{border:0;border-bottom:1px solid #ad835a82}.lac-together__post--raid .lac-together__post-chat{min-height:260px}.lac-together__post--raid .lac-together__messages{min-height:165px}}
 @media(max-width:560px){.lac-together__grid{grid-template-columns:1fr}.lac-together__shell{width:calc(100% - 8px);border-radius:12px}.lac-together .lac-together__head{border-radius:11px 11px 0 0;padding:0 10px}.lac-together .lac-together__main{padding:13px 10px 25px}.lac-together__brand{min-width:100px;font-size:11px}.lac-together__hero{padding:20px 17px}.lac-together--list .lac-together__hero{min-height:145px;padding:17px 15px}.lac-together--list .lac-together__hero h1{font-size:24px}.lac-together--list .lac-together__hero-accent{font-size:12px}.lac-together--list .lac-together__hero p{font-size:11px}.lac-together__item.lac-together__item--boss{height:298px;min-height:298px}.lac-together__raid-hero{min-height:225px}.lac-together__raid-heading{max-width:66%;padding-top:12px}.lac-together__raid-heading h2{font-size:26px}.lac-together__raid-eyebrow{font-size:8px}.lac-together__raid-subtitle{font-size:11px}.lac-together__raid-note{font-size:10px}.lac-together__raid-cell{gap:7px;padding:9px 7px}.lac-together__raid-icon{flex:0 0 27px;width:27px;height:27px;font-size:15px}.lac-together__raid-cell small{font-size:9.5px}.lac-together__raid-cell strong{font-size:11.5px}.lac-together__countdown{font-size:17px}.lac-together__countdown-deadline{font-size:8.5px}.lac-together__post--raid .lac-together__post-section,.lac-together__post--raid .lac-together__post-chat{padding:13px 12px}.lac-together__post--raid .lac-together__section-heading h3{font-size:13px}}
-@media(max-width:355px){.lac-together__boss-primary{font-size:19px}.lac-together__boss-bottom{padding-inline:11px}.lac-together__boss-stat{gap:6px}.lac-together__boss-summary{padding-inline:11px}.lac-together__boss-stat-copy strong{font-size:12px}.lac-together__raid-heading h2{font-size:23px}.lac-together__raid-heading{max-width:70%}.lac-together__raid-intel{padding-inline:3px}.lac-together__raid-cell{padding:7px 5px}}
+@media(max-width:355px){.lac-together__boss-primary{font-size:19px}.lac-together__boss-title-group{gap:7px}.lac-together__boss-bottom{padding-inline:11px}.lac-together__boss-stat{gap:6px}.lac-together__boss-summary{padding-inline:11px}.lac-together__boss-stat-copy strong{font-size:12px}.lac-together__raid-heading h2{font-size:23px}.lac-together__raid-heading{max-width:70%}.lac-together__raid-intel{padding-inline:3px}.lac-together__raid-cell{padding:7px 5px}}
 @media(prefers-reduced-motion:reduce){.lac-together__item{transition:none}}
 /* Portrait focal points: narrow viewports still show the recognizable boss face. */
 @media(max-width:760px){
