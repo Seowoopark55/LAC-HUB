@@ -16,10 +16,10 @@ ok('baseline permission bitfield is defined', security.includes("DISCORD_BOT_BAS
 ok('administrator permission is explicitly excluded', security.includes('Administrator (8) is intentionally not included'));
 ok('initial Discord connect uses baseline permissions', start.includes('permissions: DISCORD_BOT_BASE_PERMISSIONS'));
 ok('reapproval restores the same baseline permissions', reapprove.includes('permissions: DISCORD_BOT_BASE_PERMISSIONS'));
-ok('initial guide explains one-time permission approval', render.includes('처음 연결할 때 AXE BOT 설치와 기본 운영 권한 승인을 한 번에 진행합니다.'));
+ok('initial guide explains one-time permission approval', render.includes('처음 연결할 때 Discord 봇 설치와 기본 운영 권한 승인을 한 번에 진행합니다.'));
 ok('guide lists channel and message permissions', render.includes('채널 보기') && render.includes('메시지 전송') && render.includes('임베드 표시') && render.includes('메시지 기록 보기') && render.includes('메시지 관리') && render.includes('채널 관리'));
 ok('guide explicitly says no administrator permission', render.includes('관리자 전체 권한은 요청하지 않습니다.'));
-ok('connect CTA describes server/bot/permission flow', render.includes('서버 선택 · BOT 추가 · 권한 승인'));
+ok('connect CTA describes server/bot/permission flow', render.includes('서버 선택 · 봇 추가 · 권한 승인'));
 ok('settings disconnected copy describes upfront approval', render.includes('기본 운영 권한을 한 번에 승인합니다.'));
 ok('permission disclosure styling exists', css.includes('.setup-guide-connect-permissions'));
 

@@ -884,10 +884,10 @@ async function authenticatedProductApi(path, init = {}) {
   return data;
 }
 
-export async function startDiscordConnection(companyId) {
+export async function startDiscordConnection(companyId, {resumeGuide=false}={}) {
   const data = await authenticatedProductApi('/api/discord/start', {
     method: 'POST',
-    body: JSON.stringify({ company_id: companyId }),
+    body: JSON.stringify({ company_id: companyId, resume_guide: resumeGuide }),
   });
 
   if (!data?.authorize_url) {
@@ -920,9 +920,17 @@ export async function completeDiscordConnection(linkToken) {
     throw new Error('Discord 연결 결과를 받지 못했습니다.');
   }
 
-  return data.connection;
+  return {connection:data.connection,resumeGuide:data.resume_guide===true};
 }
 
+
+// Server-only bot token/service key are used by this authenticated endpoint.
+export async function requestImmediateDiscordCatalogSync(companyId) {
+  return authenticatedProductApi('/api/discord/sync-catalog', {
+    method:'POST',
+    body:JSON.stringify({company_id:companyId}),
+  });
+}
 
 export async function createGuidedSetupChannels(companyId, categoryName, channels = []) {
   return authenticatedProductApi('/api/discord/setup/channels', {

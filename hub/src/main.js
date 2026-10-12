@@ -23,7 +23,7 @@ import {
   getCompanySettings, updateCompanySettings,
   getDiscordConnection, getDiscordChannels, getDiscordRoles, getDiscordCompanyConfig, saveCompanyAiChannel, saveDiscordCompanyConfig,
   getFundAdminRequests, getFundAdminPeriodStatus, reviewFundRequest, cancelFundApproval, setFundFeeRule, getFundEvidenceSignedUrl, uploadFundEvidence, removeUnclaimedFundEvidence,
-  startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, uploadSupportAttachment, attachSupportQuestionFile, getSupportAttachmentSignedUrl, removeSupportAttachments, deleteSupportQuestion, listGuidedSetupMembers, bulkRegisterDiscordMembers, registerDiscordMember, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
+  startDiscordConnection, startDiscordPermissionReapproval, completeDiscordConnection, requestImmediateDiscordCatalogSync, createGuidedSetupChannels, getQuestionBoard, createSupportQuestion, getSupportQuestion, addSupportQuestionMessage, updateQuestionStatus, markSupportQuestionSeen, getPlatformSupportQuestions, notifySupportQuestionAnswer, uploadSupportAttachment, attachSupportQuestionFile, getSupportAttachmentSignedUrl, removeSupportAttachments, deleteSupportQuestion, listGuidedSetupMembers, bulkRegisterDiscordMembers, registerDiscordMember, getCompanyOnboardingStatus, requestCompanyDiscordReconnect,
   getFundTreasurySnapshot, saveFundLedgerEntry, cancelFundLedgerEntry, getFundLedgerAttachments, attachFundLedgerEvidence,
   isPlatformAdmin, canCreateCompany, getPlatformCompanies, getCompanySubscription, managePlatformPassLifecycle, listPlatformPassLifecycle, deletePlatformCompany, listPlatformContentSettings, updatePlatformContentSetting, listWebContentPolicies,
   getWebAssetsSnapshot, saveWebAsset, manageWebAsset,
@@ -454,6 +454,7 @@ async function openHubPlayerProfile(){
     const profile=await loadPlayerProfile(userId);
     if(state.modal!==openedModal || state.session?.user?.id!==userId)return;
     state.playerProfile=profile;
+    state.playerProfileError='';
     state.modal={type:'player-profile',loading:false,error:''};
   }catch(error){
     if(state.modal!==openedModal || state.session?.user?.id!==userId)return;
@@ -518,6 +519,7 @@ const state = {
   envReady,
   session: null,
   playerProfile: null,
+  playerProfileError: '',
   playerProfileBusy: false,
   companies: [],
   companyId: localStorage.getItem('axe_product_company_id') || null,
@@ -532,6 +534,7 @@ const state = {
   discordRoles: [],
   discordCompanyConfig: null,
   onboardingStatus: null,
+  catalogSyncError: '',
   page: 'hub', requestedContent:'회사 관리', hubContentCategory:'main',
   fundTab: localStorage.getItem('axe_product_fund_tab') || 'ledger',
   fundMonth: currentMonth,
@@ -581,6 +584,7 @@ let reconnectPollTimer = null;
 let reconnectPollAttempts = 0;
 let catalogPollTimer = null;
 let catalogPollAttempts = 0;
+let catalogPollGeneration = 0;
 let sessionRecoveryBusy = false;
 let lastSessionRecoveryAt = 0;
 let manualSignOutUntil = 0;
@@ -902,6 +906,7 @@ function openSetupGuide(step = 0){
   state.setupGuide=createSetupGuideState(step);
   state.modal={type:'setup-guide'};
   render();
+  if(step===1 && discordCatalogPending() && !catalogPollTimer)startCatalogStatusPoll();
 }
 
 function setupGuideChannelPlan(){
@@ -1402,7 +1407,7 @@ function queueCompanyPageData(page=state.page){
 function clearCompanyData() {
   resetScopedGameInfo();
   state.memberships=[]; state.moduleCatalog=[]; state.modules=[]; state.cookingOrderTypes=[]; state.cookingDiscordConfig=null; state.companySettings=null;
-  state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;
+  state.discordConnection=null; state.discordChannels=[]; state.discordRoles=[]; state.discordCompanyConfig=null; state.onboardingStatus=null;state.catalogSyncError='';
   state.fundSnapshot=null; state.fundRequests=[]; state.fundMonthlyRows=[]; state.fundLedgerAttachments=[]; state.assetsSnapshot=null; state.accountsSnapshot=null; state.currentSubscription=null; state.companyAccess=null; state.companyAccessError='';
   state.companyAccessStatus='idle';state.companyAccessCheckedAt=0;state.companyDataCompanyId='';state.companyDataLoadedAt=0;state.companyDataLoading=false;
   state.combat={overview:null,detail:null,selectedMembershipId:'',period:'30d',rankMode:'kd',loading:false,detailLoading:false,error:''};
@@ -1932,11 +1937,31 @@ async function loadPlatformContentSettings() {
   }
 }
 
+// Load the single account-level profile at session bootstrap, not only when the
+// edit dialog opens. Guard against late responses from a previous login.
+async function refreshAccountPlayerProfile() {
+  const userId=state.session?.user?.id;
+  if(!userId){state.playerProfile=null;state.playerProfileError='';return;}
+  try{
+    const profile=await loadPlayerProfile(userId);
+    if(state.session?.user?.id!==userId)return;
+    state.playerProfile=profile;
+    state.playerProfileError='';
+  }catch(error){
+    if(state.session?.user?.id!==userId)return;
+    state.playerProfile=null;
+    state.playerProfileError=String(error?.message||'프로필 조회 오류');
+    console.warn('LAC HUB account profile lookup failed',error);
+  }
+}
+
 async function refreshAll() {
   resetScopedGameInfo();
-  if (!state.session?.user) { state.playerProfile=null; state.contentPolicies=[];state.contentPoliciesLoaded=false;state.contentPolicyError='';state.adminPassRequests=[];state.adminPassRequestsError='';state.companyPassRequest=null;state.companyPassRequestError='';state.ready=true;render();if(isCookRoute())showCookPreview();return; }
+  if (!state.session?.user) { state.playerProfile=null;state.playerProfileError=''; state.contentPolicies=[];state.contentPoliciesLoaded=false;state.contentPolicyError='';state.adminPassRequests=[];state.adminPassRequestsError='';state.companyPassRequest=null;state.companyPassRequestError='';state.ready=true;render();if(isCookRoute())showCookPreview();return; }
   state.loading=true; state.error=''; render();
   try {
+    // Await once so every initial account-menu render sees the user's nickname.
+    await refreshAccountPlayerProfile();
     state.platformAdmin=await isPlatformAdmin().catch(()=>false);
     if (!state.platformAdmin) { state.platformContentSettings=null; state.platformContentError=''; state.adminPassRequests=[];state.adminPassRequestsError=''; }
     // Fail closed for creation UI without blocking access to existing companies.
@@ -1985,50 +2010,77 @@ function clearCatalogPoll() {
   if (catalogPollTimer) clearTimeout(catalogPollTimer);
   catalogPollTimer = null;
   catalogPollAttempts = 0;
+  ++catalogPollGeneration;
 }
 
 function discordCatalogPending(status = state.onboardingStatus) {
   return state.discordConnection?.status === 'connected' && status?.catalog_ready === false;
 }
 
+// Poll until the external Discord worker finishes; it can take ~10 minutes in
+// older deployments. Generation IDs prevent late requests from updating a new
+// company or reactivating a cancelled poll. No full-page reload is required.
+async function tryImmediateDiscordCatalogSync(companyId) {
+  try {
+    const result=await requestImmediateDiscordCatalogSync(companyId);
+    if(String(state.companyId||'')!==String(companyId))return;
+    state.catalogSyncError='';
+    if(result?.ok && discordCatalogPending())startCatalogStatusPoll();
+  }catch(error){
+    if(String(state.companyId||'')!==String(companyId))return;
+    state.catalogSyncError=String(error?.message||'즉시 동기화 지연');
+    console.warn('LAC HUB immediate catalog sync deferred to existing worker',error);
+    render();
+  }
+}
+
 function startCatalogStatusPoll() {
   clearCatalogPoll();
-  const run = async () => {
-    if (!state.companyId || !state.session?.user) return clearCatalogPoll();
-    catalogPollAttempts += 1;
-    try {
-      const status = await getCompanyOnboardingStatus(state.companyId);
-      state.onboardingStatus = status || null;
-      if (!status?.discord_connected) {
+  const generation=catalogPollGeneration;
+  const companyId=String(state.companyId||'');
+  const userId=String(state.session?.user?.id||'');
+  const started=Date.now();
+  const maxMs=15*60*1000;
+  const current=()=>generation===catalogPollGeneration && String(state.companyId||'')===companyId && String(state.session?.user?.id||'')===userId;
+  const run=async()=>{
+    if(!current()||!companyId||!userId)return;
+    catalogPollAttempts++;
+    try{
+      const status=await getCompanyOnboardingStatus(companyId);
+      if(!current())return;
+      state.onboardingStatus=status||null;
+      if(!status?.discord_connected){clearCatalogPoll();render();return;}
+      if(status?.catalog_ready===true){
+        // The status RPC and catalog read are separate requests. Never render
+        // "ready" with the stale role/channel arrays cached at first login.
+        const [roles,channels]=await Promise.all([getDiscordRoles(companyId),getDiscordChannels(companyId)]);
+        if(!current())return;
+        state.discordRoles=roles||[];
+        state.discordChannels=channels||[];
         clearCatalogPoll();
-        render();
-        return;
-      }
-      if (status?.catalog_ready === true) {
-        clearCatalogPoll();
-        await loadBaseCompanyData();
-        if(state.modal?.type==='setup-guide' && Number(state.setupGuide?.step||0)<=1){
+        if(state.modal?.type==='setup-guide' && Number(state.setupGuide?.step||0)===1){
           state.setupGuide=createSetupGuideState(2);
-          render();
         }
-        setNotice(`Discord 역할 ${Number(status.role_count||0)}개 · 채널 ${Number(status.channel_count||0)}개를 불러왔습니다.`);
+        render();
+        setNotice(`Discord 역할 ${Number(status.role_count??roles.length)}개 · 채널 ${Number(status.channel_count??channels.length)}개 동기화 완료`);
         return;
       }
       render();
-    } catch (error) {
-      if (catalogPollAttempts >= 30) {
-        clearCatalogPoll();
-        setError(error);
-        return;
-      }
+    }catch(error){
+      if(!current())return;
+      console.warn('LAC HUB Discord catalog status retry',error);
+      state.catalogSyncError=String(error?.message||'상태 조회 오류');
+      render();
     }
-    if (catalogPollAttempts < 30) catalogPollTimer=setTimeout(run,2000);
-    else {
+    if(!current())return;
+    if(Date.now()-started<maxMs){
+      catalogPollTimer=setTimeout(run,document.visibilityState==='hidden'?8000:3000);
+    }else{
       clearCatalogPoll();
-      setNotice('Discord 역할·채널 동기화가 지연되고 있습니다. 잠시 후 새로고침해 주세요.');
+      setNotice('Discord 동기화가 지연되고 있습니다. 설정 화면의 상태 다시 확인을 눌러 주세요.');
     }
   };
-  catalogPollTimer=setTimeout(run,600);
+  catalogPollTimer=setTimeout(run,400);
 }
 
 function startReconnectStatusPoll() {
@@ -2078,8 +2130,8 @@ async function handleDiscordOAuthReturn() {
   if(!token&&!error)return; history.replaceState(history.state,'',`${location.pathname}${location.search}`);
   if(error) throw new Error(discordOAuthErrorMessage(error));
   if(!state.session?.user) throw new Error('Discord 서버 연결을 완료하려면 다시 로그인해 주세요.');
-  const connection=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.settingsTab='basic'; localStorage.setItem('axe_product_settings_tab','basic'); navigatePrimaryScreen('settings',{replace:true}); localStorage.setItem('axe_product_page','settings');
-  const resumeGuide=localStorage.getItem('axe_product_setup_resume')==='1';
+  const {connection,resumeGuide:serverResumeGuide}=await completeDiscordConnection(token); clearReconnectPoll(); clearCatalogPoll(); state.catalogSyncError=''; void tryImmediateDiscordCatalogSync(connection.company_id); state.companyId=connection.company_id; localStorage.setItem('axe_product_company_id',state.companyId); await refreshAll(); state.settingsTab='basic'; localStorage.setItem('axe_product_settings_tab','basic'); navigatePrimaryScreen('settings',{replace:true}); localStorage.setItem('axe_product_page','settings');
+  const resumeGuide=serverResumeGuide||localStorage.getItem('axe_product_setup_resume')==='1';
   const resumeStepRaw=Number(localStorage.getItem('axe_product_setup_resume_step'));
   localStorage.removeItem('axe_product_setup_resume');
   localStorage.removeItem('axe_product_setup_resume_step');
@@ -2124,7 +2176,7 @@ async function recoverSessionOnResume({force=false}={}) {
 }
 
 function installSessionResumeRecovery(){
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')recoverSessionOnResume({force:true});});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){recoverSessionOnResume({force:true});if(discordCatalogPending()&&!catalogPollTimer)startCatalogStatusPoll();}});
   window.addEventListener('focus',()=>recoverSessionOnResume());
   window.addEventListener('online',()=>recoverSessionOnResume({force:true}));
   if(sessionHealthTimer)clearInterval(sessionHealthTimer);
@@ -2132,7 +2184,10 @@ function installSessionResumeRecovery(){
 }
 
 async function boot() {
-  if(!envReady){state.ready=true;render();if(isCookRoute())showCookPreview();return;}
+  const oauthReturnPending=/(?:^|[&#])discord_(?:link|error)=/.test(String(location.hash||''));
+  const oauthCover=oauthReturnPending?document.createElement('div'):null;
+  if(oauthCover){oauthCover.className='lac-discord-return-cover';oauthCover.setAttribute('role','status');oauthCover.textContent='Discord 서버 연결을 확인하고 초기설정으로 복귀하고 있습니다…';document.body.appendChild(oauthCover);}
+  if(!envReady){oauthCover?.remove();state.ready=true;render();if(isCookRoute())showCookPreview();return;}
   installPrimaryScreenHistory();
   if (isBuildRoute()) showEmbeddedBuild();
   if (isCookRoute()) showCookPreview();
@@ -2145,12 +2200,13 @@ async function boot() {
   installSessionResumeRecovery();
   if(discordCatalogPending()) startCatalogStatusPoll();
   try{await handleDiscordOAuthReturn();}catch(error){setError(error);}
+  finally{oauthCover?.remove();}
   onAuthStateChange((event,session)=>{
     setTimeout(async()=>{
       if(event==='SIGNED_OUT' && Date.now()>manualSignOutUntil){await recoverSessionOnResume({force:true});return;}
       const before=state.session?.user?.id||null; const after=session?.user?.id||null;
       state.session=session;
-      if(before!==after){state.playerProfile=null;state.playerProfileBusy=false;state.canCreateCompany=false;state.companyCreatePermissionError=false;state.ready=false;await refreshAll();}
+      if(before!==after){state.playerProfile=null;state.playerProfileError='';state.playerProfileBusy=false;state.canCreateCompany=false;state.companyCreatePermissionError=false;state.ready=false;await refreshAll();}
     },0);
   });
 }
@@ -3072,6 +3128,13 @@ async function handlePrimaryClick(event) {
     const requestedStep=saved&&!saved.completed?Math.max(0,Math.min(6,Number(saved.step||0))):0;
     openSetupGuide(resolveSetupGuideResumeStep(requestedStep)); return;
   }
+  if(action==='setup-guide-check-sync'){
+    if(!state.companyId||state.discordConnection?.status!=='connected')return;
+    state.catalogSyncError='';
+    void tryImmediateDiscordCatalogSync(state.companyId);
+    startCatalogStatusPoll();
+    return;
+  }
   if(action==='setup-guide-back'){if(!state.setupGuide)return;state.setupGuide.step=Math.max(0,Number(state.setupGuide.step||0)-1);render();return;}
   if(action==='setup-guide-jump'){if(!state.setupGuide)return;const target=Number(actionEl.dataset.step||0);if(target<=Number(state.setupGuide.step||0)){state.setupGuide.step=Math.max(0,Math.min(6,target));render();}return;}
   if(action==='setup-guide-next'){
@@ -3082,7 +3145,7 @@ async function handlePrimaryClick(event) {
   }
   if(action==='setup-guide-connect'){
     if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
-    await withMutation(async()=>{localStorage.setItem('axe_product_setup_resume','1');localStorage.removeItem('axe_product_setup_resume_step');const started=await startDiscordConnection(state.companyId);location.assign(started.authorize_url);});return;
+    await withMutation(async()=>{localStorage.setItem('axe_product_setup_resume','1');localStorage.removeItem('axe_product_setup_resume_step');const started=await startDiscordConnection(state.companyId,{resumeGuide:true});location.assign(started.authorize_url);});return;
   }
   if(action==='setup-guide-reapprove-channels'){
     if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 진행할 수 있습니다.');return;}
@@ -3834,6 +3897,7 @@ async function submitPlayerProfileForm(form){
     const saved=await upsertPlayerProfile(userId,payload);
     if(state.session?.user?.id!==userId)return;
     state.playerProfile=saved;
+    state.playerProfileError='';
     window.dispatchEvent(new Event('lac:player-profile-updated'));
     togetherProfileUpdated(state);
     if(state.page==='together')void refreshTogether(state,render);

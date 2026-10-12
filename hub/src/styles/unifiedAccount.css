@@ -39,3 +39,6 @@
 }
 
 .runtime-app .global-header:has(.lac-unified-company-account .hub-account__profile[open]) {position:relative;z-index:60;}
+
+/* Account profile load is actionable rather than silently masking a failed lookup. */
+.hub-account__profile-warning{margin:8px 10px 3px;color:#d9ab86;font-size:11px;line-height:1.5}
