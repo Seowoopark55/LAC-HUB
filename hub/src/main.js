@@ -11,7 +11,8 @@ import {refreshTogether, togetherOnFilter, togetherOnInput, togetherAction, toge
 import './styles/passApplication.css'; // Customer application styles, loaded after shared modal styles.
 import './styles/contentConsistencyV27.css'; // Shared return controls and Together shell/card refinement.
 import './styles/togetherBossV28.css';
-import './styles/togetherBossArtV29.css'; // Real boss art + live-name/difficulty/roster-only card anatomy. // Boss name, difficulty and premium recruitment-card anatomy.
+import './styles/togetherBossArtV29.css';
+import './styles/togetherPolishV210.css'; // Fitted live UI and clear return-to-list action.
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
 import { memberChanges } from './lib/memberChanges.js';

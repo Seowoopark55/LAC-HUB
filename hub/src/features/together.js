@@ -54,11 +54,11 @@ function bossRecruitmentCard(row,capacity,confirmed){
   return `<button type="button" class="lac-together__item lac-together__item--boss" data-together-category="보스" data-boss="${cssBoss}" data-together-action="detail" data-id="${esc(row.id)}" aria-label="${esc(label)}">
     <span class="lac-together__boss-art" aria-hidden="true"></span>
     <span class="lac-together__item-top"><span class="lac-together__category">보스</span>${statusBadge(row.status)}</span>
-    <span class="lac-together__boss-summary"><span class="lac-together__boss-primary">${esc(visibleName)}</span><span class="lac-together__difficulty lac-together__difficulty--${cssLevel}">${esc(level)}</span></span>
+    <span class="lac-together__boss-info-skin"><span class="lac-together__boss-summary"><span class="lac-together__boss-primary">${esc(visibleName)}</span><span class="lac-together__difficulty lac-together__difficulty--${cssLevel}">${esc(level)}</span></span>
     <span class="lac-together__boss-bottom">
       <span class="lac-together__boss-stat">${personSymbol('host')}<span class="lac-together__boss-stat-copy"><small>모집자</small><strong>${esc(row.host_nickname||'플레이어')}</strong></span></span>
       <span class="lac-together__boss-stat lac-together__boss-stat--count">${personSymbol('group')}<span class="lac-together__boss-stat-copy"><small>참가 현황</small><strong><em>${confirmed}</em> / ${capacity}명</strong></span></span>
-    </span>
+    </span></span>
   </button>`;
 }
 function listCards(){const rows=filteredRows();
@@ -102,7 +102,7 @@ function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||
 function renderPartyMember(member,index){
   const host=member.role==='host',name=esc(member.nickname||'닉네임 미등록');
   const phone=member.ingame_phone?esc(formatStoredIngamePhone(member.ingame_phone)):'미등록';
-  return `<li class="lac-together__person"><span class="lac-together__person-num">${pad(index+1)}</span><div class="lac-together__person-name"><strong>${name}</strong><small>${host?'모집자':'참가 확정'}</small></div><div class="lac-together__person-phone"><span>인게임 전화</span><strong>${phone}</strong></div></li>`;
+  return `<li class="lac-together__person"><span class="lac-together__person-num">${pad(index+1)}</span><span class="lac-together__person-avatar" aria-hidden="true">${personSymbol('host')}</span><div class="lac-together__person-name"><strong>${name}</strong><small>${host?'모집자':'참가 확정'}</small></div><div class="lac-together__person-phone"><span>인게임 전화</span><strong>${phone}</strong></div></li>`;
 }
 function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보를 찾을 수 없거나 보관 기간이 종료되었습니다.');
   const isHost=Boolean(p.is_host), logged=Boolean(state.session?.user), active=p.status==='모집 중';
@@ -110,6 +110,9 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   const canApply=active&&!isHost&&!['pending','accepted'].includes(p.my_status);
   const canWithdraw=['pending','accepted'].includes(p.my_status)&&p.status!=='종료';
   const editAllowed=isHost&&Date.parse(p.starts_at)>Date.now()&&p.status!=='종료';
+  const structuredBoss=p.category==='보스'&&BOSS_NAMES.includes(p.boss_name)&&BOSS_DIFFICULTIES.includes(p.boss_difficulty);
+  const detailHeading=structuredBoss?bossPublicName(p.boss_name):p.title;
+  const detailSubheading=structuredBoss?`<span class="lac-together__detail-level lac-together__difficulty lac-together__difficulty--${p.boss_difficulty==='쉬움'?'easy':p.boss_difficulty==='보통'?'normal':'hard'}">${esc(p.boss_difficulty)}</span>`:'';
   const pending=isHost?(p.requests||[]).filter(r=>r.status==='pending'):[];
   const confirmedOthers=Math.max(0,Number(p.confirmed_count||1)-1);
   const capacity=Math.max(2,Number(p.capacity||2)),confirmed=Math.min(capacity,1+confirmedOthers),ratio=Math.min(100,(confirmed/capacity)*100);
@@ -123,10 +126,10 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
     `<div class="lac-together__private-note lac-together__private-note--chat"><span aria-hidden="true">♧</span><strong>참가자 전용 대화 공간</strong><p>모집자와 참가가 확정된 사람만 채팅을 읽고 작성할 수 있습니다.</p></div>`;
   return `<div class="lac-together__detail"><article class="lac-together__post">
     <header class="lac-together__post-header">
-      <div class="lac-together__post-top"><div class="lac-together__post-tags"><span class="lac-together__category">${esc(p.category)}</span>${bossTags(p)}${statusBadge(p.status)}</div>${management}</div>
-      <div class="lac-together__post-caption">TOGETHER / RECRUITMENT DETAIL</div><h2>${esc(p.title)}</h2><p class="lac-together__post-description">${esc(p.description||'상세 안내가 없습니다.')}</p>
-      <div class="lac-together__post-meta"><div><span>활동 일시</span><strong>${esc(when(p.starts_at))}</strong></div><div><span>모집자</span><strong>${esc(p.host_nickname)}</strong></div><div><span>자동 종료</span><strong>${esc(when(p.ends_at))}</strong></div></div>
-      <div class="lac-together__post-status"><div class="lac-together__post-status-top"><div><strong>모집 현황</strong><span>모집자 1명 · 확정 파티원 ${confirmedOthers}명</span></div><span class="lac-together__post-count"><b>${confirmed}</b> / ${capacity}명</span></div><div class="lac-together__progress" role="progressbar" aria-valuemin="0" aria-valuemax="${capacity}" aria-valuenow="${confirmed}" aria-label="현재 확정 인원"><i style="width:${ratio}%"></i></div>${participantAction?`<div class="lac-together__post-join">${participantAction}${p.my_status==='pending'?'<span class="lac-together__tip">모집자의 승인을 기다리는 중입니다.</span>':''}</div>`:''}</div>
+      <div class="lac-together__post-top"><div class="lac-together__post-tags"><span class="lac-together__category">${esc(p.category)}</span>${structuredBoss?'':bossTags(p)}${statusBadge(p.status)}</div>${management}</div>
+      <div class="lac-together__post-caption">TOGETHER / RECRUITMENT DETAIL</div><h2>${esc(detailHeading)} ${detailSubheading}</h2>${p.description?`<p class="lac-together__post-description">${esc(p.description)}</p>`:!structuredBoss?'<p class="lac-together__post-description">상세 안내가 없습니다.</p>':''}
+      <div class="lac-together__post-intel"><div class="lac-together__post-meta"><div><span>활동 일시</span><strong>${esc(when(p.starts_at))}</strong></div><div><span>모집자</span><strong>${esc(p.host_nickname)}</strong></div><div><span>자동 종료</span><strong>${esc(when(p.ends_at))}</strong></div></div>
+      <div class="lac-together__post-status"><div class="lac-together__post-status-top"><div><strong>모집 현황</strong><span>모집자 1명 · 확정 파티원 ${confirmedOthers}명</span></div><span class="lac-together__post-count"><b>${confirmed}</b> / ${capacity}명</span></div><div class="lac-together__progress" role="progressbar" aria-valuemin="0" aria-valuemax="${capacity}" aria-valuenow="${confirmed}" aria-label="현재 확정 인원"><i style="width:${ratio}%"></i></div>${participantAction?`<div class="lac-together__post-join">${participantAction}${p.my_status==='pending'?'<span class="lac-together__tip">모집자의 승인을 기다리는 중입니다.</span>':''}</div>`:''}</div></div>
     </header>
     <div class="lac-together__post-body"><div class="lac-together__post-side"><section class="lac-together__post-section"><div class="lac-together__section-heading"><h3>파티원 정보 <small>PARTY ROSTER</small></h3><span>${confirmed} / ${capacity}명</span></div>${people}</section>${requests}</div>
       <section class="lac-together__post-section lac-together__post-chat"><div class="lac-together__section-heading"><h3>파티 채팅 <small>PARTY LOUNGE</small></h3><span>${p.can_chat?'참가자 전용':'비공개'}</span></div>${chat}</section>
@@ -134,7 +137,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   </article></div>`;
 }
 export function renderTogetherPage(state){const {loggedIn,profile}=controlState(state);
-  return `<div class="lac-together lac-together--${esc(ui.mode)}" id="lac-together"><div class="lac-together__shell">${pageTop(state)}<main class="lac-together__main"><div class="lac-together__hero"><div><span class="lac-together__eyebrow">LAC HUB · PLAY TOGETHER</span><h1>함께하기 <span class="lac-together__hero-accent">/ 모집 광장</span></h1><p>다양한 활동의 동료를 모집하고, 게임 속에서 함께하세요.</p><span class="lac-together__hero-caption">RECRUIT · MEET · PLAY</span></div><div class="lac-together__hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></div></div><div class="lac-together__toolbar"><div class="lac-together__toolbar-left">${ui.mode==='list'?`<label for="lac-together-filter">활동 카테고리</label><select id="lac-together-filter" data-together-filter><option value="전체">전체 활동</option>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${ui.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`:`<button class="lac-together__ghost" type="button" data-together-action="back">← 모집 목록</button>`}</div><div>${ui.mode==='list'?`<button type="button" class="lac-together__primary" data-together-action="create">+ 모집하기</button>`:''}</div></div>
+  return `<div class="lac-together lac-together--${esc(ui.mode)}" id="lac-together"><div class="lac-together__shell">${pageTop(state)}<main class="lac-together__main"><div class="lac-together__hero"><div><span class="lac-together__eyebrow">LAC HUB · PLAY TOGETHER</span><h1>함께하기 <span class="lac-together__hero-accent">/ 모집 광장</span></h1><p>다양한 활동의 동료를 모집하고, 게임 속에서 함께하세요.</p><span class="lac-together__hero-caption">RECRUIT · MEET · PLAY</span></div><div class="lac-together__hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></div></div><div class="lac-together__toolbar"><div class="lac-together__toolbar-left">${ui.mode==='list'?`<label for="lac-together-filter">활동 카테고리</label><select id="lac-together-filter" data-together-filter><option value="전체">전체 활동</option>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${ui.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`:`<button class="lac-together__ghost lac-together__return-list" type="button" data-together-action="back" aria-label="모집 목록으로 돌아가기"><span class="lac-together__return-arrow" aria-hidden="true">←</span><span>모집 목록</span></button>`}</div><div>${ui.mode==='list'?`<button type="button" class="lac-together__primary" data-together-action="create">+ 모집하기</button>`:''}</div></div>
   ${bossFilterToolbar()}
   ${ui.error?`<div class="lac-together__error" role="alert">${esc(ui.error)}</div>`:''}
   ${ui.mode==='list'?`<div class="lac-together__list-heading"><h2>모집 목록</h2><span>총 ${filteredRows().length}개의 모집글</span></div>`:''}

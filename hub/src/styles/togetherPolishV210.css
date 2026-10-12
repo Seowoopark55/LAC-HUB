@@ -1,0 +1,115 @@
+/* Together v2.10: integrate real UI artwork as a fitted, data-driven shell.
+   Back, card body and post subpanels; no baked-in user content and no new RPC/SQL. */
+.lac-together .lac-together__toolbar .lac-together__return-list{
+  display:inline-flex!important;align-items:center;justify-content:center;gap:10px;
+  min-width:168px;min-height:43px;padding:9px 20px;
+  border:1px solid rgba(243,204,130,.86)!important;border-radius:10px!important;
+  color:#f8e7c9!important;font-size:13px!important;font-weight:850!important;
+  background:linear-gradient(115deg,rgba(49,31,13,.30),rgba(12,25,39,.3)),url('/hub/together/art/v210/return-frame.png') center/100% 100% no-repeat!important;
+  box-shadow:0 4px 15px rgba(0,0,0,.22),inset 0 1px rgba(255,233,173,.2)!important;
+  letter-spacing:-.02em;transition:filter .16s,transform .16s!important;
+}
+.lac-together .lac-together__return-list .lac-together__return-arrow{font-size:18px;line-height:1}
+.lac-together .lac-together__return-list:hover{filter:brightness(1.16);transform:translateX(-2px)}
+.lac-together .lac-together__return-list:focus-visible{outline:2px solid #f9cf8b;outline-offset:3px}
+/* Boss card: image ends exactly where the fitted art information plate begins.
+   Dynamic text remains interactive accessible DOM, while decorative art stays inert. */
+.lac-together .lac-together__item.lac-together__item--boss{height:316px!important;min-height:316px!important}
+.lac-together .lac-together__item--boss .lac-together__boss-art{height:188px!important}
+.lac-together .lac-together__item--boss .lac-together__boss-info-skin{
+  position:relative;z-index:2;display:flex;flex-direction:column;
+  width:100%;height:149px;flex:1 1 auto;min-width:0;margin-top:167px;
+  background:#0b1826 url('/hub/together/art/v210/boss-info-skin.webp') center/100% 100% no-repeat;
+}
+.lac-together .lac-together__item--boss .lac-together__boss-summary{
+  position:relative;flex:0 0 58px;min-height:58px;margin:0!important;padding:10px 21px!important;
+  background:transparent!important;border:0!important;gap:7px;align-items:center
+}
+.lac-together .lac-together__item--boss .lac-together__boss-primary{font-size:21px;color:#f4e7cc;line-height:1.25}
+.lac-together .lac-together__item--boss .lac-together__difficulty{min-height:28px;padding:5px 10px;border-radius:6px}
+.lac-together .lac-together__item--boss .lac-together__boss-bottom{
+  flex:1 1 auto;min-height:0;padding:12px 19px 12px!important;
+  background:transparent!important;grid-template-columns:minmax(0,1fr) minmax(110px,.85fr)!important;
+}
+.lac-together .lac-together__item--boss .lac-together__boss-stat{gap:7px}
+.lac-together .lac-together__item--boss .lac-together__boss-stat--count{padding-left:11px;border-left:1px solid rgba(225,183,113,.26)}
+.lac-together .lac-together__item--boss .lac-together__boss-stat-copy{gap:2px}
+.lac-together .lac-together__item--boss .lac-together__boss-stat-copy small{font-size:10px;color:#c3b4a1}
+.lac-together .lac-together__item--boss .lac-together__boss-stat-copy strong{font-size:13px;color:#f4e9d7}
+.lac-together .lac-together__item--boss .lac-together__boss-stat>svg{color:#d9b475}
+/* Detail: a single joined summary piece, not two stacked browser boxes. */
+.lac-together.lac-together--detail .lac-together__post-intel{
+  position:relative;isolation:isolate;padding:10px 16px 9px;margin:3px -13px 0;
+  border-radius:11px;background:linear-gradient(100deg,rgba(12,25,38,.71),rgba(8,19,29,.38));
+}
+.lac-together.lac-together--detail .lac-together__post-intel::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  border:16px solid transparent;border-image-source:url('/hub/together/art/v210/summary-frame.png');
+  border-image-slice:95;border-image-width:16px;border-image-repeat:stretch;opacity:.84;
+}
+.lac-together.lac-together--detail .lac-together__post-intel>*{position:relative;z-index:1}
+.lac-together.lac-together--detail .lac-together__post-meta{margin:0;padding:5px 0 10px;border-top:0!important;border-bottom:1px solid rgba(211,170,106,.29)!important}
+.lac-together.lac-together--detail .lac-together__post-meta>div{padding:0 14px;gap:3px}
+.lac-together.lac-together--detail .lac-together__post-meta strong{color:#f1e6d1;font-size:11.5px}
+.lac-together.lac-together--detail .lac-together__post-meta span{color:#b9ac91}
+.lac-together.lac-together--detail .lac-together__post-status{min-height:51px;border:0!important;margin:0;padding:8px 0 3px!important}
+.lac-together.lac-together--detail .lac-together__post-header h2{display:flex;align-items:center;flex-wrap:wrap;gap:9px;line-height:1.22}
+.lac-together.lac-together--detail .lac-together__detail-level{font-size:11px;font-weight:800;vertical-align:middle}
+/* Premium roster and lounge: reusable transparent frame pieces, content is DOM. */
+.lac-together.lac-together--detail .lac-together__post-side::before,
+.lac-together.lac-together--detail .lac-together__post-chat::before{
+  border-image-source:url('/hub/together/art/v210/roster-frame.png')!important;
+  border-image-slice:110!important;border-image-width:16px!important;
+  opacity:.95;z-index:0;
+}
+.lac-together.lac-together--detail .lac-together__post-chat::before{border-image-source:url('/hub/together/art/v210/chat-frame.png')!important}
+.lac-together.lac-together--detail .lac-together__section-heading{padding:1px 0 10px!important;border-bottom:1px solid rgba(214,169,105,.3)!important}
+.lac-together.lac-together--detail .lac-together__section-heading h3{font-size:13px!important;color:#f6e6ca!important}
+.lac-together.lac-together--detail .lac-together__section-heading h3 small{font-size:8px;letter-spacing:.07em}
+.lac-together.lac-together--detail .lac-together__person{
+  gap:10px;min-height:59px;padding:9px 10px!important;margin:0 0 6px;
+  background:linear-gradient(100deg,rgba(30,49,65,.55),rgba(10,22,34,.35))!important;
+  border:1px solid rgba(207,168,114,.27)!important;border-radius:9px!important;
+  box-shadow:inset 0 1px rgba(237,201,141,.07)!important;
+}
+.lac-together.lac-together--detail .lac-together__person-num{flex:0 0 25px;height:25px;border-color:rgba(222,185,128,.50);color:#f3d6ac}
+.lac-together.lac-together--detail .lac-together__person-avatar{
+  display:grid;place-items:center;flex:0 0 33px;height:33px;border:1px solid rgba(220,177,110,.55);border-radius:50%;
+  color:#e5c190;background:radial-gradient(circle at 30% 25%,rgba(183,141,83,.24),rgba(9,22,34,.55));
+}
+.lac-together.lac-together--detail .lac-together__person-avatar svg{width:17px;height:17px}
+.lac-together.lac-together--detail .lac-together__person-name strong{font-size:11.5px}
+.lac-together.lac-together--detail .lac-together__person-phone{min-width:91px;max-width:43%;gap:2px}
+.lac-together.lac-together--detail .lac-together__person-phone strong{font-size:10px;color:#f3e3c6}
+.lac-together.lac-together--detail .lac-together__privacy{
+  padding:8px 10px;border:1px solid rgba(140,162,183,.15);border-radius:7px;
+  background:rgba(12,25,39,.25);line-height:1.45;
+}
+.lac-together.lac-together--detail .lac-together__messages{margin:0 0 4px;padding:12px 9px;background:rgba(8,22,34,.20)!important;border:1px solid rgba(126,146,164,.17)!important;border-radius:9px!important}
+.lac-together.lac-together--detail .lac-together__messages>.lac-together__empty{
+  min-height:115px;display:grid;place-items:center;text-align:center;
+  color:#adbfc9;border:1px dashed rgba(145,174,194,.29);border-radius:8px;background:rgba(11,25,36,.18)
+}
+.lac-together.lac-together--detail .lac-together__chat-form{gap:8px;padding-top:8px}
+.lac-together.lac-together--detail .lac-together__chat-form input{min-height:39px!important;border-radius:7px;background:rgba(5,13,22,.58)!important}
+.lac-together.lac-together--detail .lac-together__chat-form button{min-height:39px!important;border-radius:7px}
+@media(max-width:760px){
+  .lac-together .lac-together__toolbar .lac-together__return-list{min-width:153px;min-height:41px;padding:8px 13px}
+  .lac-together.lac-together--detail .lac-together__post-intel{margin:4px -6px 0;padding:10px 12px}
+  .lac-together.lac-together--detail .lac-together__post-meta{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 0}
+  .lac-together.lac-together--detail .lac-together__post-meta>div{padding:0 9px}
+  .lac-together.lac-together--detail .lac-together__post-meta>div:last-child{grid-column:1/-1;border:0;padding-left:9px}
+}
+@media(max-width:370px){
+  .lac-together .lac-together__item--boss .lac-together__boss-primary{font-size:19px}
+  .lac-together .lac-together__item--boss .lac-together__boss-bottom{padding-inline:13px!important}
+  .lac-together.lac-together--detail .lac-together__person{gap:6px;padding:7px!important}
+  .lac-together.lac-together--detail .lac-together__person-avatar{flex-basis:27px;height:27px}
+  .lac-together.lac-together--detail .lac-together__person-phone{min-width:84px}
+}
+/* The generated footer plate already contains the muted gold person icons.
+   Hide redundant DOM glyphs visually, but keep the labels accessible. */
+.lac-together .lac-together__item--boss .lac-together__boss-stat>svg{display:none}
+.lac-together .lac-together__item--boss .lac-together__boss-stat:first-child{padding-left:34px}
+.lac-together .lac-together__item--boss .lac-together__boss-stat--count{padding-left:36px}
+@media(max-width:370px){.lac-together .lac-together__item--boss .lac-together__boss-stat:first-child{padding-left:29px}.lac-together .lac-together__item--boss .lac-together__boss-stat--count{padding-left:30px}}
