@@ -14,6 +14,8 @@ import './styles/togetherBossArtV29.css';
 import './styles/togetherPolishV210.css'; // Fitted live UI and clear return-to-list action.
 import './styles/togetherAppDetailV211.css'; // Rebuilt raid article and fitted boss-card slots.
 import './styles/togetherRaidRefineV212.css'; // Boss card blending, portrait composition, readability and live timer.
+import './styles/togetherGuildV213.css'; // Bespoke gallery/cards and one-piece raid dashboard.
+
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
 import { memberChanges } from './lib/memberChanges.js';
