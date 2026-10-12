@@ -2,19 +2,13 @@ import './styles.css';
 import './styles/playerProfile.css';
 import './styles/unifiedAccount.css';
 import './styles/sharedAccountTrigger.css'; // Exact HUB-home chip sizes for company and HUB.
-import './styles/together.css';
+import './styles/togetherCanonicalV214.css'; // Single Together stylesheet, replaces historical v2.1–v2.13 visual cascade.
 import {renderHubAccountControl} from './ui/hubHome.js';
 import {loadPlayerProfile, upsertPlayerProfile} from './lib/playerProfileApi.js';
 import {renderPlayerProfileModal, playerProfileFormData} from './ui/playerProfile.js';
 import {maskIngamePhoneInput} from './lib/ingamePhone.js';
 import {refreshTogether, togetherOnFilter, togetherOnInput, togetherAction, togetherSubmit, togetherProfileUpdated} from './features/together.js';
 import './styles/passApplication.css'; // Customer application styles, loaded after shared modal styles.
-import './styles/togetherBossV28.css';
-import './styles/togetherBossArtV29.css';
-import './styles/togetherPolishV210.css'; // Fitted live UI and clear return-to-list action.
-import './styles/togetherAppDetailV211.css'; // Rebuilt raid article and fitted boss-card slots.
-import './styles/togetherRaidRefineV212.css'; // Boss card blending, portrait composition, readability and live timer.
-import './styles/togetherGuildV213.css'; // Bespoke gallery/cards and one-piece raid dashboard.
 
 import {loadLayoutStudioProfile, saveLayoutStudioProfile, clearLayoutStudioProfile, applyLayoutStudioProfile, applyLayoutStudioPreset, adjustLayoutStudioValue} from './ui/layoutStudio.js';
 import { envReady, supabase } from './lib/supabase.js';
