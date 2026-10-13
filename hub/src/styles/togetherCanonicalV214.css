@@ -639,3 +639,20 @@
 .lac-together--detail .lac-together__voice-join-note strong{color:#dfd0b8;font-weight:700}
 .lac-together--detail .lac-together__voice-copy:focus-visible,.lac-together--detail .lac-together__voice-links a:focus-visible{outline:2px solid #c9a97a;outline-offset:2px}
 @media(max-width:520px){.lac-together--detail .lac-together__voice-links{gap:7px}.lac-together--detail .lac-together__voice-links .lac-together__voice-join{flex:1 1 100%}.lac-together--detail .lac-together__voice-copy{flex:1 1 auto}}
+
+/* Voice channel hero refresh: 2026-10-14 */
+.lac-together--detail .lac-together__voice-hero{display:grid;gap:12px;padding:16px;border:1px solid rgba(200,170,118,.30);border-radius:16px;background:linear-gradient(135deg,#243748,#112231)}
+.lac-together--detail .lac-together__voice-hero-heading{display:flex;align-items:center;gap:12px}
+.lac-together--detail .lac-together__voice-hero-mark{display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:13px;color:#f1d6a8;background:#34485a;border:1px solid rgba(213,186,145,.28)}
+.lac-together--detail .lac-together__voice-hero-mark svg{width:26px;height:26px}
+.lac-together--detail .lac-together__voice-hero-heading strong{display:block;font-size:15px;color:#f5f5f4}
+.lac-together--detail .lac-together__voice-hero-heading small{display:block;margin-top:4px;color:#b2c0ca;font-size:12px}
+.lac-together--detail .lac-together__voice-hero .lac-together__voice-links{display:flex;gap:7px 15px;flex-wrap:wrap;align-items:center;justify-content:center}
+.lac-together--detail .lac-together__voice-hero .lac-together__voice-join{flex:1 1 100%;display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:12px 16px;border:0;border-radius:11px;background:linear-gradient(115deg,#dfc398,#bb9869);color:#1c2b38!important;text-decoration:none;font-size:16px;font-weight:850;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.lac-together--detail .lac-together__voice-hero .lac-together__voice-join:hover{filter:brightness(1.08)}
+.lac-together--detail .lac-together__voice-hero .lac-together__voice-join svg{width:22px;height:22px;flex:none}
+.lac-together--detail .lac-together__voice-hero .lac-together__voice-copy{border:0;background:transparent;padding:4px 7px;min-height:30px;color:#b7cbd8;font-size:12px}
+.lac-together--detail .lac-together__voice-hero .lac-together__voice-web-link{padding:4px 7px;color:#b7cbd8;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.lac-together--detail .lac-together__voice-hero .lac-together__voice-join-note{margin:0!important;text-align:center;color:#c5d0d7;font-size:12px;line-height:1.55}
+.lac-together--detail .lac-together__voice-hero .lac-together__voice-join-note strong{color:#f3dcb6}
+@media(max-width:520px){.lac-together--detail .lac-together__voice-hero{padding:13px}.lac-together--detail .lac-together__voice-hero .lac-together__voice-join{font-size:15px}}
