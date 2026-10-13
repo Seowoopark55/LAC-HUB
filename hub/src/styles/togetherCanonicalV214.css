@@ -689,3 +689,11 @@
 .lac-together__voice-guide--compact .lac-together__voice-guide-done{width:100%;min-height:43px}
 .lac-together__voice-guide--compact .lac-together__voice-guide-close{top:11px;right:12px}
 @media(max-width:420px){.lac-together__voice-guide--compact .lac-together__voice-guide-dialog--compact{padding:25px 17px 18px}.lac-together__voice-guide--compact h3{font-size:18px}}
+
+/* Direct Discord channel link + optional help: no forced walkthrough for returning users. */
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-entry-actions{display:inline-flex;align-items:center;gap:7px;flex:none;margin-left:auto}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-help{display:grid;place-items:center;flex:none;width:34px;height:34px;padding:0;border-radius:9px;border:1px solid rgba(204,176,134,.38);background:rgba(216,180,122,.075);color:#e5cfaa;font-size:16px;font-weight:800;line-height:1;cursor:pointer;transition:background .15s,border-color .15s}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-help:hover{background:rgba(216,180,122,.17);border-color:rgba(216,180,122,.7)}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open:focus-visible,.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-help:focus-visible{outline:2px solid #eed1a5;outline-offset:3px}
+@media(max-width:440px){.lac-together--detail .lac-together__voice--compact .lac-together__voice-entry-actions{margin-left:44px}.lac-together--detail .lac-together__voice--compact .lac-together__voice-entry-actions .lac-together__voice-compact-open{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-help{transition:none}}
