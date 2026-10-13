@@ -260,3 +260,26 @@
 .lac-settings-sync-compact button{border:1px solid rgba(228,178,75,.35);background:rgba(228,178,75,.07);border-radius:7px;padding:8px 10px;color:var(--ops-gold);font-weight:700;cursor:pointer;white-space:nowrap}
 .lac-settings-sync-compact details{max-width:100%;overflow-wrap:anywhere;margin-top:4px}.lac-settings-sync-compact code{display:block;white-space:pre-wrap;padding-top:4px}
 @media(max-width:600px){.lac-settings-summary{align-items:flex-start;flex-direction:column;gap:5px}.lac-settings-sync-compact{align-items:stretch;flex-direction:column}.lac-settings-clean .ops-settings-tabs button{min-width:0;flex:1}}
+
+/* LAC HUB settings phase 3: compact utility-focused settings */
+.lac-settings-clean .page-header{min-height:48px!important;margin-bottom:8px!important}
+.lac-settings-clean .page-header h1{font-size:24px!important;line-height:1.15}
+.lac-settings-clean .page-header__actions{padding-top:0!important}
+.lac-settings-clean .ops-settings-nav-row{margin-bottom:8px}
+.lac-settings-clean .ops-settings-board{max-width:none}
+.lac-settings-clean .ops-settings-basic{width:100%}
+.lac-settings-clean .ops-settings-view{width:100%}
+.lac-settings-clean .lac-settings-grid-form{padding:16px!important}
+.lac-settings-basic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;align-items:end}
+.lac-settings-flat-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.lac-settings-flat-field>span{font-size:12px;font-weight:750;color:var(--ops-title)}
+.lac-settings-flat-field input,.lac-settings-flat-field select{box-sizing:border-box;width:100%;min-width:0;max-width:none;min-height:40px;height:40px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ops-title);font-size:13px}
+.lac-settings-flat-field .ops-settings-discord{box-sizing:border-box;min-height:40px;height:40px;width:100%;min-width:0;max-width:none;justify-content:flex-start}
+.lac-settings-flat-field .ops-settings-discord strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.lac-settings-clean .ops-settings-board-head{display:none}
+.lac-settings-clean .ops-onboarding-strip:not(.is-error):not(.is-resetting){padding:8px 12px;margin-bottom:8px}
+.lac-settings-issue-details{font-size:11px;color:var(--ops-sub);margin:0 0 8px;padding:8px 11px;border:1px solid var(--line);border-radius:8px}
+.lac-settings-issue-details summary{cursor:pointer;color:var(--ops-gold);font-weight:750}
+.lac-settings-issue-details span{display:block;margin-top:6px;line-height:1.45}
+.lac-settings-clean .lac-settings-sync-compact{margin-bottom:8px;padding:8px 11px}
+@media(max-width:660px){.lac-settings-basic-grid{grid-template-columns:1fr;gap:12px}.lac-settings-clean .lac-settings-grid-form{padding:12px!important}.lac-settings-clean .page-header h1{font-size:21px!important}}
