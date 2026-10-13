@@ -530,3 +530,33 @@
 @media (prefers-reduced-motion:reduce){
   .lac-together--detail .lac-together__voice-join:hover{transform:none}
 }
+
+/* Together party ready roster v3 — clear, quiet game-party statuses. */
+.lac-together--detail .lac-together__ready-section{--ready-sage:#9dcbb8;--ready-bronze:#c8b08b}
+.lac-together--detail .lac-together__ready-heading{margin-bottom:7px!important}
+.lac-together--detail .lac-together__ready-count{display:inline-flex;align-items:baseline;gap:1px;font-size:10px;color:#91a4b2;font-variant-numeric:tabular-nums}
+.lac-together--detail .lac-together__ready-count strong{font-size:15px;font-weight:800;color:var(--ready-sage);line-height:1}
+.lac-together--detail .lac-together__ready-progress{display:flex;gap:4px;margin:0 0 9px;min-height:3px}
+.lac-together--detail .lac-together__ready-segment{flex:1 1 0;height:3px;border-radius:5px;background:#344452}
+.lac-together--detail .lac-together__ready-segment.is-ready{background:linear-gradient(90deg,#678f84,#a2c8ad);box-shadow:0 0 8px rgba(121,185,160,.16)}
+.lac-together--detail .lac-together__ready-section .lac-together__ready-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:6px;max-height:124px;overflow-y:auto;scrollbar-width:thin}
+.lac-together--detail .lac-together__ready-row{min-width:0;display:flex;gap:8px;align-items:center;justify-content:flex-start;padding:7px 9px;border:1px solid rgba(156,178,192,.18);border-radius:9px;background:linear-gradient(110deg,#152b3b,#132433);transition:border-color .15s,background .15s}
+.lac-together--detail .lac-together__ready-row.is-ready{border-color:rgba(127,181,157,.33);background:linear-gradient(110deg,rgba(39,68,65,.72),#142d39)}
+.lac-together--detail .lac-together__ready-avatar{width:27px;height:27px;flex:0 0 27px;display:grid;place-items:center;border-radius:8px;border:1px solid #425469;background:#172737;color:#9fb1c0;font-size:10px;font-weight:800;font-variant-numeric:tabular-nums}
+.lac-together--detail .lac-together__ready-row.is-ready .lac-together__ready-avatar{border-color:rgba(126,185,159,.5);background:rgba(83,133,116,.23);color:#b6e4cf;font-size:15px}
+.lac-together--detail .lac-together__ready-member{display:flex;flex-direction:column;justify-content:center;gap:1px;min-width:0;flex:1}
+.lac-together--detail .lac-together__ready-member strong{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11.5px;color:#edf0ed;font-weight:750}
+.lac-together--detail .lac-together__ready-member em{font-size:9px;color:#8f9fae;font-style:normal}
+.lac-together--detail .lac-together__ready-badge{display:inline-flex;flex:0 0 auto;align-items:center;gap:3px;padding:4px 6px;border-radius:6px;background:rgba(125,143,156,.08);border:1px solid rgba(155,170,183,.12);color:#9badbb;font-size:9.5px;font-weight:750;white-space:nowrap}
+.lac-together--detail .lac-together__ready-badge.is-ready{color:#b5dac7;background:rgba(103,157,134,.14);border-color:rgba(125,181,157,.23)}
+.lac-together--detail .lac-together__ready-badge-icon{font-size:11px;font-weight:900}
+.lac-together--detail .lac-together__ready-kick{flex:0 0 auto;padding:5px 6px!important;background:transparent!important;color:#bb9794!important;font-size:9px!important;border:0!important;box-shadow:none!important}
+.lac-together--detail .lac-together__ready-kick:hover{color:#f0bab4!important;text-decoration:underline}
+.lac-together--detail .lac-together__ready-toggle{width:100%;min-height:35px;margin-top:8px;padding:8px 10px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(176,151,110,.42);border-radius:8px;background:linear-gradient(180deg,#283a46,#20313e);color:#ecd9b8;font-size:11.5px;font-weight:800;box-shadow:none;cursor:pointer}
+.lac-together--detail .lac-together__ready-toggle:not(.is-ready):hover{background:#344956;border-color:rgba(208,180,133,.65)}
+.lac-together--detail .lac-together__ready-toggle.is-ready{border-color:rgba(133,180,158,.32);background:linear-gradient(180deg,#263e3c,#213533);color:#bddbc9}
+.lac-together--detail .lac-together__ready-toggle.is-ready:hover{background:#304846}
+.lac-together--detail .lac-together__ready-toggle-icon{font-size:15px;font-weight:900;line-height:1}
+.lac-together--detail .lac-together__ready-toggle:focus-visible,.lac-together--detail .lac-together__ready-kick:focus-visible{outline:2px solid #c9a97a;outline-offset:2px}
+@media(max-width:560px){.lac-together--detail .lac-together__ready-section .lac-together__ready-list{grid-template-columns:1fr;max-height:174px}.lac-together--detail .lac-together__ready-row{padding:8px}}
+@media(prefers-reduced-motion:reduce){.lac-together--detail .lac-together__ready-row{transition:none}}
