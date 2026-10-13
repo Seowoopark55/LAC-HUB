@@ -34,14 +34,22 @@ export function contentCardStatus(state,key){
   return '이용 신청';
 }
 
-// Company management is considered ready after the explicit guided setup is
-// completed. Existing companies created before the wizard was introduced are
-// treated as ready when their Discord connection and both core roles are already
-// configured, so this change never forces a legacy company through setup again.
+// Legacy compatibility boundary: companies created before the verified production
+// baseline can keep the original configured-company fallback ONLY when no wizard
+// progress exists. New companies must explicitly finish the guided wizard.
+// The cutoff matches the main commit verified against Vercel Production.
+const GUIDED_SETUP_REQUIRED_FROM = Date.parse('2026-10-13T03:46:07Z');
+
 export function companySetupComplete(state){
   if(!hasCompany(state) || !hasUnifiedPass(state)) return false;
   const guided=state?.companySettings?.settings?.guided_setup;
   if(guided?.completed===true) return true;
+  // Any recorded unfinished setup must never be bypassed via ordinary settings.
+  if(guided && typeof guided==='object') return false;
+  const company=(state.companies||[]).find(row=>row.id===state.companyId);
+  const createdAt=Date.parse(String(company?.created_at||''));
+  // Unknown timestamps fail closed rather than silently marking new companies ready.
+  if(!Number.isFinite(createdAt) || createdAt>=GUIDED_SETUP_REQUIRED_FROM) return false;
   const connected=state?.discordConnection?.status==='connected';
   const rolesReady=Boolean(state?.discordCompanyConfig?.admin_role_id && state?.discordCompanyConfig?.member_role_id);
   const onboarding=String(state?.onboardingStatus?.status||'');
