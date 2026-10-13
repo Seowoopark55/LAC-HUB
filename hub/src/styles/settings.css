@@ -238,3 +238,25 @@
 .lac-settings-group-label strong{color:var(--ops-title);font-size:12px}.lac-settings-group-label small{color:var(--ops-sub);font-size:10px;line-height:1.5}
 @media(max-width:900px){.lac-settings-guide__grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.lac-settings-guide__head{flex-direction:column}.lac-settings-guide__grid{grid-template-columns:1fr}.lac-settings-guide__sync{flex-direction:column;align-items:stretch}.lac-settings-guide__sync button{width:100%}}
+
+/* LAC HUB Settings Phase 2 — focused configuration layout */
+.lac-settings-clean .page-header{margin-bottom:12px}
+.lac-settings-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 14px;padding:11px 15px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ops-title);font-weight:700;font-size:13px}
+.lac-settings-summary span:last-child{font-size:11px;color:var(--ops-sub);font-weight:600}
+.lac-settings-summary .is-connected{color:var(--green)!important}
+.lac-settings-clean .ops-settings-nav-row{margin:0 0 12px}
+.lac-settings-clean .ops-settings-tabs{flex:1;justify-content:flex-start}
+.lac-settings-clean .ops-settings-tabs button{min-width:110px}
+.lac-settings-clean .ops-settings-view{margin-top:0}
+.lac-settings-clean .ops-settings-board-head{padding:15px 16px}
+.lac-settings-clean .ops-settings-board-head h2{font-size:15px}
+.lac-settings-clean .lac-settings-group-label{padding:11px 16px;background:#11171e;border-top:1px solid var(--line-soft)}
+.lac-settings-clean .lac-settings-group-label small{display:none}
+.lac-settings-clean .ops-settings-row{min-height:55px}
+.lac-settings-clean .ops-settings-row__description{display:none}
+.lac-settings-sync-compact{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:11px 14px;border:1px solid rgba(228,178,75,.24);border-radius:9px;background:var(--surface);font-size:11px;color:var(--ops-sub)}
+.lac-settings-sync-compact>div{display:grid;gap:3px}
+.lac-settings-sync-compact strong{color:var(--ops-title);font-size:12px}
+.lac-settings-sync-compact button{border:1px solid rgba(228,178,75,.35);background:rgba(228,178,75,.07);border-radius:7px;padding:8px 10px;color:var(--ops-gold);font-weight:700;cursor:pointer;white-space:nowrap}
+.lac-settings-sync-compact details{max-width:100%;overflow-wrap:anywhere;margin-top:4px}.lac-settings-sync-compact code{display:block;white-space:pre-wrap;padding-top:4px}
+@media(max-width:600px){.lac-settings-summary{align-items:flex-start;flex-direction:column;gap:5px}.lac-settings-sync-compact{align-items:stretch;flex-direction:column}.lac-settings-clean .ops-settings-tabs button{min-width:0;flex:1}}
