@@ -10,6 +10,7 @@ const DURATIONS=[{value:30,label:'30분'},{value:60,label:'1시간'},{value:120,
 const TOGETHER_PAGE_SIZE=6; // PC 3 columns × 2 rows; pagination is invisible until post 7.
 let voiceRefreshTimer=null;
 const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',page:1,total:0,items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0,voice:null,partyState:null};
+let voiceGuideChannel=null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
 // Show the real end deadline as a live countdown. This is presentation only:
@@ -166,7 +167,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   </section>`:'';
   const people=p.can_chat?`<ol class="lac-together__people">${roster.map(renderPartyMember).join('')}</ol><p class="lac-together__privacy"><span aria-hidden="true">♧</span> 전화번호는 등록된 인게임 번호이며 모집자와 확정 참가자에게만 표시됩니다.</p>`:
     `<div class="lac-together__private-note"><span aria-hidden="true">♧</span><strong>파티원 정보는 비공개입니다.</strong><p>참가가 확정되면 닉네임과 인게임 연락처를 확인할 수 있습니다.</p></div>`;
-  const voice=p.can_chat?`<section class="lac-together__post-section lac-together__voice" aria-label="파티 음성채널"><div class="lac-together__section-heading"><h3>Discord 파티 음성</h3><span>승인된 파티원 전용</span></div>${ui.voice?.status==='active'&&/^\d{17,20}$/.test(String(ui.voice.channel_id||''))?`<p>음성방이 열려 있습니다. 파티원만 접속할 수 있습니다.</p><a class="lac-together__primary lac-together__voice-join" style="display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:12px 22px;border-radius:11px;font-weight:800;text-decoration:none" href="discord://-/channels/1559104034798051328/${esc(ui.voice.channel_id)}">🎧 음성방 참가하기</a> <a class="lac-together__voice-web-link" href="https://discord.com/channels/1559104034798051328/${esc(ui.voice.channel_id)}" target="_blank" rel="noopener noreferrer">브라우저로 열기</a>`:ui.voice?.status==='pending'?'<p>음성채널을 생성하고 있습니다. 잠시 후 다시 확인해 주세요.</p>':isHost?`<p>모집자가 음성방을 만들 수 있습니다. 모집글이 종료되어도 이용자가 있으면 유지됩니다.</p><button type="button" class="lac-together__primary" data-together-action="voice-create" ${ui.busy?'disabled':''}>비공개 음성채널 만들기</button>`:'<p>모집자가 음성채널을 생성하면 이곳에 참여 버튼이 나타납니다.</p>'}</section>`:'';
+  const voice=p.can_chat?`<section class="lac-together__post-section lac-together__voice" aria-label="파티 음성채널"><div class="lac-together__section-heading"><h3>Discord 파티 음성</h3><span>승인된 파티원 전용</span></div>${ui.voice?.status==='active'&&/^\d{17,20}$/.test(String(ui.voice.channel_id||''))?`<p>음성방이 열려 있습니다. 파티원만 접속할 수 있습니다.</p><button type="button" class="lac-together__primary lac-together__voice-join" data-together-action="voice-guide-open" data-channel-id="${esc(ui.voice.channel_id)}">🎧 음성방 참가하기</button> <a class="lac-together__voice-web-link" href="https://discord.com/channels/1559104034798051328/${esc(ui.voice.channel_id)}" target="_blank" rel="noopener noreferrer">브라우저로 열기</a>`:ui.voice?.status==='pending'?'<p>음성채널을 생성하고 있습니다. 잠시 후 다시 확인해 주세요.</p>':isHost?`<p>모집자가 음성방을 만들 수 있습니다. 모집글이 종료되어도 이용자가 있으면 유지됩니다.</p><button type="button" class="lac-together__primary" data-together-action="voice-create" ${ui.busy?'disabled':''}>비공개 음성채널 만들기</button>`:'<p>모집자가 음성채널을 생성하면 이곳에 참여 버튼이 나타납니다.</p>'}</section>`:'';
   const chat=p.can_chat?`<div class="lac-together__messages" aria-label="참가자 채팅 메시지">${ui.messages.length?ui.messages.map(m=>`<div class="lac-together__message${m.mine?' is-mine':''}"><span>${esc(m.nickname)} · ${esc(when(m.created_at))}</span><p>${esc(m.body)}</p></div>`).join(''):empty('아직 메시지가 없습니다. 먼저 인사해 보세요.')}</div>${canMessage?`<form data-together-form="chat" class="lac-together__chat-form"><input type="text" name="body" maxlength="500" placeholder="파티원에게 메시지 보내기" value="${esc(ui.chatDraft)}" required aria-label="채팅 메시지"><button class="lac-together__primary" type="submit" ${ui.busy?'disabled':''}>전송</button></form>`:'<p class="lac-together__tip">종료된 활동입니다. 채팅은 읽기 전용입니다.</p>'}`:
     `<div class="lac-together__private-note lac-together__private-note--chat"><span aria-hidden="true">♧</span><strong>참가자 전용 대화 공간</strong><p>모집자와 참가가 확정된 사람만 채팅을 읽고 작성할 수 있습니다.</p></div>`;
   // All categories use the same app-style detail renderer, privacy rules and countdown.
@@ -197,6 +198,25 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
     </article></div>`;
 
 }
+function voiceGuideMarkup(){
+  if(!voiceGuideChannel||!/^\d{17,20}$/.test(voiceGuideChannel))return '';
+  const channel=esc(voiceGuideChannel);
+  return `<div class="lac-together__voice-guide" role="presentation">
+    <button class="lac-together__voice-guide-shade" type="button" data-together-action="voice-guide-close" aria-label="안내 닫기"></button>
+    <section role="dialog" aria-modal="true" aria-labelledby="lac-voice-guide-heading" aria-describedby="lac-voice-guide-description" class="lac-together__voice-guide-dialog">
+      <button type="button" class="lac-together__voice-guide-close" data-together-action="voice-guide-close" aria-label="닫기">×</button>
+      <div class="lac-together__voice-guide-eyebrow">PARTY VOICE · DISCORD</div>
+      <h3 id="lac-voice-guide-heading">음성방 입장 안내</h3>
+      <p id="lac-voice-guide-description">Discord 앱에서 파티 음성채널을 열고, 화면 중앙의 <strong>‘음성 채널 참가하기’</strong>를 눌러야 연결됩니다.</p>
+      <div class="lac-together__voice-guide-picture"><img src="/hub/together/art/discord-voice-join-guide.webp" alt="Discord 음성채널 화면에서 가운데 '음성 채널 참가하기' 버튼을 누르는 위치" loading="lazy"></div>
+      <div class="lac-together__voice-guide-actions">
+        <a href="discord://-/channels/1559104034798051328/${channel}" class="lac-together__voice-guide-app">Discord 앱에서 채널 열기 ↗</a>
+        <a href="https://discord.com/channels/1559104034798051328/${channel}" target="_blank" rel="noopener noreferrer" class="lac-together__voice-guide-web">브라우저로 열기</a>
+      </div>
+      <p class="lac-together__voice-guide-note">앱으로 이동해도 자동 연결되지는 않습니다. Discord에서 한 번 더 참가를 눌러주세요.</p>
+    </section>
+  </div>`;
+}
 export function renderTogetherPage(state){const {loggedIn,profile}=controlState(state);
   return `<div class="lac-together lac-together--${esc(ui.mode)}" id="lac-together"><div class="lac-together__shell">${pageTop(state)}<main class="lac-together__main"><div class="lac-together__hero"><div><span class="lac-together__eyebrow">LAC HUB · PLAY TOGETHER</span><h1>함께하기</h1><p>다양한 활동을 함께할 플레이어를 찾아보세요.</p></div><div class="lac-together__hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.4 2-4.2 5.5-4.2s5.5 1.8 5.5 4.2v2"/><circle cx="17.2" cy="8.7" r="2.4"/><path d="M16 13.7c2.9-.3 4.8 1 4.8 3.3v2"/></svg></div></div><div class="lac-together__toolbar"><div class="lac-together__toolbar-left">${ui.mode==='list'?`<label for="lac-together-filter">활동 카테고리</label><select id="lac-together-filter" data-together-filter><option value="전체">전체 활동</option>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${ui.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`:`<button class="lac-together__ghost lac-together__return-list" type="button" data-together-action="back" aria-label="모집 목록으로 돌아가기"><span class="lac-together__return-arrow" aria-hidden="true">←</span><span>모집 목록</span></button>`}</div><div>${ui.mode==='list'?`<button type="button" class="lac-together__primary" data-together-action="create">+ 모집하기</button>`:''}</div></div>
   ${bossFilterToolbar()}
@@ -204,7 +224,7 @@ export function renderTogetherPage(state){const {loggedIn,profile}=controlState(
   ${ui.mode==='list'?`<div class="lac-together__list-heading"><h2>모집 목록</h2><span>총 ${ui.total}개의 모집글</span></div>`:''}
   ${['create','edit'].includes(ui.mode)?renderCreate():ui.mode==='detail'?renderDetail(state):`<div class="lac-together__grid">${ui.loading&&!ui.items.length?empty('모집글을 불러오는 중입니다…'):listCards()}</div>${renderPagination()}`}
   ${ui.mode==='list'?`<p class="lac-together__foot">모집 목록은 로그인 없이 볼 수 있습니다. 모집·참가·채팅에는 Discord 로그인과 인게임 프로필이 필요합니다.${!loggedIn?' <button type="button" data-together-action="login">Discord 로그인</button>':!profile?' <button type="button" data-together-action="profile">인게임 프로필 등록</button>':''}</p>`:''}
-  </main></div></div>`;
+  </main></div>${voiceGuideMarkup()}</div>`;
 }
 async function hydrateBossDetails(rows){
   const targets=(rows||[]).filter(row=>row.category==='보스');
@@ -295,6 +315,17 @@ async function ensureProfile(state,openProfile){if(!state.session?.user)return f
 async function runMutation(task,state,render){if(ui.busy)return;ui.busy=true;ui.error='';render();try{await task();if(ui.mode==='detail')await fetchDetail();else await fetchList();}catch(e){ui.error=displayError(e);}finally{ui.busy=false;render();}}
 export async function togetherAction(button,state,{render,openProfile,login}){
   const action=button.dataset.togetherAction;
+  if(action==='voice-guide-open'){
+    const id=String(button.dataset.channelId||'');
+    if(!/^\d{17,20}$/.test(id))return;
+    voiceGuideChannel=id;render();
+    if(typeof document!=='undefined')document.querySelector('#lac-together .lac-together__voice-guide-close')?.focus({preventScroll:true});
+    return;
+  }
+  if(action==='voice-guide-close'){
+    voiceGuideChannel=null;render();return;
+  }
+
   if(action==='boss-filter'||action==='difficulty-filter'){
     const key=action==='boss-filter'?'bossFilter':'difficultyFilter';
     const valid=action==='boss-filter'?['전체',...BOSS_NAMES]:['전체',...BOSS_DIFFICULTIES];
@@ -316,7 +347,7 @@ export async function togetherAction(button,state,{render,openProfile,login}){
   }
   if(action==='login'){await login();return;}
   if(action==='profile'){await openProfile();return;}
-  if(action==='back'){ui.formDraft={};ui.mode='list';ui.id=null;ui.detail=null;ui.roster=[];ui.rosterLoaded=false;ui.messages=[];ui.error='';render();await refreshTogether(state,render);return;}
+  if(action==='back'){voiceGuideChannel=null;ui.formDraft={};ui.mode='list';ui.id=null;ui.detail=null;ui.roster=[];ui.rosterLoaded=false;ui.messages=[];ui.error='';render();await refreshTogether(state,render);return;}
   if(action==='detail'){ui.mode='detail';ui.id=button.dataset.id;ui.detail=null;ui.roster=[];ui.rosterLoaded=false;ui.messages=[];ui.error='';render();await refreshTogether(state,render);return;}
   if(action==='edit'){
     if(!ui.detail?.is_host||Date.parse(ui.detail.starts_at)<=Date.now())return;
@@ -385,6 +416,7 @@ export async function togetherSubmit(form,state,{render,openProfile}){
 /** Return to the Together entrance on every fresh navigation from a different HUB page.
  * No changes to persistent posts, membership or auth; page-internal Back remains intact. */
 export function resetTogetherLanding(){
+  voiceGuideChannel=null;
   if(voiceRefreshTimer){clearTimeout(voiceRefreshTimer);voiceRefreshTimer=null;}
   ui.mode='list';ui.id=null;ui.detail=null;ui.roster=[];ui.rosterLoaded=false;
   ui.messages=[];ui.chatDraft='';ui.formDraft={};ui.error='';

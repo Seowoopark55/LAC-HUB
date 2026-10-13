@@ -560,3 +560,26 @@
 .lac-together--detail .lac-together__ready-toggle:focus-visible,.lac-together--detail .lac-together__ready-kick:focus-visible{outline:2px solid #c9a97a;outline-offset:2px}
 @media(max-width:560px){.lac-together--detail .lac-together__ready-section .lac-together__ready-list{grid-template-columns:1fr;max-height:174px}.lac-together--detail .lac-together__ready-row{padding:8px}}
 @media(prefers-reduced-motion:reduce){.lac-together--detail .lac-together__ready-row{transition:none}}
+
+/* Together voice joining helper — UI only, no changes to RPC/BOT behavior. */
+.lac-together .lac-together__voice-join{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 20px;border-radius:10px;font-weight:750;cursor:pointer}
+.lac-together__voice-guide{position:fixed;inset:0;z-index:10010;display:grid;place-items:center;padding:20px;isolation:isolate}
+.lac-together__voice-guide-shade{position:absolute;inset:0;border:0;background:rgba(3,9,17,.8);backdrop-filter:blur(5px);cursor:default}
+.lac-together__voice-guide-dialog{position:relative;width:min(440px,100%);max-height:min(90vh,740px);overflow-y:auto;background:linear-gradient(145deg,#122436,#0b1825 75%);border:1px solid rgba(194,162,109,.38);border-radius:17px;box-shadow:0 22px 65px rgba(0,0,0,.55);padding:25px 25px 20px;color:#ecf1f3}
+.lac-together__voice-guide-close{position:absolute;right:15px;top:10px;background:none;color:#b6c1cb;border:0;font-size:26px;line-height:1;padding:6px 10px;cursor:pointer}
+.lac-together__voice-guide-close:hover{color:white}
+.lac-together__voice-guide-eyebrow{color:#bda074;font-size:10px;font-weight:800;letter-spacing:.16em;margin-bottom:6px}
+.lac-together__voice-guide-dialog h3{margin:0 25px 10px 0;font-size:21px;color:#f6f3ed}
+.lac-together__voice-guide-dialog p{font-size:13px;line-height:1.65;color:#bdc9d1;margin:0}
+.lac-together__voice-guide-dialog strong{color:#f1ddbb}
+.lac-together__voice-guide-picture{margin:17px 0;border:1px solid rgba(255,255,255,.12);background:#242a65;border-radius:11px;overflow:hidden}
+.lac-together__voice-guide-picture img{display:block;width:100%;height:auto;object-fit:contain}
+.lac-together__voice-guide-actions{display:flex;gap:9px;align-items:stretch}
+.lac-together__voice-guide-actions a{display:flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;border-radius:9px;padding:12px 11px;font-size:12px;font-weight:750;transition:background .15s,border-color .15s}
+.lac-together__voice-guide-app{flex:1.45;color:#14202c!important;background:#c9ab7f;border:1px solid #c9ab7f}
+.lac-together__voice-guide-app:hover{background:#d7be96}
+.lac-together__voice-guide-web{flex:1;color:#cdd5dc!important;background:#182939;border:1px solid #3c5266}
+.lac-together__voice-guide-web:hover{background:#23394c}
+.lac-together__voice-guide-dialog .lac-together__voice-guide-note{margin-top:13px;font-size:11px;color:#91a0ad;text-align:center}
+@media(max-width:420px){.lac-together__voice-guide{padding:12px}.lac-together__voice-guide-dialog{padding:22px 15px 17px}.lac-together__voice-guide-actions{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.lac-together__voice-guide-actions a{transition:none}}
