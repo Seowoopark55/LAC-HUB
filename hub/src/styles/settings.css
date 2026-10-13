@@ -301,3 +301,24 @@
 .lac-cooking-menu-price small{font-size:10px;color:var(--muted);font-weight:450}
 .lac-settings-clean .lac-cooking-simple-row .runtime-power,.lac-settings-clean .lac-cooking-simple-row .ops-mgmt-action{grid-column:auto;grid-row:auto;justify-self:center}
 @media(max-width:700px){.lac-settings-clean .ops-cooking-guide-grid{grid-template-columns:1fr}.lac-settings-clean .lac-cooking-simple-row{grid-template-columns:minmax(0,1fr) auto auto;gap:7px}.lac-cooking-menu-price{grid-column:1;grid-row:2;text-align:left}.lac-settings-clean .lac-cooking-simple-row .runtime-power{grid-column:2;grid-row:1 / span 2}.lac-settings-clean .lac-cooking-simple-row .ops-mgmt-action{grid-column:3;grid-row:1 / span 2}}
+
+/* Company settings phase 5: restore cooking menu controls and separate guide inputs. */
+.lac-settings-clean .ops-cooking-menu-board>.ops-cooking-menu-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.lac-settings-clean .ops-cooking-menu-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lac-settings-clean .ops-cooking-add{min-height:36px;padding:0 13px;font-size:12px}
+.lac-settings-clean .ops-cooking-guide-grid{align-items:start;grid-template-columns:minmax(190px,1fr) minmax(260px,1.65fr)}
+.lac-settings-clean .ops-cooking-guide-grid label{display:flex;flex-direction:column;gap:7px;min-width:0}
+.lac-settings-clean .ops-cooking-guide-grid label>span{color:var(--ops-title);font-size:12px}
+.lac-settings-clean .ops-cooking-guide-grid input,
+.lac-settings-clean .ops-cooking-guide-grid textarea{box-sizing:border-box;width:100%;max-width:100%;font-size:13px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--ops-title)}
+.lac-settings-clean .ops-cooking-guide-grid input{height:42px;min-height:42px}
+.lac-settings-clean .ops-cooking-guide-grid textarea{height:auto;min-height:82px;line-height:1.55;resize:vertical}
+.lac-settings-clean .ops-cooking-guide-grid small{font-size:11px;color:var(--ops-sub);line-height:1.35}
+.lac-settings-clean .ops-cooking-menu-count{font-size:11px}
+@media(max-width:700px){
+  .lac-settings-clean .ops-cooking-guide-grid{grid-template-columns:1fr;gap:14px}
+  .lac-settings-clean .ops-cooking-menu-board>.ops-cooking-menu-head{flex-wrap:wrap}
+  .lac-settings-clean .ops-cooking-menu-tools{width:100%;justify-content:space-between}
+}
