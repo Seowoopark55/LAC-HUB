@@ -1,0 +1,11 @@
+{
+  "hub/scripts/axe-one-brand-check.mjs": "3edd8828b1850b3d4e758bd49b77ff23668678ef4fc2e629cf368821dff63c0a",
+  "hub/scripts/company-delete-platform-scale-check.mjs": "deab7763656c4950357f5755863bd4badea6e681ae816f3bb79b12f38019580c",
+  "hub/scripts/guided-setup-category-layout-check.mjs": "ef0ec86fe93f16b9ee83cac761dfb48338a5aed05e948508e684c025d5bc0227",
+  "hub/scripts/integrated-ui-check.mjs": "3680a6f930b672ee0e20b1f0d69a9decd8111d9a3f25a941d105b316cba9f1fe",
+  "hub/scripts/live-guided-setup-check.mjs": "88808ddffb2dfd1e7397504211530957bdb39610a1a886472cefa160400be176",
+  "hub/scripts/onboarding-catalog-check.mjs": "41ace1779ea52b673c9e3e3901bf38e97a9faf183aec8f862c20f05bd7045b2a",
+  "hub/scripts/onboarding-flow-integrity-check.mjs": "d566e60643071084d3d50b2f4cd93726be99ed33a8eeb791aa052ab8bb12b393",
+  "hub/src/main.js": "1871020d0c3035ef2d588e7e11afbb42d6569a2c7b23129a81253bf209c28b58",
+  "hub/src/ui/render.js": "736030d36ebdd40c67fb9c262b28a8f98387f9a97e42089c203aeb02f5268cca"
+}

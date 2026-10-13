@@ -20,7 +20,7 @@ if(!render.includes('<strong>LAC HUB</strong>') || !render.includes("platformScr
 if(!main.includes('대표·관리자에게 멤버 등록 요청')) failures.push('registration copy is not company management');
 if(!/schema:\s*['\"]axe_product['\"]/.test(supabase)) failures.push('internal Supabase schema changed unexpectedly');
 if(!server.includes("'Accept-Profile': 'axe_product'")) failures.push('internal API schema profile changed unexpectedly');
-if(!html.includes('/icons/lac-one.svg')) failures.push('legacy browser icon is still linked');
+if(!html.includes('href="/hub/mark.png"') || !fs.existsSync(path.join(root, 'public/hub/mark.png'))) failures.push('LAC HUB browser icon path or asset is missing');
 if(!read('src/styles.css').includes("url('/brand/lac-one-shell-clean.png')")) failures.push('original-style cleaned side wallpaper is not active');
 if(!read('src/styles/access-gate.css').includes("url('/brand/lac-one-login-calm.png')")) failures.push('original-style cleaned login wallpaper is not active');
 if(failures.length){console.error('LAC HUB BRAND CHECK: FAIL');for(const f of failures)console.error(' - '+f);process.exit(1);}

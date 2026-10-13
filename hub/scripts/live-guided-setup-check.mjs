@@ -22,6 +22,7 @@ check(register.includes('requireCompanyAdmin')&&register.includes('getCompanyDis
 check(register.includes('findSelectedRoleMembers')&&register.includes('selectedIds'),'member IDs are revalidated against Discord role server-side');
 check(server.includes('insertCompanyMembershipRows')&&server.includes("Authorization: `Bearer ${token}`"),'member inserts keep user token and DB RLS');
 check(members.includes('Server Members Intent')&&members.includes('role_id'),'member endpoint supports role filtering and intent guidance');
-check(main.includes("if(!hasUnifiedPass(state)){setError('회사 관리 이용권 승인 후 초기설정을 진행할 수 있습니다.');return;}")&&render.includes('renderCompanySetupRequired(state)'),'new company waits for pass approval before live guide');
+const openGuideBranch=main.split("if(action==='open-setup-guide'){")[1]?.split("if(action==='setup-guide-check-sync'")[0] || '';
+check(/if\(!hasUnifiedPass\(state\)\)\{setError\('[^']*승인[^']*초기설정[^']*'\);return;\}/.test(openGuideBranch) && openGuideBranch.includes('if(!isCurrentCompanyOwner())') && render.includes('renderCompanySetupRequired(state)'),'new company requires pass approval and OWNER inside the live guide action');
 if(process.exitCode)process.exit(process.exitCode);
 console.log('Live Guided Setup: 15/15 PASS');

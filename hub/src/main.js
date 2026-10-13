@@ -856,6 +856,7 @@ function createSetupGuideState(step = 0){
     step:Math.max(0,Math.min(6,Number(step||0))),
     adminRoleId:String(cfg.admin_role_id||''),
     memberRoleId:String(cfg.member_role_id||''),
+    commandChannelId:String(cfg.command_channel_id||''),
     modules:moduleMap,
     channelMode:'quick',
     categoryName:'LAC HUB',
@@ -892,7 +893,7 @@ function savedSetupGuideProgress(){
 function resolveSetupGuideResumeStep(requestedStep = 0){
   let step=Math.max(0,Math.min(6,Number(requestedStep||0)));
   if(state.discordConnection?.status!=='connected'||state.onboardingStatus?.catalog_ready===false) return 1;
-  if(!state.discordCompanyConfig?.admin_role_id||!state.discordCompanyConfig?.member_role_id) return 2;
+  if(!state.discordCompanyConfig?.admin_role_id||!state.discordCompanyConfig?.member_role_id||!state.discordCompanyConfig?.command_channel_id) return 2;
   if(String(state.onboardingStatus?.status||'')==='onboarding'&&String(state.onboardingStatus?.current_step||'')==='modules') step=Math.max(step,3);
   return step;
 }
@@ -940,19 +941,36 @@ async function loadSetupGuideMembers(){
   render();
 }
 
+function validatedCommandChannelId(value,{required=false}={}){
+  const channelId=String(value||'').trim();
+  if(!channelId){
+    if(required)throw new Error('BOT 명령 채널을 선택해 주세요.');
+    return null;
+  }
+  const guildId=String(state.discordConnection?.guild_id||'');
+  const known=(state.discordChannels||[]).find(channel=>
+    String(channel.channel_id)===channelId && String(channel.guild_id)===guildId
+    && channel.is_text_based===true && [0,5].includes(Number(channel.channel_type)));
+  // Preserve a previously configured channel while a catalog refresh is pending.
+  if(!known && channelId!==String(state.discordCompanyConfig?.command_channel_id||''))
+    throw new Error('연결된 Discord 서버의 일반 텍스트 채널을 선택해 주세요.');
+  return channelId;
+}
+
 async function saveSetupGuideRoles(){
   if(!state.setupGuide) return;
   const adminRoleId=String(state.setupGuide.adminRoleId||'');
   const memberRoleId=String(state.setupGuide.memberRoleId||'');
   if(!adminRoleId||!memberRoleId) throw new Error('관리자 역할과 일반 멤버 역할을 모두 선택해 주세요.');
+  const commandChannelId=validatedCommandChannelId(state.setupGuide.commandChannelId,{required:true});
   await saveDiscordCompanyConfig(state.companyId,{
     notification_channel_id:state.discordCompanyConfig?.notification_channel_id||null,
-    command_channel_id:state.discordCompanyConfig?.command_channel_id||null,
+    command_channel_id:commandChannelId,
     admin_role_id:adminRoleId,
     member_role_id:memberRoleId,
   },state.session.user.id);
   await loadBaseCompanyData();
-  state.setupGuide={...createSetupGuideState(3),modules:{...(state.setupGuide?.modules||{})},adminRoleId,memberRoleId};
+  state.setupGuide={...createSetupGuideState(3),modules:{...(state.setupGuide?.modules||{})},adminRoleId,memberRoleId,commandChannelId};
 }
 
 async function saveSetupGuideModules(){
@@ -2361,16 +2379,18 @@ function assertOnboardingRoles(data){
   if(discordCatalogPending()) throw new Error('Discord 역할·채널 정보를 불러오는 중입니다. 잠시만 기다려 주세요.');
   if(!String(data.get('admin_role_id')||'').trim()) throw new Error('관리자 역할을 선택해 주세요.');
   if(!String(data.get('member_role_id')||'').trim()) throw new Error('일반 멤버 역할을 선택해 주세요.');
+  if(!String(data.get('command_channel_id')||'').trim()) throw new Error('BOT 명령 채널을 선택해 주세요.');
 }
 
 async function saveBasicSettingsData(data,{requireOnboardingRoles=false}={}){
   if(requireOnboardingRoles) assertOnboardingRoles(data);
+  const commandChannelId=validatedCommandChannelId(data.get('command_channel_id'),{required:requireOnboardingRoles});
   const companyName=String(data.get('company_name')||'').trim();
   if(!companyName) throw new Error('회사 이름을 입력해 주세요.');
   if(companyName!==(state.companies.find(c=>c.id===state.companyId)?.name||'')) await updateCompanyName(state.companyId,companyName);
   let settings={...(state.companySettings?.settings||{})};
   await updateCompanySettings(state.companyId,{locale:state.companySettings?.locale||'ko-KR',timezone:state.companySettings?.timezone||'Asia/Seoul',settings},state.session.user.id);
-  await saveDiscordCompanyConfig(state.companyId,{notification_channel_id:state.discordCompanyConfig?.notification_channel_id||null,command_channel_id:state.discordCompanyConfig?.command_channel_id||null,admin_role_id:String(data.get('admin_role_id')||'')||null,member_role_id:String(data.get('member_role_id')||'')||null},state.session.user.id);
+  await saveDiscordCompanyConfig(state.companyId,{notification_channel_id:state.discordCompanyConfig?.notification_channel_id||null,command_channel_id:commandChannelId,admin_role_id:String(data.get('admin_role_id')||'')||null,member_role_id:String(data.get('member_role_id')||'')||null},state.session.user.id);
 }
 
 async function saveModuleSettingsData(form,data){
@@ -3251,7 +3271,7 @@ async function handlePrimaryClick(event) {
     });return;
   }
   if(action==='setup-guide-skip-members'){if(!state.setupGuide)return;state.setupGuide.memberImportDone=true;state.setupGuide.memberImportSkipped=true;await withMutation(async()=>{await persistSetupGuideProgress(6);});return;}
-  if(action==='setup-guide-finish'){if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 완료할 수 있습니다.');return;}await withMutation(async()=>{await persistSetupGuideProgress(6,{completed:true});state.setupGuide=null;state.modal=null;navigatePrimaryScreen('dashboard',{replace:true});localStorage.setItem('axe_product_page','dashboard');setNotice('초기설정이 완료됐습니다. 대시보드에서 현재 운영 상태를 확인하세요.');});return;}
+  if(action==='setup-guide-finish'){if(!state.setupGuide||!isCurrentCompanyOwner()){setError('초기설정은 회사 OWNER만 완료할 수 있습니다.');return;}if(!state.discordCompanyConfig?.admin_role_id||!state.discordCompanyConfig?.member_role_id||!state.discordCompanyConfig?.command_channel_id){state.setupGuide.step=2;setError('Discord 역할과 BOT 명령 채널을 먼저 저장해 주세요.');render();return;}await withMutation(async()=>{await persistSetupGuideProgress(6,{completed:true});state.setupGuide=null;state.modal=null;navigatePrimaryScreen('dashboard',{replace:true});localStorage.setItem('axe_product_page','dashboard');setNotice('초기설정이 완료됐습니다. 대시보드에서 현재 운영 상태를 확인하세요.');});return;}
   if(action==='open-setup-demo'){state.setupDemo=createSetupDemoState();state.modal={type:'setup-demo'};render();return;}
   if(action==='setup-demo-connect'){if(!state.setupDemo)return;state.setupDemo.connected=true;render();return;}
   if(action==='setup-demo-next'){if(!state.setupDemo)return;if(state.setupDemo.step===1&&!state.setupDemo.connected){state.setupDemo.connected=true;render();return;}state.setupDemo.step=Math.min(6,Number(state.setupDemo.step||0)+1);render();return;}

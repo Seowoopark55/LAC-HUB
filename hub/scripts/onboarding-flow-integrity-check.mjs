@@ -17,7 +17,8 @@ expect('company create retries recover by the same slug before another insert',a
 expect('company create accepts scalar/object/array RPC result shapes',api.includes("if (typeof data === 'string')")&&api.includes('if (Array.isArray(data))')&&api.includes('data.id || data.company_id'));
 expect('company create verifies canonical company row after RPC',api.includes('findCompanyById(returnedId)')&&api.includes('findCompanyBySlug(internalSlug)'));
 expect('ambiguous old company result error removed',!main.includes('생성된 회사 정보를 받지 못했습니다.'));
-expect('company create success message is customer-readable',main.includes('회사를 만들었습니다. 콘텐츠를 둘러보고 필요한 이용권을 신청해 주세요.'));
+const createCompanySubmit=main.split("if(type==='create-company'){")[1]?.split("if(type==='reconnect-discord')")[0] || '';
+expect('company create success stays in submit branch and returns to HUB',createCompanySubmit.includes("navigatePrimaryScreen('hub')") && /setNotice\('회사를 만들었습니다\.[^']*이용 신청을 진행해 주세요\.'\)/.test(createCompanySubmit));
 expect('company create unresolved state gives recovery instruction',api.includes('회사 등록 상태를 확인하지 못했습니다. 새로고침 후 회사 목록을 확인해 주세요.'));
 
 expect('guided setup uses one shared resume resolver',main.includes('function resolveSetupGuideResumeStep(requestedStep = 0)'));
