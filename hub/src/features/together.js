@@ -8,7 +8,7 @@ const BOSS_NAMES=['멧돼지','화학자','메이드'];
 const BOSS_DIFFICULTIES=['쉬움','보통','어려움'];
 const DURATIONS=[{value:30,label:'30분'},{value:60,label:'1시간'},{value:120,label:'2시간'},{value:240,label:'4시간'},{value:360,label:'6시간'}];
 const TOGETHER_PAGE_SIZE=6; // PC 3 columns × 2 rows; pagination is invisible until post 7.
-const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',page:1,total:0,items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0};
+const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',page:1,total:0,items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0,voice:null};
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
 // Show the real end deadline as a live countdown. This is presentation only:
@@ -154,6 +154,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   const requests=pending.length?`<section class="lac-together__post-section lac-together__request-section"><div class="lac-together__section-heading"><h3>참가 신청 대기</h3><span>${pending.length}명</span></div><div class="lac-together__requests">${pending.map(r=>`<div class="lac-together__request"><span><b>${esc(r.nickname)}</b><small>승인 대기</small></span>${active?`<span class="lac-together__request-actions"><button type="button" data-together-action="approve" data-user-id="${esc(r.user_id)}" ${ui.busy?'disabled':''}>승인</button><button type="button" data-together-action="reject" data-user-id="${esc(r.user_id)}" ${ui.busy?'disabled':''}>거절</button></span>`:''}</div>`).join('')}</div></section>`:'';
   const people=p.can_chat?`<ol class="lac-together__people">${roster.map(renderPartyMember).join('')}</ol><p class="lac-together__privacy"><span aria-hidden="true">♧</span> 전화번호는 등록된 인게임 번호이며 모집자와 확정 참가자에게만 표시됩니다.</p>`:
     `<div class="lac-together__private-note"><span aria-hidden="true">♧</span><strong>파티원 정보는 비공개입니다.</strong><p>참가가 확정되면 닉네임과 인게임 연락처를 확인할 수 있습니다.</p></div>`;
+  const voice=p.can_chat?`<section class="lac-together__post-section lac-together__voice" aria-label="파티 음성채널"><div class="lac-together__section-heading"><h3>Discord 파티 음성</h3><span>승인된 파티원 전용</span></div>${ui.voice?.status==='active'&&/^\d{17,20}$/.test(String(ui.voice.channel_id||''))?`<p>음성방이 열려 있습니다. 파티원만 접속할 수 있습니다.</p><a class="lac-together__primary" href="https://discord.com/channels/1559104034798051328/${esc(ui.voice.channel_id)}" target="_blank" rel="noopener noreferrer">Discord 음성 참여 ↗</a>`:ui.voice?.status==='pending'?'<p>음성채널을 생성하고 있습니다. 잠시 후 다시 확인해 주세요.</p>':isHost?`<p>모집자가 음성방을 만들 수 있습니다. 모집글이 종료되어도 이용자가 있으면 유지됩니다.</p><button type="button" class="lac-together__primary" data-together-action="voice-create" ${ui.busy?'disabled':''}>비공개 음성채널 만들기</button>`:'<p>모집자가 음성채널을 생성하면 이곳에 참여 버튼이 나타납니다.</p>'}</section>`:'';
   const chat=p.can_chat?`<div class="lac-together__messages" aria-label="참가자 채팅 메시지">${ui.messages.length?ui.messages.map(m=>`<div class="lac-together__message${m.mine?' is-mine':''}"><span>${esc(m.nickname)} · ${esc(when(m.created_at))}</span><p>${esc(m.body)}</p></div>`).join(''):empty('아직 메시지가 없습니다. 먼저 인사해 보세요.')}</div>${canMessage?`<form data-together-form="chat" class="lac-together__chat-form"><input type="text" name="body" maxlength="500" placeholder="파티원에게 메시지 보내기" value="${esc(ui.chatDraft)}" required aria-label="채팅 메시지"><button class="lac-together__primary" type="submit" ${ui.busy?'disabled':''}>전송</button></form>`:'<p class="lac-together__tip">종료된 활동입니다. 채팅은 읽기 전용입니다.</p>'}`:
     `<div class="lac-together__private-note lac-together__private-note--chat"><span aria-hidden="true">♧</span><strong>참가자 전용 대화 공간</strong><p>모집자와 참가가 확정된 사람만 채팅을 읽고 작성할 수 있습니다.</p></div>`;
   // All categories use the same app-style detail renderer, privacy rules and countdown.
@@ -178,7 +179,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
         ${participantAction?`<div class="lac-together__raid-actions">${participantAction}${p.my_status==='pending'?'<span class="lac-together__tip">모집자 승인 대기 중</span>':''}</div>`:''}
       </header>
       <div class="lac-together__post-body lac-together__raid-deck">
-        <div class="lac-together__post-side"><section class="lac-together__post-section"><div class="lac-together__section-heading"><h3>파티원 정보 <small>PARTY ROSTER</small></h3><span>${confirmed} / ${capacity}명</span></div>${people}</section>${requests}</div>
+        <div class="lac-together__post-side"><section class="lac-together__post-section"><div class="lac-together__section-heading"><h3>파티원 정보 <small>PARTY ROSTER</small></h3><span>${confirmed} / ${capacity}명</span></div>${people}</section>${requests}${voice}</div>
         <section class="lac-together__post-section lac-together__post-chat"><div class="lac-together__section-heading"><h3>파티 채팅 <small>PARTY LOUNGE</small></h3><span>${p.can_chat?'참가자 전용':'비공개'}</span></div>${chat}</section>
       </div>
     </article></div>`;
@@ -219,6 +220,7 @@ async function fetchList(){
 }
 async function fetchDetail(){if(!ui.id)return;const data=await rpc('get_post',{p_id:ui.id});ui.detail=data||null;
   if(ui.detail)await hydrateBossDetails([ui.detail]);
+  ui.voice = data?.can_chat ? await rpc('voice_status',{p_post_id:ui.id}).catch(()=>null) : null;
   ui.roster=[];ui.rosterLoaded=false;
   if(data?.can_chat){
     const [messages,roster]=await Promise.allSettled([
@@ -309,12 +311,13 @@ export async function togetherAction(button,state,{render,openProfile,login}){
     if(!await ensureProfile(state,openProfile)){render();return;}
     ui.formDraft={};ui.mode='create';ui.error='';render();return;
   }
-  if(!ui.id||!['apply','approve','reject','withdraw','finish','delete'].includes(action))return;
+  if(!ui.id||!['apply','approve','reject','withdraw','finish','delete','voice-create'].includes(action))return;
   if(!await ensureProfile(state,openProfile)){render();return;}
   if(action==='delete'&&!window.confirm('모집글과 참가 신청, 채팅 기록이 즉시 삭제됩니다. 복구할 수 없습니다. 삭제할까요?'))return;
   if(action==='finish'&&!window.confirm('활동을 지금 종료할까요? 종료 후 채팅은 읽기 전용이 됩니다.'))return;
   if(action==='withdraw'&&!window.confirm('참가 신청 또는 확정 참가를 취소할까요?'))return;
   await runMutation(async()=>{
+    if(action==='voice-create')await rpc('voice_create',{p_post_id:ui.id});
     if(action==='apply')await rpc('apply',{p_post_id:ui.id});
     if(action==='approve'||action==='reject')await rpc('review',{p_post_id:ui.id,p_user_id:button.dataset.userId,p_accept:action==='approve'});
     if(action==='withdraw')await rpc('withdraw',{p_post_id:ui.id});
