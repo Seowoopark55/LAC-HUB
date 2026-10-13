@@ -170,7 +170,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   </section>`:'';
   const people=p.can_chat?`<ol class="lac-together__people">${roster.map(renderPartyMember).join('')}</ol><p class="lac-together__privacy"><span aria-hidden="true">♧</span> 전화번호는 등록된 인게임 번호이며 모집자와 확정 참가자에게만 표시됩니다.</p>`:
     `<div class="lac-together__private-note"><span aria-hidden="true">♧</span><strong>파티원 정보는 비공개입니다.</strong><p>참가가 확정되면 닉네임과 인게임 연락처를 확인할 수 있습니다.</p></div>`;
-  const voice=p.can_chat?`<section class="lac-together__post-section lac-together__voice lac-together__voice--compact" aria-label="파티 음성채널">${ui.voice?.status==='active'&&/^\d{17,20}$/.test(String(ui.voice.channel_id||''))?`<div class="lac-together__voice-compact-head"><span class="lac-together__voice-compact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13v-1a9 9 0 0 1 18 0v1"/><rect x="2.5" y="12" width="4" height="8" rx="2"/><rect x="17.5" y="12" width="4" height="8" rx="2"/></svg></span><span class="lac-together__voice-compact-copy"><strong>음성대화방 생성 완료</strong><small>Discord 앱을 확인하세요</small></span><a class="lac-together__voice-compact-open" href="discord://-/channels/1559104034798051328/${esc(ui.voice.channel_id)}" aria-label="Discord 앱에서 음성채널 화면 보기">Discord에서 보기 <span aria-hidden="true">↗</span></a></div><p class="lac-together__voice-compact-note">Discord 화면에서 <strong>‘음성 채널 참가하기’</strong>를 직접 눌러주세요.</p><div class="lac-together__voice-compact-links"><button type="button" class="lac-together__voice-copy" data-together-action="voice-link-copy" data-channel-id="${esc(ui.voice.channel_id)}">링크 복사</button><a class="lac-together__voice-web-link" href="https://discord.com/channels/1559104034798051328/${esc(ui.voice.channel_id)}" target="_blank" rel="noopener noreferrer">웹에서 보기</a></div>`:ui.voice?.status==='pending'?'<div class="lac-together__voice-compact-state">음성대화방 생성 중 · 잠시 후 확인해 주세요.</div>':isHost?`<div class="lac-together__voice-compact-head"><span class="lac-together__voice-compact-icon" aria-hidden="true">🎧</span><span class="lac-together__voice-compact-copy"><strong>파티 음성대화</strong><small>승인된 파티원 전용</small></span><button type="button" class="lac-together__primary lac-together__voice-compact-create" data-together-action="voice-create" ${ui.busy?'disabled':''}>음성방 만들기</button></div>`:'<div class="lac-together__voice-compact-state">모집자가 음성방을 만들면 이곳에서 확인할 수 있어요.</div>'}</section>`:'';
+  const voice=p.can_chat?`<section class="lac-together__post-section lac-together__voice lac-together__voice--compact" aria-label="파티 음성채널">${ui.voice?.status==='active'&&/^\d{17,20}$/.test(String(ui.voice.channel_id||''))?`<div class="lac-together__voice-compact-head"><span class="lac-together__voice-compact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13v-1a9 9 0 0 1 18 0v1"/><rect x="2.5" y="12" width="4" height="8" rx="2"/><rect x="17.5" y="12" width="4" height="8" rx="2"/></svg></span><span class="lac-together__voice-compact-copy"><strong>음성대화방 생성 완료</strong><small>Discord 앱을 확인하세요</small></span><button type="button" class="lac-together__voice-compact-open" data-together-action="voice-guide-open" data-channel-id="${esc(ui.voice.channel_id)}" aria-label="Discord 음성방 입장 안내 열기">입장 안내 <span aria-hidden="true">→</span></button></div><p class="lac-together__voice-compact-note">Discord 화면에서 <strong>‘음성 채널 참가하기’</strong>를 직접 눌러주세요.</p><div class="lac-together__voice-compact-links"><button type="button" class="lac-together__voice-copy" data-together-action="voice-link-copy" data-channel-id="${esc(ui.voice.channel_id)}">링크 복사</button><a class="lac-together__voice-web-link" href="https://discord.com/channels/1559104034798051328/${esc(ui.voice.channel_id)}" target="_blank" rel="noopener noreferrer">웹에서 보기</a></div>`:ui.voice?.status==='pending'?'<div class="lac-together__voice-compact-state">음성대화방 생성 중 · 잠시 후 확인해 주세요.</div>':isHost?`<div class="lac-together__voice-compact-head"><span class="lac-together__voice-compact-icon" aria-hidden="true">🎧</span><span class="lac-together__voice-compact-copy"><strong>파티 음성대화</strong><small>승인된 파티원 전용</small></span><button type="button" class="lac-together__primary lac-together__voice-compact-create" data-together-action="voice-create" ${ui.busy?'disabled':''}>음성방 만들기</button></div>`:'<div class="lac-together__voice-compact-state">모집자가 음성방을 만들면 이곳에서 확인할 수 있어요.</div>'}</section>`:'';
   const chat=p.can_chat?`<div class="lac-together__messages" aria-label="참가자 채팅 메시지">${ui.messages.length?ui.messages.map(m=>`<div class="lac-together__message${m.mine?' is-mine':''}"><span>${esc(m.nickname)} · ${esc(when(m.created_at))}</span><p>${esc(m.body)}</p></div>`).join(''):empty('아직 메시지가 없습니다. 먼저 인사해 보세요.')}</div>${canMessage?`<form data-together-form="chat" class="lac-together__chat-form"><input type="text" name="body" maxlength="500" placeholder="파티원에게 메시지 보내기" value="${esc(ui.chatDraft)}" required aria-label="채팅 메시지"><button class="lac-together__primary" type="submit" ${ui.busy?'disabled':''}>전송</button></form>`:'<p class="lac-together__tip">종료된 활동입니다. 채팅은 읽기 전용입니다.</p>'}`:
     `<div class="lac-together__private-note lac-together__private-note--chat"><span aria-hidden="true">♧</span><strong>참가자 전용 대화 공간</strong><p>모집자와 참가가 확정된 사람만 채팅을 읽고 작성할 수 있습니다.</p></div>`;
   // All categories use the same app-style detail renderer, privacy rules and countdown.
@@ -202,20 +202,16 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
 
 }
 function voiceGuideMarkup(){
-  if(!voiceGuideChannel||!/^\d{17,20}$/.test(voiceGuideChannel))return '';
-  return `<div class="lac-together__voice-guide" role="presentation">
-    <button class="lac-together__voice-guide-shade" type="button" data-together-action="voice-guide-close" aria-label="안내 닫기"></button>
-    <section role="dialog" aria-modal="true" aria-labelledby="lac-voice-guide-heading" aria-describedby="lac-voice-guide-description" class="lac-together__voice-guide-dialog lac-together__voice-guide-dialog--simple">
+  if(ui.mode!=='detail'||!voiceGuideChannel||!/^\d{17,20}$/.test(voiceGuideChannel))return '';
+  return `<div class="lac-together__voice-guide lac-together__voice-guide--compact" role="presentation">
+    <button type="button" class="lac-together__voice-guide-shade" data-together-action="voice-guide-close" aria-label="안내 닫기"></button>
+    <section class="lac-together__voice-guide-dialog lac-together__voice-guide-dialog--compact" role="dialog" aria-modal="true" aria-labelledby="lac-voice-guide-heading" aria-describedby="lac-voice-guide-description">
       <button type="button" class="lac-together__voice-guide-close" data-together-action="voice-guide-close" aria-label="닫기">×</button>
-      <span class="lac-together__voice-guide-eyebrow">PARTY VOICE</span>
-      <h3 id="lac-voice-guide-heading">Discord 음성 참가</h3>
-      <p id="lac-voice-guide-description" class="lac-together__voice-guide-lead">Discord 앱에서 직접 입장해 주세요.</p>
-      <ol class="lac-together__voice-guide-steps">
-        <li><span class="lac-together__voice-guide-step-no">01</span><span><strong>Discord 앱에서 파티방 선택</strong><small>LAC HUB 서버 → 함께하기 · 음성파티 → 해당 파티방</small></span></li>
-        <li><span class="lac-together__voice-guide-step-no">02</span><span><strong>Discord 화면의 ‘음성 채널 참가하기’ 클릭</strong><small>이 버튼을 눌러야 음성에 연결됩니다.</small></span></li>
-      </ol>
-      <p class="lac-together__voice-guide-footnote">이 안내창은 음성을 연결하지 않아요. 별도 초대 알림도 오지 않습니다.</p>
-      <button type="button" class="lac-together__voice-guide-done" data-together-action="voice-guide-close">알겠어요</button>
+      <div class="lac-together__voice-guide-visual" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13v-1a8.5 8.5 0 0 1 17 0v1"/><rect x="2.5" y="12" width="4.5" height="8" rx="2"/><rect x="17" y="12" width="4.5" height="8" rx="2"/></svg></div>
+      <h3 id="lac-voice-guide-heading">Discord 앱을 확인해 주세요</h3>
+      <p id="lac-voice-guide-description" class="lac-together__voice-guide-explain">LAC HUB 서버의 파티 음성방에서<br><strong>‘음성 채널 참가하기’</strong>를 직접 눌러주세요.</p>
+      <p class="lac-together__voice-guide-hint">앱 창이 보이지 않으면 Discord를 직접 열어주세요.<br>자동 연결이나 별도 알림은 오지 않습니다.</p>
+      <button type="button" class="lac-together__voice-guide-done" data-together-action="voice-guide-close">확인했어요</button>
     </section>
   </div>`;
 }
@@ -226,7 +222,7 @@ export function renderTogetherPage(state){const {loggedIn,profile}=controlState(
   ${ui.mode==='list'?`<div class="lac-together__list-heading"><h2>모집 목록</h2><span>총 ${ui.total}개의 모집글</span></div>`:''}
   ${['create','edit'].includes(ui.mode)?renderCreate():ui.mode==='detail'?renderDetail(state):`<div class="lac-together__grid">${ui.loading&&!ui.items.length?empty('모집글을 불러오는 중입니다…'):listCards()}</div>${renderPagination()}`}
   ${ui.mode==='list'?`<p class="lac-together__foot">모집 목록은 로그인 없이 볼 수 있습니다. 모집·참가·채팅에는 Discord 로그인과 인게임 프로필이 필요합니다.${!loggedIn?' <button type="button" data-together-action="login">Discord 로그인</button>':!profile?' <button type="button" data-together-action="profile">인게임 프로필 등록</button>':''}</p>`:''}
-  </main></div></div>`;
+  </main></div>${ui.mode==='detail'?voiceGuideMarkup():''}</div>`;
 }
 async function hydrateBossDetails(rows){
   const targets=(rows||[]).filter(row=>row.category==='보스');

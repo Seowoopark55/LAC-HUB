@@ -675,3 +675,17 @@
 .lac-together--detail .lac-together__voice--compact .lac-together__voice-copy:hover,.lac-together--detail .lac-together__voice--compact .lac-together__voice-web-link:hover{background:none;color:#e9d9bf}
 .lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-state{font-size:11px;color:#b8c8d3;padding:3px 0}
 @media(max-width:440px){.lac-together--detail .lac-together__post--raid .lac-together__voice--compact{padding:10px 12px}.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-head{flex-wrap:wrap}.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open,.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-create{margin-left:44px}.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-note{margin-top:5px!important}}
+
+/* Compact voice guide modal: always rendered on deliberate entry help action. */
+.lac-together .lac-together__voice-compact-open{display:inline-flex;justify-content:center;align-items:center;gap:7px;cursor:pointer;font:inherit;white-space:nowrap}
+.lac-together__voice-guide--compact{z-index:11000}
+.lac-together__voice-guide--compact .lac-together__voice-guide-dialog--compact{width:min(400px,100%);padding:30px 26px 22px;overflow:visible;text-align:center;background:linear-gradient(145deg,#172a3c,#0d1a29);border:1px solid rgba(202,174,132,.4);box-shadow:0 24px 72px rgba(0,0,0,.65)}
+.lac-together__voice-guide--compact .lac-together__voice-guide-visual{display:grid;place-items:center;width:58px;height:58px;margin:1px auto 16px;border-radius:17px;color:#dfbf8b;background:linear-gradient(135deg,#283c50,#192b3d);border:1px solid rgba(222,190,139,.2)}
+.lac-together__voice-guide--compact .lac-together__voice-guide-visual svg{width:31px;height:31px}
+.lac-together__voice-guide--compact h3{margin:0 14px 12px;font-size:19px;line-height:1.4;color:#f3f4f5;word-break:keep-all}
+.lac-together__voice-guide--compact .lac-together__voice-guide-explain{margin:0;font-size:13px;line-height:1.85;color:#cbd5dd;word-break:keep-all}
+.lac-together__voice-guide--compact .lac-together__voice-guide-explain strong{color:#f3d7ad}
+.lac-together__voice-guide--compact .lac-together__voice-guide-hint{margin:17px 0 20px;padding:12px;border-radius:9px;background:rgba(255,255,255,.045);font-size:11px;line-height:1.7;color:#9cadbb;word-break:keep-all}
+.lac-together__voice-guide--compact .lac-together__voice-guide-done{width:100%;min-height:43px}
+.lac-together__voice-guide--compact .lac-together__voice-guide-close{top:11px;right:12px}
+@media(max-width:420px){.lac-together__voice-guide--compact .lac-together__voice-guide-dialog--compact{padding:25px 17px 18px}.lac-together__voice-guide--compact h3{font-size:18px}}
