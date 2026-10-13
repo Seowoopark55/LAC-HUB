@@ -1232,6 +1232,7 @@ function render() {
   renderPlayerProfilePortal();
   if(accountPortalOpen)renderAccountPortal();
   suppressBrowserFormHistory();
+  restoreModuleSelections();
 }
 // Phase 6: Keep confirmation above the existing HUB modal without replacing its DOM.
 // A cancelled/escaped dialog must never reach the destructive API call.
@@ -2409,6 +2410,53 @@ async function saveBasicSettingsData(data,{requireOnboardingRoles=false}={}){
   await saveDiscordCompanyConfig(state.companyId,{notification_channel_id:state.discordCompanyConfig?.notification_channel_id||null,command_channel_id:commandChannelId,admin_role_id:String(data.get('admin_role_id')||'')||null,member_role_id:String(data.get('member_role_id')||'')||null},state.session.user.id);
 }
 
+// Keep unsaved Discord channel choices while ON/OFF actions re-render the settings page.
+let pendingModuleSelections = null;
+function captureModuleSelections(){
+  const form=root.querySelector('form[data-form="settings-modules"]');
+  if(!form)return null;
+  return Object.fromEntries([...form.querySelectorAll('select[name]')].map(el=>[el.name,el.value]));
+}
+function restoreModuleSelections(){
+  if(!pendingModuleSelections || state.page!=='settings' || state.settingsTab!=='modules')return;
+  const form=root.querySelector('form[data-form="settings-modules"]');
+  if(!form)return;
+  for(const [name,value] of Object.entries(pendingModuleSelections)){
+    const el=form.elements.namedItem(name);
+    if(el && [...el.options].some(opt=>opt.value===value))el.value=value;
+  }
+}
+function moduleSettingsDirty(){
+  const form=root.querySelector('form[data-form="settings-modules"]');
+  if(!form)return false;
+  return [...form.querySelectorAll('select[name]')].some(el=>{
+    const data=new FormData(form);const name=el.name;
+    if(name==='ai_channel_id')return String(data.get(name)||'')!==String(state.discordCompanyConfig?.ai_channel_id||'');
+    const match=/^module_(.+)_(status_channel_id|three_channel_id|ten_channel_id|record_channel_id|channel_id|order_channel_id|account_lookup_channel_id)$/.exec(name);
+    if(!match)return false;
+    return String(data.get(name)||'')!==String(moduleRow(state,match[1])?.settings?.[match[2]]||'');
+  });
+}
+async function confirmModuleSettingsNavigation(){
+  if(!moduleSettingsDirty())return true;
+  if(window.confirm('저장하지 않은 채널 설정이 있습니다. 지금 저장하고 이동할까요?')){
+    const form=root.querySelector('form[data-form="settings-modules"]');
+    if(!form)return false;
+    try{
+      await saveModuleSettingsData(form,new FormData(form));
+      await loadBaseCompanyData();
+      pendingModuleSelections=null;
+      setNotice('기능 채널 설정을 저장했습니다.');
+      return true;
+    }catch(error){setError(error);return false;}
+  }
+  if(window.confirm('저장하지 않은 변경 사항을 버리고 이동할까요?')){
+    pendingModuleSelections=null;
+    return true;
+  }
+  return false;
+}
+
 async function saveModuleSettingsData(form,data){
   // Validate against the currently connected company's synced Discord channel list.
   const aiChannelId=String(data.get('ai_channel_id')||'').trim();
@@ -2874,6 +2922,26 @@ async function handlePrimaryClick(event) {
       setError('먼저 Discord 서버를 연결해 주세요.');
       return;
     }
+    if(state.settingsTab==='modules' && nextTab!=='modules' && !(await confirmModuleSettingsNavigation()))return;
+    if(state.settingsTab==='basic' && nextTab!=='basic' && !isOnboardingStep('roles')){
+      const f=root.querySelector('form[data-form="settings-basic"]');
+      if(f){const d=new FormData(f);const cfg=state.discordCompanyConfig||{};
+        const dirty=String(d.get('company_name')||'')!==String(state.companies.find(c=>c.id===state.companyId)?.name||'') || String(d.get('admin_role_id')||'')!==String(cfg.admin_role_id||'') || String(d.get('member_role_id')||'')!==String(cfg.member_role_id||'');
+        if(dirty){if(window.confirm('변경한 기본 설정을 저장하고 이동할까요?')){try{await saveBasicSettingsData(d);await loadCompanies();await loadBaseCompanyData();}catch(error){setError(error);return;}}else if(!window.confirm('변경 사항을 버리고 이동할까요?'))return;}
+      }
+    }
+    if(state.settingsTab==='cooking' && nextTab!=='cooking'){
+      const f=root.querySelector('form[data-form="cooking-guide"]');
+      if(f){const d=new FormData(f);const cfg=state.cookingDiscordConfig||{};
+        const dirty=String(d.get('schedule_text')||'')!==String(cfg.schedule_text||'') || String(d.get('extra_guide')||'')!==String(f.elements.extra_guide?.defaultValue||'');
+        if(dirty){if(window.confirm('요리 주문 안내를 저장하고 이동할까요?')){
+          try{const membershipId=currentMembership(state)?.id||null;if(!membershipId)throw new Error('회사 멤버 정보를 확인하지 못했습니다.');
+            state.cookingDiscordConfig=await saveCookingDiscordGuide(state.companyId,{scheduleText:String(d.get('schedule_text')||''),extraGuide:String(d.get('extra_guide')||'')},membershipId);
+          }catch(error){setError(error);return;}
+        }else if(!window.confirm('저장하지 않은 안내 내용을 버리고 이동할까요?'))return;}
+      }
+    }
+    if(state.settingsTab==='modules' && nextTab!=='modules')pendingModuleSelections=null;
     state.settingsTab=nextTab;localStorage.setItem('axe_product_settings_tab',state.settingsTab);syncPrimaryScreenRoute();render();return;
   }
   if(event.target.matches('[data-support-image-backdrop]')){state.supportImageViewer=null;render();return;}
@@ -3615,6 +3683,7 @@ async function handlePrimaryClick(event) {
   if(action==='open-account-row'){const membershipId=String(actionEl.dataset.membershipId||'');state.modal=membershipId===currentMembership(state)?.id?{type:'account'}:{type:'account-detail',membershipId};render();return;}
   if(action==='reset-fund-filter'){state.fundFilters={person:'all',type:'all',account:'all'};state.fundLedgerPage=1;render();return;}
   if(action==='open-discord-reconnect'){if(!canAdmin(state)){setError('관리자 권한이 필요합니다.');return;}if(state.discordConnection?.status!=='connected'){setError('현재 연결된 Discord 서버가 없습니다.');return;}state.modal={type:'discord-reconnect'};render();return;}
+  if(action==='toggle-module')pendingModuleSelections=captureModuleSelections();
   await withMutation(async()=>{
     if(action==='discord-login'){await signInWithDiscord();return;}
     if(action==='logout'){clearReconnectPoll();manualSignOutUntil=Date.now()+6000;await signOut();state.modal=null;state.setupGuide=null;return;}
@@ -3712,6 +3781,9 @@ async function handlePrimaryClick(event) {
 root.addEventListener('click',handlePrimaryClick);
 accountMenuHost.addEventListener('click',handlePrimaryClick);
 
+root.addEventListener('change', event => {
+  if(event.target?.matches('form[data-form="settings-modules"] select[name]'))pendingModuleSelections=captureModuleSelections();
+});
 root.addEventListener('change', async event => {
   if(state.platformAdmin&&event.target.matches('[data-ga-multi] input[type="checkbox"]')){gameAdminUpdateMultiChoice(event.target);if(state.gameAdminOpen)state.gameAdmin.dirty=true;return;}
   if(state.gameAdminOpen&&state.platformAdmin&&event.target.matches('[data-game-admin-inactive]')){
@@ -4311,6 +4383,7 @@ root.addEventListener('submit', async event => {
     if(type==='settings-modules'){
       const wasModuleStep=isOnboardingStep('modules');
       await saveModuleSettingsData(form,data);
+      pendingModuleSelections=null;
       await loadBaseCompanyData();
       const completed=wasModuleStep && (String(state.onboardingStatus?.status||'')==='ready' || String(state.onboardingStatus?.current_step||'')==='complete');
       setNotice(completed?'초기 설정이 완료됐습니다.':'기능 설정을 저장했습니다.');return;

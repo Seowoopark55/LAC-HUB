@@ -283,3 +283,21 @@
 .lac-settings-issue-details span{display:block;margin-top:6px;line-height:1.45}
 .lac-settings-clean .lac-settings-sync-compact{margin-bottom:8px;padding:8px 11px}
 @media(max-width:660px){.lac-settings-basic-grid{grid-template-columns:1fr;gap:12px}.lac-settings-clean .lac-settings-grid-form{padding:12px!important}.lac-settings-clean .page-header h1{font-size:21px!important}}
+
+/* Company settings phase 4: legible, compact cooking editor */
+.lac-settings-clean .ops-cooking-settings{width:100%;max-width:none;margin:0}
+.lac-settings-clean .ops-cooking-guide-card{margin-bottom:12px}
+.lac-settings-clean .ops-cooking-guide-grid{grid-template-columns:minmax(180px,1fr) minmax(250px,2fr);gap:12px;padding:12px 14px}
+.lac-settings-clean .ops-cooking-guide-grid label>span{font-size:12px;font-weight:650}
+.lac-settings-clean .ops-cooking-guide-grid input{font-size:13px;height:38px}
+.lac-settings-clean .ops-cooking-guide-head,.lac-settings-clean .ops-cooking-menu-head{padding:10px 14px!important;min-height:48px!important}
+.lac-settings-clean .ops-cooking-guide-head strong,.lac-settings-clean .ops-cooking-menu-head h2{font-size:14px}
+.lac-settings-clean .ops-cooking-filterbar{padding:9px 14px;min-height:49px}
+.lac-settings-clean .lac-cooking-simple-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,auto) 70px 65px;gap:12px;padding:10px 14px;min-height:54px;align-items:center}
+.lac-cooking-menu-title{display:grid;gap:4px;min-width:0}
+.lac-cooking-menu-title strong{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lac-cooking-menu-title small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lac-cooking-menu-price{font-size:13px;font-weight:750;color:#77e7b2;white-space:nowrap;text-align:right}
+.lac-cooking-menu-price small{font-size:10px;color:var(--muted);font-weight:450}
+.lac-settings-clean .lac-cooking-simple-row .runtime-power,.lac-settings-clean .lac-cooking-simple-row .ops-mgmt-action{grid-column:auto;grid-row:auto;justify-self:center}
+@media(max-width:700px){.lac-settings-clean .ops-cooking-guide-grid{grid-template-columns:1fr}.lac-settings-clean .lac-cooking-simple-row{grid-template-columns:minmax(0,1fr) auto auto;gap:7px}.lac-cooking-menu-price{grid-column:1;grid-row:2;text-align:left}.lac-settings-clean .lac-cooking-simple-row .runtime-power{grid-column:2;grid-row:1 / span 2}.lac-settings-clean .lac-cooking-simple-row .ops-mgmt-action{grid-column:3;grid-row:1 / span 2}}
