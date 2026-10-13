@@ -134,7 +134,6 @@ function renderLogin(state) {
           <div class="runtime-access-brand-compact"><strong>LAC HUB</strong><small>통합 플랫폼</small></div>
           <div class="runtime-access-panel-head"><h2>다시 오신 걸 환영해요.</h2><p>Discord 계정으로 로그인해 주세요.</p></div>
           <button type="button" class="runtime-access-discord" data-action="discord-login" ${state.loading ? 'disabled' : ''}><span class="runtime-access-discord-mark" aria-hidden="true"><i></i><i></i></span><strong>Discord로 로그인</strong><em aria-hidden="true">→</em></button>
-          <div class="lac-together__login-link"><a href="/together/">함께하기 · 모집글 둘러보기 →</a></div>
           <div class="runtime-access-trust"><div class="runtime-access-privacy"><i aria-hidden="true">✓</i><span><strong>Discord 계정 하나로 이용해요.</strong><small>로그인 상태는 HUB와 BUILD에서 공유됩니다.</small></span></div></div>
         </div>
       </div>

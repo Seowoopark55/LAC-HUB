@@ -2058,8 +2058,25 @@ async function tryImmediateDiscordCatalogSync(companyId,{force=false}={}) {
       if(catalogSyncConnectionKey(companyId)!==key)return;
       if(!result?.ok)throw new Error('즉시 동기화 응답이 올바르지 않습니다.');
       state.catalogSyncError='';
-      // The status RPC may need another round trip after the server writes the catalog.
-      if(discordCatalogPending()&&!catalogPollTimer)startCatalogStatusPoll();
+      // The server has already persisted roles and channels. Resolve readiness
+      // immediately rather than waiting for the next timer tick.
+      const status=await getCompanyOnboardingStatus(companyId);
+      if(catalogSyncConnectionKey(companyId)!==key)return;
+      if(status?.discord_connected&&status.catalog_ready===true){
+        const [roles,channels]=await Promise.all([getDiscordRoles(companyId),getDiscordChannels(companyId)]);
+        if(catalogSyncConnectionKey(companyId)!==key)return;
+        state.onboardingStatus=status;
+        state.discordRoles=roles||[];
+        state.discordChannels=channels||[];
+        clearCatalogPoll();
+        if(state.modal?.type==='setup-guide'&&Number(state.setupGuide?.step||0)===1){
+          state.setupGuide=createSetupGuideState(2);
+        }
+        render();
+        setNotice(`Discord 역할 ${Number(status.role_count??roles.length)}개 · 채널 ${Number(status.channel_count??channels.length)}개 동기화 완료`);
+      }else if(discordCatalogPending()&&!catalogPollTimer){
+        startCatalogStatusPoll();
+      }
     }catch(error){
       if(catalogSyncConnectionKey(companyId)!==key)return;
       const status=Number(error?.statusCode||0);
