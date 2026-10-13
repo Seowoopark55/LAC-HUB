@@ -583,3 +583,24 @@
 .lac-together__voice-guide-dialog .lac-together__voice-guide-note{margin-top:13px;font-size:11px;color:#91a0ad;text-align:center}
 @media(max-width:420px){.lac-together__voice-guide{padding:12px}.lac-together__voice-guide-dialog{padding:22px 15px 17px}.lac-together__voice-guide-actions{flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.lac-together__voice-guide-actions a{transition:none}}
+
+/* Explicit manual Discord voice join guide, 2026-10-13 */
+.lac-together__voice-guide-dialog{width:min(484px,100%);padding:23px 23px 19px}
+.lac-together__voice-guide-dialog h3{font-size:19px;margin:0 25px 12px 0}
+.lac-together__voice-guide-dialog .lac-together__voice-guide-alert{padding:10px 12px;background:rgba(207,175,124,.08);border:1px solid rgba(207,175,124,.19);border-radius:9px;color:#ced7dd;font-size:12px}
+.lac-together__voice-guide-alert strong{color:#f0d3a2}
+.lac-together__voice-guide-steps{display:grid;gap:11px;padding:0;margin:15px 0 13px;list-style:none}
+.lac-together__voice-guide-steps li{display:flex;gap:10px;align-items:flex-start}
+.lac-together__voice-guide-step-no{flex:none;display:grid;place-items:center;width:29px;height:29px;background:#253849;border:1px solid #405260;border-radius:9px;color:#d5bc93;font-weight:800;font-size:11px}
+.lac-together__voice-guide-steps li>span:last-child{display:grid;gap:3px;flex:1;min-width:0}
+.lac-together__voice-guide-steps li strong{font-size:12px;color:#edf1f3;font-weight:700}
+.lac-together__voice-guide-steps li small{font-size:11px;line-height:1.5;color:#aab9c5}
+.lac-together__voice-guide-picture{margin:12px 0 12px}
+.lac-together__voice-guide-picture span{display:block;padding:8px 10px;font-size:11px;color:#e8d0aa;text-align:center;background:#132536;font-weight:700}
+.lac-together__voice-guide-done{display:block;width:100%;min-height:39px;border-radius:9px;background:#bb9f78;color:#14202c;border:1px solid #bb9f78;cursor:pointer;font-weight:800;font-size:13px}
+.lac-together__voice-guide-done:hover{background:#cbb18a}
+.lac-together__voice-guide-secondary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-top:14px;font-size:10px;color:#93a5b4}
+.lac-together__voice-guide-secondary a{color:#bacbd6;text-decoration:underline;text-underline-offset:3px}
+.lac-together__voice-guide-secondary a:hover{color:#e9dcc9}
+.lac-together__voice-guide-dialog .lac-together__voice-guide-note{text-align:left;margin-top:7px;font-size:10px}
+@media(max-width:420px){.lac-together__voice-guide-dialog{padding:18px 14px}.lac-together__voice-guide-steps{gap:9px}}

@@ -205,15 +205,18 @@ function voiceGuideMarkup(){
     <button class="lac-together__voice-guide-shade" type="button" data-together-action="voice-guide-close" aria-label="안내 닫기"></button>
     <section role="dialog" aria-modal="true" aria-labelledby="lac-voice-guide-heading" aria-describedby="lac-voice-guide-description" class="lac-together__voice-guide-dialog">
       <button type="button" class="lac-together__voice-guide-close" data-together-action="voice-guide-close" aria-label="닫기">×</button>
-      <div class="lac-together__voice-guide-eyebrow">PARTY VOICE · DISCORD</div>
-      <h3 id="lac-voice-guide-heading">음성방 입장 안내</h3>
-      <p id="lac-voice-guide-description">Discord 앱에서 파티 음성채널을 열고, 화면 중앙의 <strong>‘음성 채널 참가하기’</strong>를 눌러야 연결됩니다.</p>
-      <div class="lac-together__voice-guide-picture"><img src="/hub/together/art/discord-voice-join-guide.webp" alt="Discord 음성채널 화면에서 가운데 '음성 채널 참가하기' 버튼을 누르는 위치" loading="lazy"></div>
-      <div class="lac-together__voice-guide-actions">
-        <a href="discord://-/channels/1559104034798051328/${channel}" class="lac-together__voice-guide-app">Discord 앱에서 채널 열기 ↗</a>
-        <a href="https://discord.com/channels/1559104034798051328/${channel}" target="_blank" rel="noopener noreferrer" class="lac-together__voice-guide-web">브라우저로 열기</a>
-      </div>
-      <p class="lac-together__voice-guide-note">앱으로 이동해도 자동 연결되지는 않습니다. Discord에서 한 번 더 참가를 눌러주세요.</p>
+      <div class="lac-together__voice-guide-eyebrow">PARTY VOICE · HOW TO JOIN</div>
+      <h3 id="lac-voice-guide-heading">Discord 음성방에 들어가는 방법</h3>
+      <p id="lac-voice-guide-description" class="lac-together__voice-guide-alert"><strong>자동으로 음성에 연결되지 않습니다.</strong> Discord에서 마지막으로 직접 참가 버튼을 눌러야 해요.</p>
+      <ol class="lac-together__voice-guide-steps">
+        <li><span class="lac-together__voice-guide-step-no">01</span><span><strong>Discord PC 앱 화면을 확인하세요.</strong><small>앱이 열리지 않았거나 변화가 없다면 작업표시줄에서 Discord 창을 직접 여세요.</small></span></li>
+        <li><span class="lac-together__voice-guide-step-no">02</span><span><strong>LAC HUB 서버의 해당 파티 음성방을 선택하세요.</strong><small>자동으로 선택되지 않았다면 서버의 ‘함께하기 · 음성파티’ 카테고리에서 방을 선택하세요.</small></span></li>
+        <li><span class="lac-together__voice-guide-step-no">03</span><span><strong>화면 중앙의 ‘음성 채널 참가하기’를 눌러주세요.</strong><small>이 버튼을 눌러야 실제 음성 연결이 시작됩니다. 별도의 DM·초대 알림은 오지 않습니다.</small></span></li>
+      </ol>
+      <div class="lac-together__voice-guide-picture"><img src="/hub/together/art/discord-voice-join-guide.webp" alt="Discord 앱의 음성방 화면: 가운데 음성 채널 참가하기 버튼을 직접 눌러야 연결됩니다." loading="lazy"><span>Discord에서 이 버튼을 직접 눌러주세요 ↑</span></div>
+      <button type="button" class="lac-together__voice-guide-done" data-together-action="voice-guide-close">확인했어요</button>
+      <div class="lac-together__voice-guide-secondary"><span>채널이 보이지 않을 때만</span><a href="discord://-/channels/1559104034798051328/${channel}">앱에서 채널 위치 열기</a><a href="https://discord.com/channels/1559104034798051328/${channel}" target="_blank" rel="noopener noreferrer">웹에서 위치 열기</a></div>
+      <p class="lac-together__voice-guide-note">위 링크는 채널 위치만 열어주며 실제 음성 참가를 대신하지 않습니다.</p>
     </section>
   </div>`;
 }
