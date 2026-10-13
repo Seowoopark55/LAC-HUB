@@ -2429,12 +2429,12 @@ function restoreModuleSelections(){
 function moduleSettingsDirty(){
   const form=root.querySelector('form[data-form="settings-modules"]');
   if(!form)return false;
+  // Compare with the initial selection rendered by the current server snapshot.
+  // This avoids false positives from missing/normalized module settings.
+  // defaultSelected remains unchanged even when a pending choice is restored.
   return [...form.querySelectorAll('select[name]')].some(el=>{
-    const data=new FormData(form);const name=el.name;
-    if(name==='ai_channel_id')return String(data.get(name)||'')!==String(state.discordCompanyConfig?.ai_channel_id||'');
-    const match=/^module_(.+)_(status_channel_id|three_channel_id|ten_channel_id|record_channel_id|channel_id|order_channel_id|account_lookup_channel_id)$/.exec(name);
-    if(!match)return false;
-    return String(data.get(name)||'')!==String(moduleRow(state,match[1])?.settings?.[match[2]]||'');
+    const initial=[...el.options].find(option=>option.defaultSelected);
+    return String(el.value||'')!==String(initial?.value||'');
   });
 }
 async function confirmModuleSettingsNavigation(){
