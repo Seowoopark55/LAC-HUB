@@ -9,7 +9,7 @@ const BOSS_DIFFICULTIES=['쉬움','보통','어려움'];
 const DURATIONS=[{value:30,label:'30분'},{value:60,label:'1시간'},{value:120,label:'2시간'},{value:240,label:'4시간'},{value:360,label:'6시간'}];
 const TOGETHER_PAGE_SIZE=6; // PC 3 columns × 2 rows; pagination is invisible until post 7.
 let voiceRefreshTimer=null;
-const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',page:1,total:0,items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0,voice:null};
+const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',page:1,total:0,items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0,voice:null,partyState:null};
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
 // Show the real end deadline as a live countdown. This is presentation only:
@@ -101,7 +101,7 @@ function listCards(){const rows=filteredRows();
     return `<button type="button" class="lac-together__item lac-together__item--art lac-together__item--activity" data-together-category="${esc(row.category)}" data-activity="${activityKey}" data-together-action="detail" data-id="${esc(row.id)}" aria-label="${esc(aria)}">
       <span class="lac-together__boss-art" aria-hidden="true"></span>
       <span class="lac-together__item-top lac-together__boss-status-cluster"><span class="lac-together__category">${esc(row.category)}</span>${statusBadge(row.status)}</span>
-      <span class="lac-together__boss-info-skin"><span class="lac-together__boss-summary"><span class="lac-together__boss-title-group lac-together__activity-title"><span class="lac-together__boss-primary" title="${esc(row.title)}">${esc(row.title)}</span><span class="lac-together__activity-when">◷ ${esc(when(row.starts_at))}</span></span></span>
+      <span class="lac-together__boss-info-skin"><span class="lac-together__boss-summary"><span class="lac-together__boss-title-group lac-together__activity-title"><span class="lac-together__boss-primary" title="${esc(row.title)}">${esc(row.title)}</span></span></span>
       <span class="lac-together__boss-bottom"><span class="lac-together__boss-stat">${personSymbol('host')}<span class="lac-together__boss-stat-copy"><small>모집자</small><strong>${esc(row.host_nickname||'플레이어')}</strong></span></span>
       <span class="lac-together__boss-stat lac-together__boss-stat--count">${personSymbol('group')}<span class="lac-together__boss-stat-copy"><small>참가 현황</small><strong><em>${confirmed}</em> / ${capacity}명</strong></span></span></span></span>
     </button>`;
@@ -110,7 +110,7 @@ function listCards(){const rows=filteredRows();
 function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||{},editing=ui.mode==='edit';return `<form class="lac-together__create" data-together-form="${editing?'edit':'create'}"><h2 class="lac-together__form-title">${editing?'모집글 수정':'모집 등록'}</h2>
   <div class="lac-together__form-grid lac-together__form-grid--basics">
     <label class="lac-together__field"><span class="lac-together__field-label">활동 카테고리</span><select name="category" required>${CATEGORIES.slice(1).map(v=>`<option value="${esc(v)}" ${f.category===v?'selected':''}>${esc(v)}</option>`).join('')}</select></label>
-    <label class="lac-together__field"><span class="lac-together__field-label">모집 인원 <small>모집자 포함</small></span><select name="capacity" required>${Array.from({length:9},(_,i)=>`<option value="${i+2}" ${Number(f.capacity||5)===i+2?'selected':''}>${i+2}명</option>`).join('')}</select></label>
+    <label class="lac-together__field"><span class="lac-together__field-label">모집 인원 <small>모집자 포함</small></span><input name="capacity" type="number" inputmode="numeric" min="2" max="10" step="1" value="${esc(f.capacity??'')}" placeholder="2~10명 직접 입력" required></label>
   </div>
   <div class="lac-together__boss-fields" data-together-boss-fields ${(!f.category||f.category==='보스')?'':'hidden'}>
     <div class="lac-together__boss-heading"><span>보스 세부 설정</span><small>선택한 보스와 난이도가 모집글에 표시됩니다.</small></div>
@@ -120,7 +120,7 @@ function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||
     </div>
     <div class="lac-together__boss-preview" aria-live="polite"><span data-together-boss-preview-name>${esc(bossPublicName(f.boss_name||'멧돼지'))}</span><span data-together-boss-preview-difficulty class="lac-together__difficulty lac-together__difficulty--${(f.boss_difficulty||'쉬움')==='쉬움'?'easy':(f.boss_difficulty||'쉬움')==='보통'?'normal':'hard'}">${esc(f.boss_difficulty||'쉬움')}</span></div>
   </div>
-  <label class="lac-together__field"><span class="lac-together__field-label">모집 제목</span><input name="title" maxlength="90" minlength="5" value="${esc(f.title||'')}" placeholder="어떤 활동을 함께할 예정인가요?" required></label>
+  <label class="lac-together__field" data-together-title-field ${(!f.category||f.category==='보스')?'hidden':''}><span class="lac-together__field-label">모집 제목</span><input name="title" maxlength="90" minlength="5" value="${esc(f.title||'')}" placeholder="어떤 활동을 함께할 예정인가요?" ${(!f.category||f.category==='보스')?'disabled':'required'}></label>
   <label class="lac-together__field"><span class="lac-together__field-label">상세 내용 <small>선택</small></span><textarea name="description" maxlength="600" rows="3" placeholder="준비 사항, 참가 조건 등을 자유롭게 작성해 주세요.">${esc(f.description||'')}</textarea></label>
   <div class="lac-together__form-grid lac-together__form-grid--schedule">
     <label class="lac-together__field"><span class="lac-together__field-label">활동 날짜</span><input type="date" name="date" value="${esc(f.date||defaults.date)}" min="${d}" required></label>
@@ -140,7 +140,7 @@ function renderPartyMember(member,index){
 function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보를 찾을 수 없거나 보관 기간이 종료되었습니다.');
   const isHost=Boolean(p.is_host), logged=Boolean(state.session?.user), active=p.status==='모집 중';
   const canMessage=Boolean(p.can_chat)&&p.status!=='종료';
-  const canApply=active&&!isHost&&!['pending','accepted'].includes(p.my_status);
+  const canApply=active&&!isHost&&!['pending','accepted'].includes(p.my_status)&&p.my_status!=='kicked';
   const canWithdraw=!isHost&&['pending','accepted'].includes(p.my_status)&&p.status!=='종료';
   const editAllowed=isHost&&Date.parse(p.starts_at)>Date.now()&&p.status!=='종료';
   const structuredBoss=p.category==='보스'&&BOSS_NAMES.includes(p.boss_name)&&BOSS_DIFFICULTIES.includes(p.boss_difficulty);
@@ -150,12 +150,17 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   const confirmedOthers=Math.max(0,Number(p.confirmed_count||1)-1);
   const capacity=Math.max(2,Number(p.capacity||2)),confirmed=Math.min(capacity,1+confirmedOthers),ratio=Math.min(100,(confirmed/capacity)*100);
   const roster=ui.rosterLoaded?ui.roster: (p.can_chat?(p.members||[]).map((name,index)=>({nickname:name,role:index===0?'host':'member',ingame_phone:null})):[]);
-  const participantAction=!logged?`<button type="button" class="lac-together__primary" data-together-action="login">Discord 로그인 후 신청</button>`:!controlState(state).profile?`<button type="button" class="lac-together__primary" data-together-action="profile">인게임 프로필 등록</button>`:canApply?`<button type="button" class="lac-together__primary" data-together-action="apply" ${ui.busy?'disabled':''}>참가 신청</button>`:canWithdraw?`<button type="button" class="lac-together__ghost" data-together-action="withdraw" ${ui.busy?'disabled':''}>${p.my_status==='pending'?'신청 취소':'참가 취소'}</button>`:p.my_status==='rejected'?'<span class="lac-together__tip">신청이 거절되었습니다.</span>':'';
+  const participantAction=!logged?`<button type="button" class="lac-together__primary" data-together-action="login">Discord 로그인 후 신청</button>`:!controlState(state).profile?`<button type="button" class="lac-together__primary" data-together-action="profile">인게임 프로필 등록</button>`:canApply?`<button type="button" class="lac-together__primary" data-together-action="apply" ${ui.busy?'disabled':''}>참가 신청</button>`:canWithdraw?`<button type="button" class="lac-together__ghost" data-together-action="withdraw" ${ui.busy?'disabled':''}>${p.my_status==='pending'?'신청 취소':'파티 나가기'}</button>`:p.my_status==='kicked'?'<span class="lac-together__tip">모집자가 내보낸 파티에는 다시 신청할 수 없습니다.</span>':p.my_status==='rejected'?'<span class="lac-together__tip">신청이 거절되었습니다.</span>':'';
   const management=isHost?`<details class="lac-together__manage"><summary aria-label="모집글 관리">··· <span>관리</span></summary><div class="lac-together__manage-items">${editAllowed?`<button type="button" data-together-action="edit" ${ui.busy?'disabled':''}>모집글 수정</button>`:''}${p.status!=='종료'?`<button type="button" data-together-action="finish" ${ui.busy?'disabled':''}>활동 종료</button>`:''}<button type="button" class="is-danger" data-together-action="delete" ${ui.busy?'disabled':''}>모집글 삭제</button></div></details>`:'';
   const requests=pending.length?`<section class="lac-together__post-section lac-together__request-section"><div class="lac-together__section-heading"><h3>참가 신청 대기</h3><span>${pending.length}명</span></div><div class="lac-together__requests">${pending.map(r=>`<div class="lac-together__request"><span><b>${esc(r.nickname)}</b><small>승인 대기</small></span>${active?`<span class="lac-together__request-actions"><button type="button" data-together-action="approve" data-user-id="${esc(r.user_id)}" ${ui.busy?'disabled':''}>승인</button><button type="button" data-together-action="reject" data-user-id="${esc(r.user_id)}" ${ui.busy?'disabled':''}>거절</button></span>`:''}</div>`).join('')}</div></section>`:'';
+  const ps=ui.partyState||{};
+  const readyList=Array.isArray(ps.members)?ps.members:[];
+  const readyCount=readyList.filter(x=>x.ready).length;
+  const isReady=readyList.some(x=>x.mine&&x.ready);
+  const readyBoard=p.can_chat?`<section class="lac-together__post-section lac-together__ready-section" aria-label="파티 준비 현황"><div class="lac-together__section-heading"><h3>파티 준비 현황</h3><span>${readyCount} / ${readyList.length}명 준비</span></div><div class="lac-together__ready-list">${readyList.map(x=>`<div class="lac-together__ready-row"><span><strong>${esc(x.nickname)}</strong> <small>${x.ready?'● 준비 완료':'○ 준비 전'}</small></span>${isHost&&!x.is_host?`<button type="button" data-together-action="kick" data-user-id="${esc(x.user_id)}" ${ui.busy?'disabled':''}>내보내기</button>`:''}</div>`).join('')}</div>${p.status!=='종료'&&(!isHost&&p.my_status==='accepted'||isHost)?`<button type="button" class="lac-together__primary lac-together__ready-toggle" data-together-action="ready" ${ui.busy?'disabled':''}>${isReady?'준비 취소':'✓ 준비 완료'}</button>`:''}<p class="lac-together__tip">준비 상태를 확인한 뒤 모집자가 출발을 결정할 수 있어요.</p></section>`:'';
   const people=p.can_chat?`<ol class="lac-together__people">${roster.map(renderPartyMember).join('')}</ol><p class="lac-together__privacy"><span aria-hidden="true">♧</span> 전화번호는 등록된 인게임 번호이며 모집자와 확정 참가자에게만 표시됩니다.</p>`:
     `<div class="lac-together__private-note"><span aria-hidden="true">♧</span><strong>파티원 정보는 비공개입니다.</strong><p>참가가 확정되면 닉네임과 인게임 연락처를 확인할 수 있습니다.</p></div>`;
-  const voice=p.can_chat?`<section class="lac-together__post-section lac-together__voice" aria-label="파티 음성채널"><div class="lac-together__section-heading"><h3>Discord 파티 음성</h3><span>승인된 파티원 전용</span></div>${ui.voice?.status==='active'&&/^\d{17,20}$/.test(String(ui.voice.channel_id||''))?`<p>음성방이 열려 있습니다. 파티원만 접속할 수 있습니다.</p><a class="lac-together__primary" href="discord://-/channels/1559104034798051328/${esc(ui.voice.channel_id)}">Discord 앱에서 열기 ↗</a> <a href="https://discord.com/channels/1559104034798051328/${esc(ui.voice.channel_id)}" target="_blank" rel="noopener noreferrer">웹으로 열기</a>`:ui.voice?.status==='pending'?'<p>음성채널을 생성하고 있습니다. 잠시 후 다시 확인해 주세요.</p>':isHost?`<p>모집자가 음성방을 만들 수 있습니다. 모집글이 종료되어도 이용자가 있으면 유지됩니다.</p><button type="button" class="lac-together__primary" data-together-action="voice-create" ${ui.busy?'disabled':''}>비공개 음성채널 만들기</button>`:'<p>모집자가 음성채널을 생성하면 이곳에 참여 버튼이 나타납니다.</p>'}</section>`:'';
+  const voice=p.can_chat?`<section class="lac-together__post-section lac-together__voice" aria-label="파티 음성채널"><div class="lac-together__section-heading"><h3>Discord 파티 음성</h3><span>승인된 파티원 전용</span></div>${ui.voice?.status==='active'&&/^\d{17,20}$/.test(String(ui.voice.channel_id||''))?`<p>음성방이 열려 있습니다. 파티원만 접속할 수 있습니다.</p><a class="lac-together__primary lac-together__voice-join" style="display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:12px 22px;border-radius:11px;font-weight:800;text-decoration:none" href="discord://-/channels/1559104034798051328/${esc(ui.voice.channel_id)}">🎧 음성방 참가하기</a> <a class="lac-together__voice-web-link" href="https://discord.com/channels/1559104034798051328/${esc(ui.voice.channel_id)}" target="_blank" rel="noopener noreferrer">브라우저로 열기</a>`:ui.voice?.status==='pending'?'<p>음성채널을 생성하고 있습니다. 잠시 후 다시 확인해 주세요.</p>':isHost?`<p>모집자가 음성방을 만들 수 있습니다. 모집글이 종료되어도 이용자가 있으면 유지됩니다.</p><button type="button" class="lac-together__primary" data-together-action="voice-create" ${ui.busy?'disabled':''}>비공개 음성채널 만들기</button>`:'<p>모집자가 음성채널을 생성하면 이곳에 참여 버튼이 나타납니다.</p>'}</section>`:'';
   const chat=p.can_chat?`<div class="lac-together__messages" aria-label="참가자 채팅 메시지">${ui.messages.length?ui.messages.map(m=>`<div class="lac-together__message${m.mine?' is-mine':''}"><span>${esc(m.nickname)} · ${esc(when(m.created_at))}</span><p>${esc(m.body)}</p></div>`).join(''):empty('아직 메시지가 없습니다. 먼저 인사해 보세요.')}</div>${canMessage?`<form data-together-form="chat" class="lac-together__chat-form"><input type="text" name="body" maxlength="500" placeholder="파티원에게 메시지 보내기" value="${esc(ui.chatDraft)}" required aria-label="채팅 메시지"><button class="lac-together__primary" type="submit" ${ui.busy?'disabled':''}>전송</button></form>`:'<p class="lac-together__tip">종료된 활동입니다. 채팅은 읽기 전용입니다.</p>'}`:
     `<div class="lac-together__private-note lac-together__private-note--chat"><span aria-hidden="true">♧</span><strong>참가자 전용 대화 공간</strong><p>모집자와 참가가 확정된 사람만 채팅을 읽고 작성할 수 있습니다.</p></div>`;
   // All categories use the same app-style detail renderer, privacy rules and countdown.
@@ -180,7 +185,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
         ${participantAction?`<div class="lac-together__raid-actions">${participantAction}${p.my_status==='pending'?'<span class="lac-together__tip">모집자 승인 대기 중</span>':''}</div>`:''}
       </header>
       <div class="lac-together__post-body lac-together__raid-deck">
-        <div class="lac-together__post-side"><section class="lac-together__post-section"><div class="lac-together__section-heading"><h3>파티원 정보 <small>PARTY ROSTER</small></h3><span>${confirmed} / ${capacity}명</span></div>${people}</section>${requests}${voice}</div>
+        <div class="lac-together__post-side"><section class="lac-together__post-section"><div class="lac-together__section-heading"><h3>파티원 정보 <small>PARTY ROSTER</small></h3><span>${confirmed} / ${capacity}명</span></div>${people}</section>${readyBoard}${requests}${voice}</div>
         <section class="lac-together__post-section lac-together__post-chat"><div class="lac-together__section-heading"><h3>파티 채팅 <small>PARTY LOUNGE</small></h3><span>${p.can_chat?'참가자 전용':'비공개'}</span></div>${chat}</section>
       </div>
     </article></div>`;
@@ -222,6 +227,7 @@ async function fetchList(){
 async function fetchDetail(){if(!ui.id)return;const data=await rpc('get_post',{p_id:ui.id});ui.detail=data||null;
   if(ui.detail)await hydrateBossDetails([ui.detail]);
   ui.voice = data?.can_chat ? await rpc('voice_status',{p_post_id:ui.id}).catch(()=>null) : null;
+  ui.partyState = data?.can_chat ? await rpc('party_state',{p_post_id:ui.id}).catch(()=>null) : null;
   ui.roster=[];ui.rosterLoaded=false;
   if(data?.can_chat){
     const [messages,roster]=await Promise.allSettled([
@@ -267,6 +273,7 @@ export function togetherOnInput(target){if(target?.closest('form[data-together-f
     const section=form.querySelector('[data-together-boss-fields]');
     const isBoss=form.elements.category?.value==='보스';
     if(section){section.hidden=!isBoss;section.querySelectorAll('select').forEach(select=>{select.required=isBoss;select.disabled=!isBoss;});}
+    const titleField=form.querySelector('[data-together-title-field]');if(titleField){titleField.hidden=isBoss;const title=titleField.querySelector('input');if(title){title.disabled=isBoss;title.required=!isBoss;}}
     if(isBoss){
       const name=form.querySelector('[data-together-boss-preview-name]');
       const difficulty=form.querySelector('[data-together-boss-preview-difficulty]');
@@ -316,13 +323,16 @@ export async function togetherAction(button,state,{render,openProfile,login}){
     if(!await ensureProfile(state,openProfile)){render();return;}
     ui.formDraft={};ui.mode='create';ui.error='';render();return;
   }
-  if(!ui.id||!['apply','approve','reject','withdraw','finish','delete','voice-create'].includes(action))return;
+  if(!ui.id||!['apply','approve','reject','withdraw','finish','delete','voice-create','ready','kick'].includes(action))return;
   if(!await ensureProfile(state,openProfile)){render();return;}
   if(action==='delete'&&!window.confirm('모집글과 참가 신청, 채팅 기록이 즉시 삭제됩니다. 복구할 수 없습니다. 삭제할까요?'))return;
   if(action==='finish'&&!window.confirm('활동을 지금 종료할까요? 종료 후 채팅은 읽기 전용이 됩니다.'))return;
+  if(action==='kick'&&!window.confirm('이 참가자를 내보낼까요? 해당 모집에 다시 신청할 수 없으며 음성방 권한도 회수됩니다.'))return;
   if(action==='withdraw'&&!window.confirm('참가 신청 또는 확정 참가를 취소할까요?'))return;
   await runMutation(async()=>{
     if(action==='voice-create')await rpc('voice_create',{p_post_id:ui.id});
+    if(action==='ready')await rpc('party_set_ready',{p_post_id:ui.id,p_ready:!Boolean(ui.partyState?.members?.some(x=>x.mine&&x.ready))});
+    if(action==='kick')await rpc('party_kick',{p_post_id:ui.id,p_user_id:button.dataset.userId});
     if(action==='apply')await rpc('apply',{p_post_id:ui.id});
     if(action==='approve'||action==='reject')await rpc('review',{p_post_id:ui.id,p_user_id:button.dataset.userId,p_accept:action==='approve'});
     if(action==='withdraw')await rpc('withdraw',{p_post_id:ui.id});
@@ -348,6 +358,8 @@ export async function togetherSubmit(form,state,{render,openProfile}){
       const boss=fields.p_category==='보스';
       const boss_name=boss?String(data.get('boss_name')||''):null;
       const boss_difficulty=boss?String(data.get('boss_difficulty')||''):null;
+      if(boss)fields.p_title=`${boss_name==='화학자'?'미친 화학자':boss_name} 보스 모집`;
+      if(!Number.isInteger(fields.p_capacity)||fields.p_capacity<2||fields.p_capacity>10)throw Error('모집 인원은 2~10명으로 직접 입력해 주세요.');
       if(boss&&(!BOSS_NAMES.includes(boss_name)||!BOSS_DIFFICULTIES.includes(boss_difficulty)))throw Error('보스 종류와 난이도를 선택해 주세요.');
       const id=await rpc('save_post_v28',{p_post_id:form.dataset.togetherForm==='edit'?ui.id:null,...fields,p_boss_name:boss_name,p_boss_difficulty:boss_difficulty});
       ui.id=id;ui.mode='detail';ui.detail=null;ui.roster=[];ui.rosterLoaded=false;ui.messages=[];ui.formDraft={};
