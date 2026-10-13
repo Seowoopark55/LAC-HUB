@@ -1,4 +1,4 @@
-/* AXE ONE 3.12 · Viewport Compact + Alignment
+/* LAC HUB · Company Settings · Viewport Compact + Alignment
    Wide overview anchors the page. Settings controls use fixed operational lanes,
    and all save/action controls stay inside a normal laptop browser viewport. */
 .ops-settings-page{width:100%;margin:0}
@@ -218,3 +218,23 @@
 .ops-onboarding-strip.is-catalog button[data-action="retry-discord-catalog-sync"]{justify-self:start;margin-top:5px;padding:5px 10px;border:1px solid rgba(179,150,78,.33);border-radius:7px;background:#15202b;color:#e1c891;font-size:10px;cursor:pointer}
 .ops-onboarding-strip.is-catalog button[data-action="retry-discord-catalog-sync"]:hover{background:#1b2a38}
 @media(max-width:700px){.ops-onboarding-strip.is-catalog button[data-action="retry-discord-catalog-sync"]{font-size:11px}}
+
+/* LAC HUB company settings: clear setup status and independent configuration groups. */
+.lac-settings-guide{margin:0 0 16px;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.lac-settings-guide__head{display:flex;align-items:start;justify-content:space-between;gap:16px}
+.lac-settings-guide__head span:first-child{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--ops-gold)}
+.lac-settings-guide__head h2{font-size:18px;color:var(--ops-title);margin:4px 0 6px}
+.lac-settings-guide__head p{color:var(--ops-sub);font-size:12px;margin:0;line-height:1.5}
+.lac-settings-guide__state{border:1px solid rgba(228,178,75,.3);border-radius:999px;color:var(--ops-gold);padding:7px 12px;white-space:nowrap;font-size:11px;font-weight:800}
+.lac-settings-guide__state.is-ready{border-color:rgba(120,211,155,.3);color:var(--green)}
+.lac-settings-guide__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.lac-settings-guide__tile{min-width:0;display:grid;gap:5px;border:1px solid var(--line-soft);border-radius:10px;padding:12px;background:#10161d}
+.lac-settings-guide__tile>span{font-size:10px;color:var(--ops-gold)}
+.lac-settings-guide__tile strong{font-size:13px;color:var(--ops-title)}
+.lac-settings-guide__tile small{font-size:11px;line-height:1.5;color:var(--ops-sub)}
+.lac-settings-guide__sync{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;border:1px solid rgba(228,178,75,.28);border-radius:9px;padding:10px 12px;font-size:11px;color:var(--ops-copy)}
+.lac-settings-guide__sync button{flex-shrink:0;cursor:pointer;border:1px solid rgba(228,178,75,.5);border-radius:8px;padding:8px 11px;background:rgba(228,178,75,.09);color:var(--ops-gold);font-weight:800}
+.lac-settings-group-label{display:grid;gap:4px;padding:11px 13px;background:rgba(228,178,75,.035);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+.lac-settings-group-label strong{color:var(--ops-title);font-size:12px}.lac-settings-group-label small{color:var(--ops-sub);font-size:10px;line-height:1.5}
+@media(max-width:900px){.lac-settings-guide__grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.lac-settings-guide__head{flex-direction:column}.lac-settings-guide__grid{grid-template-columns:1fr}.lac-settings-guide__sync{flex-direction:column;align-items:stretch}.lac-settings-guide__sync button{width:100%}}
