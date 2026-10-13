@@ -656,3 +656,22 @@
 .lac-together--detail .lac-together__voice-hero .lac-together__voice-join-note{margin:0!important;text-align:center;color:#c5d0d7;font-size:12px;line-height:1.55}
 .lac-together--detail .lac-together__voice-hero .lac-together__voice-join-note strong{color:#f3dcb6}
 @media(max-width:520px){.lac-together--detail .lac-together__voice-hero{padding:13px}.lac-together--detail .lac-together__voice-hero .lac-together__voice-join{font-size:15px}}
+
+
+/* Compact party voice entry: small, high-position row inside the existing roster column. */
+.lac-together--detail .lac-together__post--raid .lac-together__voice--compact{display:block;padding:11px 17px 10px;background:linear-gradient(110deg,rgba(37,56,72,.72),rgba(16,32,47,.76));border-bottom:1px solid rgba(195,159,109,.35)}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-head{display:flex;align-items:center;gap:10px;min-width:0}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-icon{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:10px;color:#e7c99a;background:#2b4153;border:1px solid rgba(209,175,124,.25)}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-icon svg{width:20px;height:20px}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-copy{display:grid;gap:2px;flex:1;min-width:0}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-copy strong{font-size:12px;line-height:1.4;color:#f0ede6;font-weight:800}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-copy small{font-size:11px;line-height:1.4;color:#b5c5d0}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open,.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-create{display:inline-flex;justify-content:center;align-items:center;gap:5px;flex:none;min-height:34px;padding:7px 11px;border-radius:8px;background:#c4a578;border:1px solid #c4a578;color:#142230!important;font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap;box-shadow:none}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open:hover,.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-create:hover{background:#d4b88e}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-note{margin:7px 0 0!important;font-size:10px;line-height:1.5;color:#bbc8d1}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-note strong{color:#e6cfaa}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-links{display:flex;gap:14px;align-items:center;margin-top:5px}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-copy,.lac-together--detail .lac-together__voice--compact .lac-together__voice-web-link{min-height:24px;padding:1px 0;border:0;background:none;border-radius:0;color:#92aab9;font-weight:650;font-size:10px;text-decoration:underline;text-underline-offset:3px;box-shadow:none;cursor:pointer}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-copy:hover,.lac-together--detail .lac-together__voice--compact .lac-together__voice-web-link:hover{background:none;color:#e9d9bf}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-state{font-size:11px;color:#b8c8d3;padding:3px 0}
+@media(max-width:440px){.lac-together--detail .lac-together__post--raid .lac-together__voice--compact{padding:10px 12px}.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-head{flex-wrap:wrap}.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open,.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-create{margin-left:44px}.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-note{margin-top:5px!important}}
