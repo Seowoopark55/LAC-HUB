@@ -170,7 +170,7 @@ function renderDetail(state){const p=ui.detail;if(!p)return empty('모집 정보
   </section>`:'';
   const people=p.can_chat?`<ol class="lac-together__people">${roster.map(renderPartyMember).join('')}</ol><p class="lac-together__privacy"><span aria-hidden="true">♧</span> 전화번호는 등록된 인게임 번호이며 모집자와 확정 참가자에게만 표시됩니다.</p>`:
     `<div class="lac-together__private-note"><span aria-hidden="true">♧</span><strong>파티원 정보는 비공개입니다.</strong><p>참가가 확정되면 닉네임과 인게임 연락처를 확인할 수 있습니다.</p></div>`;
-  const voice=p.can_chat?`<section class="lac-together__post-section lac-together__voice" aria-label="파티 음성채널"><div class="lac-together__section-heading"><h3>Discord 파티 음성</h3><span>승인된 파티원 전용</span></div>${ui.voice?.status==='active'&&/^\d{17,20}$/.test(String(ui.voice.channel_id||''))?`<p>음성방이 열려 있습니다. 파티원만 접속할 수 있습니다.</p><button type="button" class="lac-together__primary lac-together__voice-join" data-together-action="voice-guide-open" data-channel-id="${esc(ui.voice.channel_id)}">🎧 음성 참가 방법</button> <a class="lac-together__voice-web-link" href="https://discord.com/channels/1559104034798051328/${esc(ui.voice.channel_id)}" target="_blank" rel="noopener noreferrer">브라우저로 열기</a>`:ui.voice?.status==='pending'?'<p>음성채널을 생성하고 있습니다. 잠시 후 다시 확인해 주세요.</p>':isHost?`<p>모집자가 음성방을 만들 수 있습니다. 모집글이 종료되어도 이용자가 있으면 유지됩니다.</p><button type="button" class="lac-together__primary" data-together-action="voice-create" ${ui.busy?'disabled':''}>비공개 음성채널 만들기</button>`:'<p>모집자가 음성채널을 생성하면 이곳에 참여 버튼이 나타납니다.</p>'}</section>`:'';
+  const voice=p.can_chat?`<section class="lac-together__post-section lac-together__voice" aria-label="파티 음성채널"><div class="lac-together__section-heading"><h3>Discord 파티 음성</h3><span>승인된 파티원 전용</span></div>${ui.voice?.status==='active'&&/^\d{17,20}$/.test(String(ui.voice.channel_id||''))?`<p>음성방이 열려 있습니다. 파티원만 접속할 수 있습니다.</p><div class="lac-together__voice-links"><a class="lac-together__primary lac-together__voice-join" href="discord://-/channels/1559104034798051328/${esc(ui.voice.channel_id)}" aria-label="Discord 앱에서 음성방 확인하기">🎧 Discord 앱에서 방 보기</a><button type="button" class="lac-together__voice-copy" data-together-action="voice-link-copy" data-channel-id="${esc(ui.voice.channel_id)}" aria-label="이 음성방 링크 복사">링크 복사</button><a class="lac-together__voice-web-link" href="https://discord.com/channels/1559104034798051328/${esc(ui.voice.channel_id)}" target="_blank" rel="noopener noreferrer">웹에서 보기</a></div><p class="lac-together__voice-join-note">방을 연 뒤 Discord의 <strong>‘음성 채널 참가하기’</strong>를 눌러주세요.</p>`:ui.voice?.status==='pending'?'<p>음성채널을 생성하고 있습니다. 잠시 후 다시 확인해 주세요.</p>':isHost?`<p>모집자가 음성방을 만들 수 있습니다. 모집글이 종료되어도 이용자가 있으면 유지됩니다.</p><button type="button" class="lac-together__primary" data-together-action="voice-create" ${ui.busy?'disabled':''}>비공개 음성채널 만들기</button>`:'<p>모집자가 음성채널을 생성하면 이곳에 참여 버튼이 나타납니다.</p>'}</section>`:'';
   const chat=p.can_chat?`<div class="lac-together__messages" aria-label="참가자 채팅 메시지">${ui.messages.length?ui.messages.map(m=>`<div class="lac-together__message${m.mine?' is-mine':''}"><span>${esc(m.nickname)} · ${esc(when(m.created_at))}</span><p>${esc(m.body)}</p></div>`).join(''):empty('아직 메시지가 없습니다. 먼저 인사해 보세요.')}</div>${canMessage?`<form data-together-form="chat" class="lac-together__chat-form"><input type="text" name="body" maxlength="500" placeholder="파티원에게 메시지 보내기" value="${esc(ui.chatDraft)}" required aria-label="채팅 메시지"><button class="lac-together__primary" type="submit" ${ui.busy?'disabled':''}>전송</button></form>`:'<p class="lac-together__tip">종료된 활동입니다. 채팅은 읽기 전용입니다.</p>'}`:
     `<div class="lac-together__private-note lac-together__private-note--chat"><span aria-hidden="true">♧</span><strong>참가자 전용 대화 공간</strong><p>모집자와 참가가 확정된 사람만 채팅을 읽고 작성할 수 있습니다.</p></div>`;
   // All categories use the same app-style detail renderer, privacy rules and countdown.
@@ -226,7 +226,7 @@ export function renderTogetherPage(state){const {loggedIn,profile}=controlState(
   ${ui.mode==='list'?`<div class="lac-together__list-heading"><h2>모집 목록</h2><span>총 ${ui.total}개의 모집글</span></div>`:''}
   ${['create','edit'].includes(ui.mode)?renderCreate():ui.mode==='detail'?renderDetail(state):`<div class="lac-together__grid">${ui.loading&&!ui.items.length?empty('모집글을 불러오는 중입니다…'):listCards()}</div>${renderPagination()}`}
   ${ui.mode==='list'?`<p class="lac-together__foot">모집 목록은 로그인 없이 볼 수 있습니다. 모집·참가·채팅에는 Discord 로그인과 인게임 프로필이 필요합니다.${!loggedIn?' <button type="button" data-together-action="login">Discord 로그인</button>':!profile?' <button type="button" data-together-action="profile">인게임 프로필 등록</button>':''}</p>`:''}
-  </main></div>${voiceGuideMarkup()}</div>`;
+  </main></div></div>`;
 }
 async function hydrateBossDetails(rows){
   const targets=(rows||[]).filter(row=>row.category==='보스');
@@ -317,6 +317,25 @@ async function ensureProfile(state,openProfile){if(!state.session?.user)return f
 async function runMutation(task,state,render){if(ui.busy)return;ui.busy=true;ui.error='';render();try{await task();if(ui.mode==='detail')await fetchDetail();else await fetchList();}catch(e){ui.error=displayError(e);}finally{ui.busy=false;render();}}
 export async function togetherAction(button,state,{render,openProfile,login}){
   const action=button.dataset.togetherAction;
+  if(action==='voice-link-copy'){
+    const channel=String(button.dataset.channelId||'');
+    if(!/^\d{17,20}$/.test(channel))return;
+    const link=`https://discord.com/channels/1559104034798051328/${channel}`;
+    try{
+      if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(link);}
+      else{
+        const input=document.createElement('textarea');
+        input.value=link;input.style.position='fixed';input.style.opacity='0';
+        document.body.appendChild(input);input.select();
+        const copied=document.execCommand('copy');input.remove();
+        if(!copied)throw new Error('copy unavailable');
+      }
+      button.textContent='복사 완료 ✓';button.setAttribute('aria-label','음성방 링크 복사 완료');
+    }catch{
+      button.textContent='복사 실패';button.setAttribute('aria-label','복사 실패, 웹에서 보기 링크를 사용해 주세요');
+    }
+    return;
+  }
   if(action==='voice-guide-open'){
     const id=String(button.dataset.channelId||'');
     if(!/^\d{17,20}$/.test(id))return;
