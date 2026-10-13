@@ -604,3 +604,27 @@
 .lac-together__voice-guide-secondary a:hover{color:#e9dcc9}
 .lac-together__voice-guide-dialog .lac-together__voice-guide-note{text-align:left;margin-top:7px;font-size:10px}
 @media(max-width:420px){.lac-together__voice-guide-dialog{padding:18px 14px}.lac-together__voice-guide-steps{gap:9px}}
+
+/* Recruitment editor — wide desktop one-screen composition, 2026-10-13. */
+.lac-together--create .lac-together__create,.lac-together--edit .lac-together__create{max-width:820px;width:100%;padding:17px 21px 16px;gap:10px}
+.lac-together__create .lac-together__field[data-together-title-field][hidden]{display:none!important}
+.lac-together__create .lac-together__field{gap:5px}
+.lac-together__create .lac-together__form-title{margin:0;font-size:18px}
+.lac-together__create .lac-together__boss-fields{padding:10px 12px;gap:7px}
+.lac-together__create .lac-together__form-grid{gap:10px}
+.lac-together__create .lac-together__boss-heading small{font-size:10px}
+.lac-together__create .lac-together__boss-preview{font-size:11px}
+.lac-together__create .lac-together__form-lower{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:14px;align-items:start}
+.lac-together__create .lac-together__form-extras{display:grid;gap:10px;min-width:0}
+.lac-together__create .lac-together__form-extras textarea{min-height:70px;height:70px;resize:vertical}
+.lac-together__create .lac-together__form-grid--schedule{grid-template-columns:1fr;gap:9px;border:0;padding:0;margin:0}
+.lac-together__create .lac-together__duration-field{max-width:none}
+.lac-together__create .lac-together__actions{padding-top:9px}
+.lac-together__create .lac-together__tip{font-size:10px;line-height:1.45}
+@media(max-width:720px){.lac-together--create .lac-together__create,.lac-together--edit .lac-together__create{padding:16px;gap:11px}.lac-together__create .lac-together__form-lower{grid-template-columns:1fr;gap:11px}.lac-together__create .lac-together__form-grid--schedule{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}.lac-together__create .lac-together__form-extras textarea{height:70px}}
+@media(max-width:520px){.lac-together__create .lac-together__form-grid--schedule{grid-template-columns:1fr}.lac-together__create .lac-together__boss-heading small{display:none}}
+/* Non-interactive Discord instruction: no screenshot that looks clickable. */
+.lac-together__voice-guide-illustration{display:grid;place-items:center;gap:8px;margin:13px 0 12px;padding:14px;border:1px solid #334759;border-radius:10px;background:linear-gradient(140deg,#172737,#202b55);text-align:center}
+.lac-together__voice-guide-example-label{font-size:10px;color:#b6c6d2}
+.lac-together__voice-guide-example-button{padding:5px 10px;background:transparent;color:#f0ddbc;border-radius:0;font-weight:800;font-size:13px;pointer-events:none;user-select:none;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:5px}
+.lac-together__voice-guide-illustration strong{font-size:11px;color:#e3c69b;font-weight:700}

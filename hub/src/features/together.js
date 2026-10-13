@@ -122,14 +122,17 @@ function renderCreate(){const defaults=defaultStart(),d=today(),f=ui.formDraft||
     <div class="lac-together__boss-preview" aria-live="polite"><span data-together-boss-preview-name>${esc(bossPublicName(f.boss_name||'멧돼지'))}</span><span data-together-boss-preview-difficulty class="lac-together__difficulty lac-together__difficulty--${(f.boss_difficulty||'쉬움')==='쉬움'?'easy':(f.boss_difficulty||'쉬움')==='보통'?'normal':'hard'}">${esc(f.boss_difficulty||'쉬움')}</span></div>
   </div>
   <label class="lac-together__field" data-together-title-field ${(!f.category||f.category==='보스')?'hidden':''}><span class="lac-together__field-label">모집 제목</span><input name="title" maxlength="90" minlength="5" value="${esc(f.title||'')}" placeholder="어떤 활동을 함께할 예정인가요?" ${(!f.category||f.category==='보스')?'disabled':'required'}></label>
+  <div class="lac-together__form-lower"><div class="lac-together__form-extras">
   <label class="lac-together__field"><span class="lac-together__field-label">상세 내용 <small>선택</small></span><textarea name="description" maxlength="600" rows="3" placeholder="준비 사항, 참가 조건 등을 자유롭게 작성해 주세요.">${esc(f.description||'')}</textarea></label>
+  <label class="lac-together__field lac-together__duration-field"><span class="lac-together__field-label">시작 후 유지 시간</span><select name="duration">${DURATIONS.map(d=>`<option value="${d.value}" ${Number(f.duration||60)===d.value?'selected':''}>${d.label}</option>`).join('')}</select></label>
+  </div>
   <div class="lac-together__form-grid lac-together__form-grid--schedule">
     <label class="lac-together__field"><span class="lac-together__field-label">활동 날짜</span><input type="date" name="date" value="${esc(f.date||defaults.date)}" min="${d}" required></label>
     <div class="lac-together__field lac-together__time-field" role="group" aria-label="시작 시각"><span class="lac-together__field-label">시작 시각</span>
       <div class="lac-together__time-inputs"><select name="period" aria-label="오전 오후"><option value="am" ${(f.period??defaults.period)==='am'?'selected':''}>오전</option><option value="pm" ${(f.period??defaults.period)==='pm'?'selected':''}>오후</option></select><label><input name="hour" type="number" inputmode="numeric" min="1" max="12" step="1" placeholder="시" value="${esc(f.hour??defaults.hour)}" required aria-label="시작 시간, 시"><span>시</span></label><span class="lac-together__time-sep">:</span><label><input name="minute" type="number" inputmode="numeric" min="0" max="59" step="1" placeholder="분" value="${esc(f.minute??defaults.minute)}" required aria-label="시작 시간, 분"><span>분</span></label></div>
     </div>
   </div>
-  <label class="lac-together__field lac-together__duration-field"><span class="lac-together__field-label">시작 후 유지 시간</span><select name="duration">${DURATIONS.map(d=>`<option value="${d.value}" ${Number(f.duration||60)===d.value?'selected':''}>${d.label}</option>`).join('')}</select></label>
+  </div>
   <p class="lac-together__tip">시작 시각에 모집이 마감됩니다. 활동 종료 후 15분 유예를 두고 기록이 자동 정리됩니다.</p>
   <div class="lac-together__actions"><button class="lac-together__ghost" type="button" data-together-action="back">취소</button><button type="submit" class="lac-together__primary" ${ui.busy?'disabled':''}>${ui.busy?'저장 중…':editing?'변경 저장':'모집 등록'}</button></div>
   </form>`;}
@@ -213,7 +216,7 @@ function voiceGuideMarkup(){
         <li><span class="lac-together__voice-guide-step-no">02</span><span><strong>LAC HUB 서버의 해당 파티 음성방을 선택하세요.</strong><small>자동으로 선택되지 않았다면 서버의 ‘함께하기 · 음성파티’ 카테고리에서 방을 선택하세요.</small></span></li>
         <li><span class="lac-together__voice-guide-step-no">03</span><span><strong>화면 중앙의 ‘음성 채널 참가하기’를 눌러주세요.</strong><small>이 버튼을 눌러야 실제 음성 연결이 시작됩니다. 별도의 DM·초대 알림은 오지 않습니다.</small></span></li>
       </ol>
-      <div class="lac-together__voice-guide-picture"><img src="/hub/together/art/discord-voice-join-guide.webp" alt="Discord 앱의 음성방 화면: 가운데 음성 채널 참가하기 버튼을 직접 눌러야 연결됩니다." loading="lazy"><span>Discord에서 이 버튼을 직접 눌러주세요 ↑</span></div>
+      <div class="lac-together__voice-guide-illustration" aria-label="안내 예시: Discord 화면 중앙에 있는 음성 채널 참가하기 버튼을 직접 눌러야 합니다."><span class="lac-together__voice-guide-example-label">Discord 앱에서 찾을 버튼 이름</span><div class="lac-together__voice-guide-example-button" aria-hidden="true">음성 채널 참가하기</div><strong>이 웹 안내문은 클릭하지 않고, Discord 앱에서 직접 눌러주세요</strong></div>
       <button type="button" class="lac-together__voice-guide-done" data-together-action="voice-guide-close">확인했어요</button>
       <div class="lac-together__voice-guide-secondary"><span>채널이 보이지 않을 때만</span><a href="discord://-/channels/1559104034798051328/${channel}">앱에서 채널 위치 열기</a><a href="https://discord.com/channels/1559104034798051328/${channel}" target="_blank" rel="noopener noreferrer">웹에서 위치 열기</a></div>
       <p class="lac-together__voice-guide-note">위 링크는 채널 위치만 열어주며 실제 음성 참가를 대신하지 않습니다.</p>
