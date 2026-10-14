@@ -79,3 +79,63 @@ html,body{min-height:0!important;background:#0d1217!important;overflow-x:hidden;
 @media(max-width:800px){
   .cook-sidebar .search-panel .results:not([hidden]){max-height:min(220px,35dvh)!important}
 }
+
+/* 2026-10-14 COMPANY COOK polish: compact labels, readable copy and delivery workflow.
+   Scoped to the standalone COMPANY iframe; original HUB COOK untouched. */
+.cook-workbench .panel-title h3{font-size:15px!important;line-height:1.45}
+.cook-workbench .panel-title small{font-size:11px!important;line-height:1.4}
+.cook-workbench .panel input[type=search]{font-size:13px!important;min-height:40px}
+.cook-sidebar .food-text strong,.cook-workbench .recipe-head-title>strong{font-size:13px!important}
+.cook-sidebar .panel .empty,.cook-results .panel .empty{font-size:12px;line-height:1.6}
+.cook-workbench .data-info strong,.cook-workbench .check-name strong{font-size:12px!important}
+.cook-workbench .data-info small,.cook-workbench .check-copy small{font-size:11px!important}
+.cook-workbench .recipe-ingredient span,.cook-workbench .process-base>small{font-size:12px!important}
+.cook-workbench .recipe-time{font-size:11px}
+.cook-workbench .check-type{font-size:10px}
+.cook-sidebar .order-row .food-text small{display:none!important}
+#search-meta,#material-count,#process-count{display:none!important}
+/* Hide the unused footer, but keep legacy restore controls in DOM for Settings. */
+.cook-disclaimer{display:none!important}
+.cook-sidebar .search-panel .panel-title h3::before{content:'🔎';margin-right:7px;font-size:13px}
+.cook-sidebar .orders-panel .panel-title h3::before{content:'📋';margin-right:7px;font-size:13px}
+.cook-results .recipe-panel .panel-title h3::before{content:'🍳';margin-right:7px;font-size:13px}
+.cook-results .process-panel .panel-title h3::before{content:'⚙️';margin-right:7px;font-size:13px}
+.cook-results .checklist-panel .panel-title h3::before{content:'🧺';margin-right:7px;font-size:13px}
+.cook-sidebar .cc-memo-panel{min-height:218px;flex:1 0 218px}
+.cc-memo-panel .panel-title h3::before{content:'🧾';margin-right:7px;font-size:13px}
+.cc-delivery-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) 74px;gap:7px;align-items:end;margin:5px 0 10px}
+.cc-delivery-field{display:grid;gap:5px;min-width:0;color:#aebecb;font-size:11px;font-weight:750}
+.cc-delivery-field input{height:33px;min-width:0;width:100%;padding:6px 8px;border:1px solid #3d4b58;border-radius:7px;background:#0b1319;color:#eff3f5;font:inherit;font-size:12px;outline:none}
+.cc-delivery-field input:focus-visible{outline:2px solid #e8b66b;outline-offset:1px}
+.cc-delivery-field input::placeholder{color:#708392}
+.cc-delivery-submit{grid-column:1/-1;justify-self:start;border:1px solid #b38b51;border-radius:7px;background:#392914;color:#f8d49b;padding:7px 12px;font-weight:800;font-size:12px;cursor:pointer}
+.cc-delivery-submit:hover{background:#4b371e}
+.cc-delivery-overview{display:flex;gap:10px;align-items:center;margin:0 0 6px;color:#b9cad6;font-size:11px}
+.cc-delivery-overview span:last-child{color:#94ab9d}
+.cc-delivery-list{display:grid;align-content:start;gap:6px;max-height:191px;overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+.cc-delivery-empty{padding:14px 7px;border:1px dashed #35424d;border-radius:8px;text-align:center;color:#8497a7;font-size:11px;line-height:1.5}
+.cc-delivery-row{display:flex;align-items:center;gap:8px;justify-content:space-between;min-width:0;padding:8px;border:1px solid #35414a;border-radius:8px;background:#111a20}
+.cc-delivery-row[data-stage=delivered]{opacity:.76}
+.cc-delivery-info{flex:1;min-width:0;display:grid;gap:5px}
+.cc-delivery-top{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+.cc-delivery-top strong{font-size:12px;color:#f3f1eb;overflow-wrap:anywhere}
+.cc-delivery-stage{color:#efbd75;border:1px solid #6b5639;border-radius:999px;padding:2px 6px;background:#30271c;white-space:nowrap;font-size:10px;font-weight:750}
+.cc-delivery-row[data-stage=delivered] .cc-delivery-stage{border-color:#3d6150;background:#193629;color:#afddba}
+.cc-delivery-detail{color:#aabdc8;font-size:11px;overflow-wrap:anywhere}
+.cc-delivery-row-actions{display:flex;flex:0 0 auto;gap:4px;align-items:center;flex-wrap:wrap;justify-content:end}
+.cc-delivery-row-actions button{border:1px solid #44505a;border-radius:6px;background:#212c33;color:#dce6ea;padding:6px 7px;cursor:pointer;font-size:10px;font-weight:750}
+.cc-delivery-row-actions .cc-delivery-next{background:#e3b66e;border-color:#e3b66e;color:#20190d}
+.cc-delivery-row-actions .cc-delivery-delete{border-color:#503a3a;color:#d0a5a5;background:#251d1e}
+.cc-delivery-row-actions button:hover{filter:brightness(1.12)}
+.cc-memo-fold{margin-top:9px;padding-top:8px;border-top:1px solid #303b44}
+.cc-memo-fold summary{cursor:pointer;color:#a7bbcb;font-size:11px;font-weight:700}
+.cc-memo-fold textarea{min-height:85px;max-height:210px;margin-top:8px;font-size:12px}
+.cc-memo-state{font-size:11px}
+@media(max-width:1180px){.cc-delivery-row{flex-wrap:wrap}.cc-delivery-row-actions{width:100%;justify-content:flex-start}}
+@media(max-width:480px){.cc-delivery-form{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 68px}}
+
+/* Never clip order rows or the preserved legacy memo at narrow viewport widths. */
+.cook-sidebar .cc-memo-panel{min-height:max-content!important;height:auto!important;flex:1 0 auto!important}
+
+.cc-delivery-cancel{grid-column:2/-1;justify-self:start;border:1px solid #4a5865;border-radius:7px;background:#202d35;color:#d8e2e7;padding:7px 11px;font-size:11px;cursor:pointer}
+.cc-delivery-cancel[hidden]{display:none!important}

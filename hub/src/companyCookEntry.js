@@ -370,7 +370,15 @@ function paintAppSettings(){
   const heading=makeText('h2','','설정');
   const box=makeText('div','cc-view-card',null);
   box.append(makeText('h3','','준비 중'),makeText('p','','필요한 설정이 생기면 이곳에 추가할 예정입니다. 지금은 기존 계산기와 저장 방식을 유지합니다.'));
-  viewHost.append(heading,box);
+  const legacy=frame?.contentDocument?.getElementById('legacy-restore');
+  const restore=frame?.contentDocument?.getElementById('load-workspace-legacy');
+  if(legacy && !legacy.hidden && restore){
+    const backup=makeText('div','cc-view-card',null);
+    backup.append(makeText('h3','','이전 수동 저장본'),makeText('p','','기존 작업 저장본이 있다면 여기서 불러올 수 있습니다. 현재 목록은 덮어쓸 수 있습니다.'));
+    const button=makeText('button','cc-button','이전 저장본 불러오기');button.type='button';
+    button.addEventListener('click',()=>{switchAppView('home');restore.click();});
+    backup.append(button);viewHost.append(heading,box,backup);
+  }else viewHost.append(heading,box);
 }
 // Same public catalog snapshot + DB overlays that the HUB calculator uses.
 // All edits are in this parent context. The anonymous iframe never receives credentials.
@@ -1126,32 +1134,186 @@ function sizeCompanyFrame(iframe, doc){
   childWindow.document.fonts?.ready?.then(() => measure()).catch(()=>{});
 }
 
+// Company-only customer delivery tracker. Browser-local and intentionally separate
+// from COOK's recipe/workspace storage and from private company/order tables.
 const COMPANY_MEMO_KEY = 'lac-company-cook-private-memo-v1';
+const COMPANY_DELIVERY_KEY = 'lac-company-cook-delivery-ledger-v1';
+const COMPANY_DELIVERY_STAGES = ['received','cooked','delivered'];
+function readCompanyDeliveries(storage){
+  try {
+    const raw=JSON.parse(storage.getItem(COMPANY_DELIVERY_KEY)||'[]');
+    if(!Array.isArray(raw))return [];
+    const seen=new Set();
+    return raw.slice(0,120).filter(item=>{
+      if(!item || typeof item!=='object' || typeof item.id!=='string' ||
+        !item.id || item.id.length>100 || seen.has(item.id) ||
+        typeof item.customer!=='string' || !item.customer.trim() || item.customer.length>60 ||
+        typeof item.food!=='string' || !item.food.trim() || item.food.length>90 ||
+        !Number.isSafeInteger(item.sets) || item.sets<1 || item.sets>10000 ||
+        !COMPANY_DELIVERY_STAGES.includes(item.stage))return false;
+      seen.add(item.id);return true;
+    });
+  } catch {return [];}
+}
 function mountCompanyMemo(doc, iframe){
-  if(frame!==iframe || !iframe.isConnected) return;
+  if(frame!==iframe || !iframe.isConnected)return;
   const sidebar=doc.querySelector('.cook-sidebar');
   if(!sidebar || sidebar.querySelector('#cc-memo'))return;
   const section=doc.createElement('section');
   section.id='cc-memo';section.className='panel cc-memo-panel';
   const heading=doc.createElement('div');heading.className='panel-title';
-  const h=doc.createElement('h3');h.textContent='✎ 작업 메모';
+  const h=doc.createElement('h3');h.textContent='주문 · 전달 관리';
   const hint=doc.createElement('small');hint.textContent='이 브라우저에만 저장';
   heading.append(h,hint);
-  const label=doc.createElement('label');label.className='sr-only';label.htmlFor='cc-memo-text';label.textContent='작업 메모';
-  const memo=doc.createElement('textarea');memo.id='cc-memo-text';memo.maxLength=3000;
-  memo.placeholder='주문자, 전달 위치, 제작 순서 등 필요한 내용을 기록해 주세요.';
-  memo.setAttribute('aria-label','작업 메모');
-  const state=doc.createElement('p');state.className='cc-memo-state';state.setAttribute('role','status');
-  try { memo.value=iframe.contentWindow.localStorage.getItem(COMPANY_MEMO_KEY)||''; }
-  catch { state.textContent='현재 브라우저에서 메모 저장을 사용할 수 없습니다.'; }
-  memo.addEventListener('input',()=>{
-    try {
-      iframe.contentWindow.localStorage.setItem(COMPANY_MEMO_KEY,memo.value);
-      state.textContent='이 브라우저에 저장됨';
-    }catch{state.textContent='메모 저장 실패 · 저장 공간을 확인해 주세요.';}
+  const form=doc.createElement('form');form.className='cc-delivery-form';form.autocomplete='off';
+  const makeField=(labelText,placeholder,type='text',maxLength=90)=>{
+    const label=doc.createElement('label');label.className='cc-delivery-field';
+    const title=doc.createElement('span');title.textContent=labelText;
+    const input=doc.createElement('input');input.type=type;input.placeholder=placeholder;
+    input.required=true;
+    if(type==='number'){input.min='1';input.max='10000';input.step='1';input.inputMode='numeric';}
+    else input.maxLength=maxLength;
+    label.append(title,input);return {label,input};
+  };
+  const customer=makeField('주문자','주문자 이름','text',60);
+  const food=makeField('요리 종류','예: 계란 샐러드','text',90);
+  const sets=makeField('세트','1','number');sets.input.value='1';
+  food.input.setAttribute('list','cc-delivery-food-options');
+  const suggestions=doc.createElement('datalist');suggestions.id='cc-delivery-food-options';
+  // Autocomplete is a convenience, not a prerequisite for saving an order.
+  const catalogUrl=new URL('/cook-preview/data/catalog.js',window.location.origin).href;
+  import(/* @vite-ignore */ catalogUrl).then(({default:catalog})=>{
+    if(!form.isConnected)return;
+    const seen=new Set();
+    for(const row of catalog.foods||[]){
+      const name=String(row.food_name||'').trim();
+      if(row.is_active!=='TRUE'||!name||seen.has(name))continue;
+      seen.add(name);
+      const option=doc.createElement('option');option.value=name;suggestions.append(option);
+    }
+    for(const item of dataCache.filter(row=>row.kind==='food')){
+      if(!item.name||seen.has(item.name))continue;
+      seen.add(item.name);
+      const option=doc.createElement('option');option.value=item.name;suggestions.append(option);
+    }
+  }).catch(()=>{});
+  const submit=doc.createElement('button');submit.type='submit';
+  submit.className='cc-delivery-submit';submit.textContent='+ 주문 등록';
+  const cancelEdit=doc.createElement('button');cancelEdit.type='button';
+  cancelEdit.className='cc-delivery-cancel';cancelEdit.textContent='수정 취소';cancelEdit.hidden=true;
+  let editingId=null;
+  const resetForm=()=>{
+    editingId=null;customer.input.value='';food.input.value='';sets.input.value='1';
+    submit.textContent='+ 주문 등록';cancelEdit.hidden=true;
+  };
+  cancelEdit.addEventListener('click',resetForm);
+  form.append(customer.label,food.label,sets.label,submit,cancelEdit,suggestions);
+  const summary=doc.createElement('div');summary.className='cc-delivery-overview';
+  const list=doc.createElement('div');list.className='cc-delivery-list';
+  list.setAttribute('aria-label','주문 및 전달 현황');
+  const status=doc.createElement('p');status.className='cc-memo-state';status.setAttribute('role','status');
+  let storage=null;
+  try {storage=iframe.contentWindow.localStorage;}catch{}
+  let orders=storage?readCompanyDeliveries(storage):[];
+  const save=(next)=>{
+    if(!storage){status.textContent='브라우저 저장소를 사용할 수 없습니다.';return false;}
+    try {storage.setItem(COMPANY_DELIVERY_KEY,JSON.stringify(next));orders=next;status.textContent='저장됨';return true;}
+    catch {status.textContent='저장 실패 · 브라우저 저장 공간을 확인해 주세요.';return false;}
+  };
+  const command=(label,handler,className='')=>{
+    const b=doc.createElement('button');b.type='button';b.className=className;
+    b.textContent=label;b.addEventListener('click',handler);return b;
+  };
+  const render=()=>{
+    summary.replaceChildren();list.replaceChildren();
+    const inProgress=orders.filter(row=>row.stage!=='delivered').length;
+    const completed=orders.length-inProgress;
+    const total=doc.createElement('span');total.textContent=`진행 중 ${inProgress}`;
+    const done=doc.createElement('span');done.textContent=`전달 완료 ${completed}`;
+    summary.append(total,done);
+    if(!orders.length){
+      const empty=doc.createElement('p');empty.className='cc-delivery-empty';
+      empty.textContent='주문자와 요리, 세트 수를 입력해 첫 주문을 등록하세요.';
+      list.append(empty);return;
+    }
+    // Keep active orders most accessible; delivered orders remain until manually removed.
+    const ordered=[...orders].sort((a,b)=>Number(a.stage==='delivered')-Number(b.stage==='delivered'));
+    for(const item of ordered){
+      const row=doc.createElement('article');row.className='cc-delivery-row';row.dataset.stage=item.stage;
+      const info=doc.createElement('div');info.className='cc-delivery-info';
+      const top=doc.createElement('div');top.className='cc-delivery-top';
+      const name=doc.createElement('strong');name.textContent=item.customer;
+      const pill=doc.createElement('span');pill.className='cc-delivery-stage';
+      pill.textContent=item.stage==='received'?'접수':item.stage==='cooked'?'조리 완료':'전달 완료';
+      top.append(name,pill);
+      const detail=doc.createElement('div');detail.className='cc-delivery-detail';
+      detail.textContent=`${item.food} · ${item.sets}세트`;
+      info.append(top,detail);
+      const actions=doc.createElement('div');actions.className='cc-delivery-row-actions';
+      const index=COMPANY_DELIVERY_STAGES.indexOf(item.stage);
+      actions.append(command('수정',()=>{
+        editingId=item.id;customer.input.value=item.customer;food.input.value=item.food;
+        sets.input.value=String(item.sets);submit.textContent='변경 저장';cancelEdit.hidden=false;
+        customer.input.focus();
+      },'cc-delivery-edit'));
+      if(index<2){
+        actions.append(command(index===0?'조리 완료':'전달 완료',()=>{
+          const next=orders.map(order=>order.id===item.id?{...order,stage:COMPANY_DELIVERY_STAGES[index+1]}:order);
+          if(save(next))render();
+        },'cc-delivery-next'));
+      }
+      if(index>0){
+        actions.append(command('되돌리기',()=>{
+          const next=orders.map(order=>order.id===item.id?{...order,stage:COMPANY_DELIVERY_STAGES[index-1]}:order);
+          if(save(next))render();
+        },'cc-delivery-undo'));
+      }
+      actions.append(command('삭제',()=>{
+        if(!iframe.contentWindow.confirm(`${item.customer}님의 주문 기록을 삭제할까요?`))return;
+        if(save(orders.filter(order=>order.id!==item.id))){
+          if(editingId===item.id)resetForm();
+          render();
+        }
+      },'cc-delivery-delete'));
+      row.append(info,actions);list.append(row);
+    }
+  };
+  form.addEventListener('submit',event=>{
+    event.preventDefault();
+    const name=customer.input.value.trim(),dish=food.input.value.trim();
+    const raw=sets.input.value.trim();
+    const count=/^\d{1,5}$/.test(raw)?Number(raw):0;
+    if(!name||!dish||name.length>60||dish.length>90||!Number.isSafeInteger(count)||count<1||count>10000){
+      status.textContent='주문자·요리명·세트 수(1~10,000)를 확인해 주세요.';return;
+    }
+    if(!editingId&&orders.length>=120){status.textContent='주문은 최대 120건까지 보관할 수 있습니다. 완료한 기록을 정리해 주세요.';return;}
+    const id=typeof crypto?.randomUUID==='function'?crypto.randomUUID():`${Date.now()}-${Math.random()}`;
+    const next=editingId
+      ? orders.map(row=>row.id===editingId?{...row,customer:name,food:dish,sets:count}:row)
+      : [{id,customer:name,food:dish,sets:count,stage:'received'},...orders];
+    if(save(next)){
+      resetForm();render();customer.input.focus();
+    }
   });
-  section.append(heading,label,memo,state);
-  sidebar.append(section);
+  const memoDetails=doc.createElement('details');memoDetails.className='cc-memo-fold';
+  const memoSummary=doc.createElement('summary');memoSummary.textContent='기존 작업 메모';
+  const label=doc.createElement('label');label.className='sr-only';label.htmlFor='cc-memo-text';label.textContent='기존 작업 메모';
+  const memo=doc.createElement('textarea');memo.id='cc-memo-text';memo.maxLength=3000;
+  memo.placeholder='주문 관련 별도 메모를 입력해 주세요.';
+  memo.setAttribute('aria-label','기존 작업 메모');
+  try {memo.value=storage?.getItem(COMPANY_MEMO_KEY)||'';}
+  catch {status.textContent='기존 메모를 불러오지 못했습니다.';}
+  if(memo.value)memoSummary.textContent='기존 작업 메모 · 내용 있음';
+  memo.addEventListener('input',()=>{
+    if(!storage){status.textContent='현재 브라우저에서는 메모를 저장할 수 없습니다.';return;}
+    try {storage.setItem(COMPANY_MEMO_KEY,memo.value);status.textContent='메모 저장됨';}
+    catch {status.textContent='메모 저장 실패';}
+  });
+  memoDetails.append(memoSummary,label,memo);
+  section.append(heading,form,summary,list,memoDetails,status);
+  sidebar.append(section);render();
+  // The legacy restore button remains in the hidden disclosure but is reachable
+  // from the settings page instead of being removed along with its saved data.
 }
 
 function installCompanyWorkspace(iframe){
