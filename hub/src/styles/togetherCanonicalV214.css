@@ -1230,3 +1230,240 @@
   .lac-together--detail .lac-together__lounge-panel{border-radius:18px!important}
   .lac-together--detail .lac-together__post-chat .lac-together__messages{max-height:260px!important}
 }
+
+
+/* v20261014 viewport lobby: one-screen desktop detail without clipping primary controls.
+   The outer document is fixed only when the desktop viewport can support a two-column lobby.
+   On shorter / narrower viewports the normal document is allowed to scroll for accessibility. */
+@media (min-width:980px) and (min-height:700px) {
+  .lac-together.lac-together--detail {
+    height:100dvh!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    padding:8px 0!important;
+  }
+  .lac-together--detail .lac-together__shell {
+    height:calc(100dvh - 16px)!important;
+    min-height:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+  }
+  .lac-together--detail .lac-together__head {flex:0 0 62px!important;}
+  .lac-together--detail .lac-together__main {
+    min-height:0!important;
+    height:auto!important;
+    flex:1 1 0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    padding:9px 22px 10px!important;
+    overflow:hidden!important;
+  }
+  .lac-together--detail .lac-together__toolbar {
+    min-height:0!important;
+    margin:0 0 8px!important;
+    padding:0!important;
+    flex:0 0 auto!important;
+  }
+  .lac-together--detail .lac-together__detail {
+    min-height:0!important;
+    min-width:0!important;
+    flex:1 1 0!important;
+    width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  .lac-together--detail .lac-together__post--raid {
+    min-height:0!important;
+    min-width:0!important;
+    height:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  .lac-together--detail .lac-together__raid-header{flex:0 0 auto!important;min-height:0!important;}
+  .lac-together--detail .lac-together__raid-hero {
+    min-height:clamp(145px,20dvh,205px)!important;
+    height:clamp(145px,20dvh,205px)!important;
+    padding:13px 22px 12px!important;
+  }
+  .lac-together--detail .lac-together__raid-heading {
+    padding-top:12px!important;
+    max-width:52%!important;
+  }
+  .lac-together--detail .lac-together__raid-heading h2{font-size:clamp(24px,2.4vw,31px)!important;}
+  .lac-together--detail .lac-together__raid-intel {
+    min-height:65px!important;
+    padding:5px 8px!important;
+  }
+  .lac-together--detail .lac-together__raid-cell{padding:5px 11px!important;gap:9px!important;}
+  .lac-together--detail .lac-together__raid-deck {
+    min-height:0!important;
+    height:auto!important;
+    flex:1 1 0!important;
+    grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr)!important;
+    align-items:stretch!important;
+    padding:10px!important;
+    gap:10px!important;
+    overflow:hidden!important;
+  }
+  .lac-together--detail .lac-together__post-side{
+    display:flex!important;
+    flex-direction:column!important;
+    min-height:0!important;
+    height:100%!important;
+    overflow:hidden!important;
+  }
+  .lac-together--detail .lac-together__voice--compact{
+    flex:0 0 auto!important;
+    min-height:0!important;
+    margin:0 0 9px!important;
+    padding:10px 13px!important;
+    border-radius:15px!important;
+  }
+  .lac-together--detail .lac-together__party-panel{
+    flex:1 1 0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    min-height:0!important;
+    height:auto!important;
+    padding:12px 13px!important;
+    overflow:hidden!important;
+    border-radius:16px!important;
+  }
+  .lac-together--detail .lac-together__lounge-panel{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:100%!important;
+    padding:12px 13px!important;
+    overflow:hidden!important;
+    border-radius:16px!important;
+  }
+  .lac-together--detail .lac-together__party-panel>.lac-together__section-heading,
+  .lac-together--detail .lac-together__lounge-panel>.lac-together__section-heading{
+    flex:0 0 auto!important;
+    min-height:0!important;
+    margin:0 0 10px!important;
+    padding:0 0 9px!important;
+  }
+  .lac-together--detail .lac-together__people-shell{
+    display:flex!important;
+    flex:1 1 0!important;
+    flex-direction:column!important;
+    min-height:0!important;
+    height:100%!important;
+    gap:7px!important;
+  }
+  .lac-together--detail .lac-together__people--detail{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:auto!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    grid-auto-rows:max-content!important;
+    align-content:start!important;
+    gap:7px!important;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    scrollbar-color:#536c80 transparent;
+    padding:1px 3px 4px 1px!important;
+  }
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__people--detail{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-auto-rows:max-content!important;
+    gap:7px!important;
+  }
+  .lac-together--detail .lac-together__person--detail{
+    min-height:58px!important;
+    padding:8px 10px!important;
+    gap:7px!important;
+    border-radius:12px!important;
+  }
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__person--detail{
+    display:grid!important;
+    grid-template-columns:25px minmax(0,1fr) auto!important;
+    gap:6px!important;
+    padding:8px!important;
+    align-items:center!important;
+    min-height:72px!important;
+  }
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__person-avatar {display:none!important;}
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__person-stack{min-width:0!important;gap:3px!important;}
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__person-phone{min-width:0!important;}
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__person-phone span {display:none!important;}
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__person-phone strong {font-size:10px!important;white-space:nowrap!important;}
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__person-controls{
+    width:auto!important;
+    min-width:0!important;
+    flex-direction:column!important;
+    align-items:flex-end!important;
+    gap:4px!important;
+    padding:0!important;
+  }
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__person-state{
+    min-height:24px!important;
+    padding:0 7px!important;
+    font-size:9px!important;
+  }
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__person-kick{
+    min-height:23px!important;
+    padding:0 8px!important;
+  }
+  .lac-together--detail .lac-together__people-footer{
+    flex:0 0 auto!important;
+    margin:0!important;
+    padding:5px 0 0!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    gap:8px!important;
+  }
+  .lac-together--detail .lac-together__people-summary{padding:7px 10px!important;}
+  .lac-together--detail .lac-together__people-summary strong{font-size:18px!important;}
+  .lac-together--detail .lac-together__people-ready-toggle{
+    flex:0 0 auto!important;
+    min-height:37px!important;
+    padding:0 12px!important;
+    width:auto!important;
+  }
+  .lac-together--detail .lac-together__privacy{
+    margin:7px 0 0!important;
+    flex:0 0 auto!important;
+    font-size:9px!important;
+    line-height:1.35!important;
+  }
+  .lac-together--detail .lac-together__post-chat .lac-together__messages{
+    flex:1 1 0!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    scrollbar-color:#536c80 transparent;
+  }
+  .lac-together--detail .lac-together__post-chat .lac-together__chat-form{
+    flex:0 0 auto!important;
+    margin-top:9px!important;
+  }
+  .lac-together--detail .lac-together__chat-welcome{min-height:0!important;}
+}
+/* A more balanced fallback for smaller desktops and zoomed pages: never hide controls. */
+@media (min-width:980px) and (max-height:799px){
+  .lac-together--detail .lac-together__raid-hero{min-height:138px!important;height:138px!important;}
+  .lac-together--detail .lac-together__raid-intel{min-height:58px!important;}
+  .lac-together--detail .lac-together__voice--compact{padding:8px 12px!important;}
+  .lac-together--detail .lac-together__voice-compact-note{margin-top:3px!important;}
+  .lac-together--detail .lac-together__voice-compact-links{margin-top:2px!important;}
+}
+@media (max-width:979px), (max-height:699px) {
+  .lac-together--detail .lac-together__raid-hero{
+    min-height:clamp(175px,26vw,225px)!important;
+    height:auto!important;
+    padding:15px 20px!important;
+  }
+  .lac-together--detail .lac-together__raid-heading{padding-top:15px!important;}
+  .lac-together--detail .lac-together__raid-deck{min-height:0!important;}
+  .lac-together--detail .lac-together__people--detail{grid-auto-rows:auto!important;align-content:start!important;flex:none!important;}
+  .lac-together--detail .lac-together__people-shell{min-height:0!important;flex:none!important;}
+  .lac-together--detail .lac-together__post-chat .lac-together__messages{
+    min-height:180px!important;max-height:275px!important;flex:none!important;
+  }
+}
