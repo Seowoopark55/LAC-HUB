@@ -13,6 +13,9 @@
       #lac-cook-host { display: block; min-height: 100vh; position: relative; z-index: 3; }
       #lac-cook-host iframe { width:100%;min-height:100vh;border:0;display:block;background:#090b0e; }
       html,body,#app{min-height:100%;margin:0;color:#f1f4f7}html{background:#040608}body{background:#040608}#app{background:transparent}
+      html.lac-company-cook-route .pwa-boot{display:none!important}
+      html.lac-company-cook-route,html.lac-company-cook-route body{background:#0c1015!important}
+      html.lac-company-cook-route body::before,html.lac-company-cook-route body::after{display:none!important}
       .pwa-boot{min-height:100vh;display:grid;place-items:center;font-family:Inter,Pretendard,"Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif}
       .pwa-boot__mark{display:grid;justify-items:center;gap:10px;color:#f1f4f7}
       .pwa-boot__icon{width:48px;height:48px;border:1px solid #27313c;border-radius:12px;background:#0f141a;display:grid;place-items:center;color:#e4b24b;font-weight:950;font-size:21px;letter-spacing:-.04em}
@@ -21,6 +24,19 @@
     <title>LAC HUB</title>
     <meta name="application-name" content="LAC HUB" />
     <meta name="description" content="LAC HUB · LAC 회사 운영과 편의 기능을 한곳에서" />
+    <script>
+      // Early route detection avoids flashing the HUB logo before the PWA boots.
+      if (/^\/company-cook(?:\/|$)/.test(location.pathname)) {
+        document.documentElement.classList.add('lac-company-cook-route');
+        document.title = 'COMPANY COOK';
+        document.querySelector('meta[name="application-name"]')?.setAttribute('content','COMPANY COOK');
+        document.querySelector('meta[name="description"]')?.setAttribute('content','온라인 요리 계산기');
+        document.querySelector('link[rel="icon"]')?.setAttribute('href','/company-cook/icon-192.png');
+        const link=document.createElement('link');
+        link.rel='manifest';link.href='/company-cook/manifest.webmanifest';
+        document.head.append(link);
+      }
+    </script>
   </head>
   <body>
     <div id="app"><section class="pwa-boot" aria-label="LAC HUB 시작 중"><div class="pwa-boot__mark"><div class="pwa-boot__icon">L</div><div class="pwa-boot__copy"><strong>LAC HUB</strong><small>통합 플랫폼</small></div></div></section></div>

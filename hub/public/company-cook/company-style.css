@@ -1,0 +1,37 @@
+/* COMPANY COOK only. Loaded inside the same-origin iframe after the HUB COOK
+ * workbench is available. The original /cook/ appearance is unchanged. */
+:root{color-scheme:dark;background:#0c1015}
+body{background:#0c1015}
+.frame{min-height:100dvh;display:flex;flex-direction:column;padding:12px max(12px,calc((100vw - 1440px)/2)) 18px!important}
+.shell{width:100%;max-width:1400px;min-height:calc(100dvh - 30px)!important;display:flex;flex-direction:column;background:#101519}
+.header,.cook-toolbar,.preview-tag,.header .back,#cook-return-preview{display:none!important}
+.workspace{display:flex;flex:1;flex-direction:column;min-height:0;padding:18px!important}
+.cook-workbench{flex:none;grid-template-columns:minmax(270px,34%) minmax(0,1fr)!important;gap:13px!important}
+.cook-sidebar,.cook-results{gap:12px!important}
+.cc-insights{display:grid;grid-template-columns:1.07fr 0.93fr;gap:13px;margin-top:16px;flex:1 0 245px;min-height:235px}
+.cc-insight-card{border:1px solid #343f49;border-radius:13px;background:linear-gradient(145deg,#151d23,#10171c);padding:20px 22px;display:flex;flex-direction:column;min-width:0}
+.cc-insight-head{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.cc-insight-head>span{color:#f4e0bc;font-size:14px;font-weight:850}
+.cc-insight-head>small{color:#92a3b4;font-size:10px}
+.cc-insight-explain{font-size:12px;line-height:1.7;color:#b4c0cc;margin:14px 0 12px}
+.cc-search-shortcut{align-self:flex-start;background:#d7ad66;color:#161916;border:1px solid #edca8d;border-radius:9px;padding:10px 17px;font-size:12px;font-weight:900;cursor:pointer}
+.cc-search-shortcut:hover{background:#f1c984}
+.cc-search-shortcut:focus-visible,.cc-recent-chip:focus-visible{outline:2px solid #eabd6f;outline-offset:3px}
+.cc-recent-title{color:#cdd6df;font-size:11px;font-weight:850;margin-top:auto;padding:22px 0 10px}
+.cc-recent-list{display:flex;flex-wrap:wrap;align-content:flex-start;gap:8px;padding-bottom:7px}
+.cc-recent-chip{background:#25313a;color:#e4edf4;border:1px solid #455663;border-radius:999px;padding:7px 11px;font-size:11px;cursor:pointer}
+.cc-recent-chip:hover{background:#334351;border-color:#d1a25c}
+.cc-muted{color:#889ca9;font-size:11px;line-height:1.7}
+.cc-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:16px 0 14px}
+.cc-stats>div{background:#0f161b;border:1px solid #2f414a;border-radius:10px;padding:12px 8px;text-align:center}
+.cc-stats strong{display:block;color:#f0c477;font-size:21px;font-weight:850;line-height:1.25;font-variant-numeric:tabular-nums}
+.cc-stats span{display:block;margin-top:5px;font-size:10px;color:#a7b5c2}
+.cc-steps{margin-top:3px;color:#b8c7d1}
+.cc-steps>b{font-size:11px;color:#e7e2d8}
+.cc-steps p{font-size:11px;margin:9px 0 0;line-height:1.5}
+.cc-steps p span{display:inline-block;color:#e9c37d;font-size:10px;font-weight:850;margin-right:11px}
+.cc-local-note{font-size:10px;color:#8f9ca8;margin-top:auto;padding-top:18px}
+.cook-disclaimer{padding-top:10px;margin-top:9px!important}
+@media(max-width:920px){.cook-workbench{grid-template-columns:minmax(265px,36%) minmax(0,1fr)!important}.cook-recipes-row{grid-template-columns:1fr!important}.cc-insights{grid-template-columns:1fr 1fr}.cc-insight-card{padding:16px}}
+@media(max-width:790px){.frame{padding:8px!important}.shell{min-height:calc(100dvh - 16px)!important}.workspace{padding:11px!important}.cook-workbench{grid-template-columns:1fr!important}.cook-recipes-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}.cc-insights{min-height:0;flex:none}}
+@media(max-width:620px){.frame{padding:0!important}.shell{border:0!important;border-radius:0!important;min-height:100dvh!important}.cook-recipes-row,.cc-insights{grid-template-columns:1fr!important}.cc-insight-card{min-height:165px}.cc-insights{gap:10px}.cc-stats strong{font-size:18px}}
