@@ -211,6 +211,12 @@ styles.textContent += `
   .cc-order-save{background:#e7b969;color:#20180c}
   .cc-order-quiet{background:#24303a;color:#cdd9e0;border-color:#43515d}
   .cc-order-feedback{min-height:15px;margin:0;font-size:12px;color:#e4b77d}
+  .cc-order-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:-3px 0 13px;
+    padding:4px;background:#0d151c;border:1px solid #35434e;border-radius:10px;position:sticky;top:-20px;z-index:2}
+  .cc-order-tab{min-width:0;padding:10px 7px;border:1px solid transparent;border-radius:7px;
+    background:transparent;color:#a9bac7;font-size:12px;font-weight:850}
+  .cc-order-tab[aria-selected="true"]{background:#342719;color:#f8d396;border-color:#916f42}
+  .cc-order-tab:hover:not([aria-selected="true"]){background:#202b34;color:#e6eff3}
   .cc-order-list{display:grid;align-content:start;gap:10px}
   .cc-order-record{border:1px solid #394852;border-radius:10px;background:#18212a;padding:13px}
   .cc-order-record[data-stage=delivered]{opacity:.8}
@@ -1247,9 +1253,8 @@ function mountCompanyMemo(doc, iframe){
   const heading=doc.createElement('div');heading.className='panel-title';
   const h=doc.createElement('h3');h.textContent='주문관리';heading.append(h);
   const summary=doc.createElement('div');summary.className='cc-order-summary';
-  const last=doc.createElement('p');last.className='cc-order-last';
   const open=doc.createElement('button');open.type='button';open.className='cc-order-open';open.textContent='주문관리 열기  ↗';
-  section.append(heading,summary,last,open);sidebar.append(section);
+  section.append(heading,summary,open);sidebar.append(section);
 
   let storage=null;
   try{storage=window.localStorage;}catch{}
@@ -1295,8 +1300,17 @@ function mountCompanyMemo(doc, iframe){
   const listTitle=document.createElement('h3');listTitle.textContent='주문 현황';
   const total=document.createElement('span');total.className='cc-order-list-count';
   listHead.append(listTitle,total);
-  const list=document.createElement('div');list.className='cc-order-list';list.setAttribute('aria-label','주문 목록');
-  manager.append(listHead,list);content.append(editor,manager);shell.append(bar,content);dialog.append(shell);document.body.append(dialog);
+  const tabs=document.createElement('div');tabs.className='cc-order-tabs';tabs.setAttribute('role','tablist');
+  tabs.setAttribute('aria-label','주문 진행 상태');
+  const activeTab=document.createElement('button');activeTab.type='button';activeTab.className='cc-order-tab';
+  activeTab.setAttribute('role','tab');activeTab.id='cc-orders-active-tab';
+  const deliveredTab=document.createElement('button');deliveredTab.type='button';deliveredTab.className='cc-order-tab';
+  deliveredTab.setAttribute('role','tab');deliveredTab.id='cc-orders-delivered-tab';
+  tabs.append(activeTab,deliveredTab);
+  const list=document.createElement('div');list.className='cc-order-list';list.setAttribute('role','tabpanel');
+  list.id='cc-orders-list';list.setAttribute('aria-label','주문 목록');
+  activeTab.setAttribute('aria-controls',list.id);deliveredTab.setAttribute('aria-controls',list.id);
+  manager.append(listHead,tabs,list);content.append(editor,manager);shell.append(bar,content);dialog.append(shell);document.body.append(dialog);
 
   const pickRows=()=>[...foodRows.querySelectorAll('.cc-order-food-row')];
   function addDishRow(name='',count=1){
@@ -1333,7 +1347,14 @@ function mountCompanyMemo(doc, iframe){
   dialog.addEventListener('click',event=>{if(event.target===dialog)closeDialog();});
   cancelEdit.addEventListener('click',()=>{if(confirmDiscard())resetForm();});
   addDish.addEventListener('click',()=>{addDishRow()?.focus();});
-  open.addEventListener('click',()=>{if(companyOrderDialog!==dialog)return;resetForm();renderList();dialog.showModal();customer.focus();});
+  let orderTab='active';
+  activeTab.addEventListener('click',()=>{orderTab='active';renderList();});
+  deliveredTab.addEventListener('click',()=>{orderTab='delivered';renderList();});
+  for(const tab of [activeTab,deliveredTab])tab.addEventListener('keydown',event=>{
+    if(event.key!=='ArrowLeft'&&event.key!=='ArrowRight')return;
+    event.preventDefault();const next=tab===activeTab?deliveredTab:activeTab;next.click();next.focus();
+  });
+  open.addEventListener('click',()=>{if(companyOrderDialog!==dialog)return;resetForm();orderTab='active';renderList();dialog.showModal();customer.focus();});
   resetForm();
   const optionNames=new Set();
   const addOptions=foods=>{
@@ -1365,17 +1386,26 @@ function mountCompanyMemo(doc, iframe){
       const value=doc.createElement('strong');value.textContent=String(count);
       const key=doc.createElement('span');key.textContent=label;cell.append(value,key);summary.append(cell);
     }
-    const latest=orders.find(row=>row.stage!=='delivered');
-    last.textContent=latest?`${latest.customer} · ${latest.items.length}종 · 총 ${latest.items.reduce((sum,item)=>sum+item.sets,0)}세트`:
-      (orders.length?'진행 중인 주문이 없습니다.':'주문을 등록하면 진행 상황이 표시됩니다.');
   }
   function renderList(){
     renderSummary();list.replaceChildren();
-    total.textContent=`${orders.length}건`;
-    if(!orders.length){
-      const empty=document.createElement('p');empty.className='cc-order-empty';empty.textContent='접수된 주문이 없습니다.';list.append(empty);return;
+    const activeOrders=orders.filter(row=>row.stage!=='delivered');
+    const deliveredOrders=orders.filter(row=>row.stage==='delivered');
+    activeTab.textContent=`진행 중  ${activeOrders.length}`;
+    deliveredTab.textContent=`전달 완료  ${deliveredOrders.length}`;
+    activeTab.setAttribute('aria-selected',String(orderTab==='active'));
+    deliveredTab.setAttribute('aria-selected',String(orderTab==='delivered'));
+    activeTab.tabIndex=orderTab==='active'?0:-1;
+    deliveredTab.tabIndex=orderTab==='delivered'?0:-1;
+    list.setAttribute('aria-labelledby',orderTab==='active'?activeTab.id:deliveredTab.id);
+    const visible=orderTab==='active'?activeOrders:deliveredOrders;
+    total.textContent=`${visible.length}건`;
+    if(!visible.length){
+      const empty=document.createElement('p');empty.className='cc-order-empty';
+      empty.textContent=orderTab==='active'?'진행 중인 주문이 없습니다.':'전달 완료된 주문이 없습니다.';
+      list.append(empty);return;
     }
-    for(const order of [...orders].sort((a,b)=>Number(a.stage==='delivered')-Number(b.stage==='delivered'))){
+    for(const order of visible){
       const card=document.createElement('article');card.className='cc-order-record';card.dataset.stage=order.stage;
       const top=document.createElement('div');top.className='cc-order-record-top';
       const name=document.createElement('strong');name.textContent=order.customer;
