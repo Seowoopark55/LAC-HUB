@@ -333,6 +333,7 @@ const studioStyles = document.createElement('link');
 studioStyles.rel='stylesheet';
 studioStyles.href='/company-cook/data-studio.css';
 document.head.append(studioStyles);
+const reportStyles=document.createElement('link');reportStyles.rel='stylesheet';reportStyles.href='/company-cook/report-center.css';document.head.append(reportStyles);
 
 const CURRENT_COOK_REVISION = import.meta.env.VITE_COMPANY_COOK_VERSION || '';
 let newestCookRevision = '';
@@ -369,10 +370,20 @@ let fishDbError = '';
 let fishSourceError = '';
 let fishAreaFilter = 'general';
 let fishResearchOnly = false;
+let companyReportDialog=null;
+let reportAdminTab='pending';
+let settingsCategory='general';
+let reportInbox=[];
+let reportInboxLoading=false;
+let reportInboxError='';
+let reportInboxLoaded=false;
+let reportPage=0;
+let reportMutationBusy=false;
 
 
 function resetView(){
   clearCompanyOrderDialog();
+  if(companyReportDialog?.open)companyReportDialog.close();
   frameResizeObserver?.disconnect();
   frameResizeObserver = null;
   frameResizeCleanup?.();
@@ -485,6 +496,7 @@ async function applyCompanyCookUpdate(button){
   if(!newestCookRevision)return;
   // Never destroy unsaved customer orders or active recipe edits.
   if(companyOrderDialog?.open){cookUpdateMessage.textContent='주문 입력을 저장하거나 창을 닫은 뒤 업데이트해 주세요.';return;}
+  if(companyReportDialog?.open){cookUpdateMessage.textContent='제보 작성을 마친 뒤 업데이트해 주세요.';return;}
   if(dataEditing){
     if(dataEditing.saving){cookUpdateMessage.textContent='레시피 저장이 끝나면 업데이트해 주세요.';return;}
     if(!studioConfirmExit())return;
@@ -527,7 +539,9 @@ function createAppShell(){
   install.addEventListener('click',()=>void handleInstall());
   const refresh=document.createElement('button');refresh.type='button';refresh.className='cc-button';
   refresh.textContent='새로고침';refresh.addEventListener('click',()=>window.location.reload());
-  actions.append(install,refresh);header.append(identity,nav,actions);
+  const reportButton=makeText('button','cc-button cc-report-open','✎  요리 제보');
+  reportButton.type='button';reportButton.addEventListener('click',openCompanyReportDialog);
+  actions.append(reportButton,install,refresh);header.append(identity,nav,actions);
   const updateNotice=document.createElement('aside');updateNotice.id='cc-update-notice';updateNotice.className='cc-update-notice';
   updateNotice.hidden=true;updateNotice.setAttribute('role','status');updateNotice.setAttribute('aria-live','polite');
   const updateText=document.createElement('span');updateText.textContent='새 버전이 준비됐습니다.';
@@ -574,7 +588,10 @@ function switchAppView(view){
     }
     return;
   }
-  if(view==='settings')paintAppSettings();
+  if(view==='settings'){
+    paintAppSettings();
+    if(adminStatus==='unknown')void checkEditorAdmin().then(()=>{if(currentView==='settings'){paintAppSettings();if(settingsCategory==='management'&&adminStatus==='admin'&&!reportInboxLoaded)void loadCompanyReports();}});
+  }
   if(view==='data'){
     paintAppData();
     if(!dataLoaded && !dataLoadInFlight)void loadAppData();
@@ -585,21 +602,185 @@ function makeText(tag,className,text){
   const item=document.createElement(tag);if(className)item.className=className;
   if(text!=null)item.textContent=text;return item;
 }
+// SETTINGS -> MANAGEMENT · report review is admin-only. Nothing automatically edits a recipe.
 function paintAppSettings(){
   if(!viewHost)return;
   viewHost.replaceChildren();
-  const heading=makeText('h2','','설정');
-  const box=makeText('div','cc-view-card',null);
-  box.append(makeText('h3','','준비 중'),makeText('p','','필요한 설정이 생기면 이곳에 추가할 예정입니다. 지금은 기존 계산기와 저장 방식을 유지합니다.'));
-  const legacy=frame?.contentDocument?.getElementById('legacy-restore');
-  const restore=frame?.contentDocument?.getElementById('load-workspace-legacy');
-  if(legacy && !legacy.hidden && restore){
-    const backup=makeText('div','cc-view-card',null);
-    backup.append(makeText('h3','','이전 수동 저장본'),makeText('p','','기존 작업 저장본이 있다면 여기서 불러올 수 있습니다. 현재 목록은 덮어쓸 수 있습니다.'));
-    const button=makeText('button','cc-button','이전 저장본 불러오기');button.type='button';
-    button.addEventListener('click',()=>{switchAppView('home');restore.click();});
-    backup.append(button);viewHost.append(heading,box,backup);
-  }else viewHost.append(heading,box);
+  const root=makeText('section','cc-report-settings');
+  root.append(makeText('h2','','설정'));
+  const tabs=makeText('nav','cc-report-settings-tabs');tabs.setAttribute('aria-label','설정 카테고리');
+  for(const [category,label] of [['general','일반'],['management','관리']]){
+    const tab=makeText('button','cc-report-settings-tab',label);tab.type='button';
+    tab.setAttribute('aria-current',settingsCategory===category?'page':'false');
+    tab.addEventListener('click',()=>{settingsCategory=category;paintAppSettings();
+      if(category==='management'&&adminStatus==='admin'&&!reportInboxLoaded)void loadCompanyReports();});
+    tabs.append(tab);
+  }
+  root.append(tabs);
+  if(settingsCategory==='general'){
+    const box=makeText('section','cc-report-settings-card');
+    box.append(makeText('h3','','일반 설정'),makeText('p','','계산기 설정 항목은 추후 필요할 때 추가합니다. 현재 저장 방식은 그대로 유지합니다.'));
+    const legacy=frame?.contentDocument?.getElementById('legacy-restore');
+    const restore=frame?.contentDocument?.getElementById('load-workspace-legacy');
+    if(legacy&&!legacy.hidden&&restore){
+      const button=makeText('button','cc-button','이전 수동 저장본 불러오기');button.type='button';
+      button.addEventListener('click',()=>{switchAppView('home');restore.click();});box.append(button);
+    }
+    root.append(box);
+  }else if(adminStatus!=='admin'){
+    const card=makeText('section','cc-report-settings-card');
+    card.append(makeText('h3','','관리자 권한 확인'),makeText('p','','제보 내용은 플랫폼 관리자만 열람할 수 있습니다. HUB에 로그인한 다음 권한 확인을 눌러주세요.'));
+    const btn=makeText('button','cc-report-action','관리자 권한 확인');btn.type='button';
+    btn.addEventListener('click',async()=>{btn.disabled=true;await checkEditorAdmin();
+      if(currentView==='settings'){paintAppSettings();if(adminStatus==='admin')void loadCompanyReports();}});
+    const link=makeText('a','cc-report-admin-link','HUB 로그인 ↗');link.href='/';link.target='_blank';link.rel='noopener noreferrer';
+    card.append(btn,link);root.append(card);
+  }else{
+    const box=makeText('section','cc-report-settings-card cc-report-inbox');
+    const heading=makeText('div','cc-report-inbox-heading');
+    heading.append(makeText('h3','','요리 제보 관리'));
+    const reload=makeText('button','cc-report-action cc-report-quiet','새로고침');reload.type='button';
+    reload.addEventListener('click',()=>{reportInboxLoaded=false;void loadCompanyReports();});
+    heading.append(reload);box.append(heading);
+    const statuses=makeText('div','cc-report-review-tabs');
+    for(const [key,label] of [['pending','검토 대기'],['applied','반영 완료'],['dismissed','보류']]){
+      const count=reportInbox.filter(x=>x.status===key).length;
+      const button=makeText('button','cc-report-review-tab',`${label} ${count}`);button.type='button';
+      button.setAttribute('aria-selected',String(reportAdminTab===key));
+      button.addEventListener('click',()=>{reportAdminTab=key;reportPage=0;paintAppSettings();});
+      statuses.append(button);
+    }
+    box.append(statuses);
+    const list=makeText('div','cc-report-review-list');
+    if(reportInboxLoading)list.append(makeText('p','cc-report-help','제보를 불러오는 중입니다…'));
+    else if(reportInboxError)list.append(makeText('p','cc-report-error',reportInboxError));
+    else{
+      const all=reportInbox.filter(x=>x.status===reportAdminTab);const pageSize=8;
+      const pages=Math.max(1,Math.ceil(all.length/pageSize));reportPage=Math.min(reportPage,pages-1);
+      if(!all.length)list.append(makeText('p','cc-report-empty','표시할 제보가 없습니다.'));
+      for(const entry of all.slice(reportPage*pageSize,(reportPage+1)*pageSize)){
+        const item=makeText('article','cc-report-review-card');
+        const top=makeText('div','cc-report-review-head');
+        const label={food_add:'새 요리',food_edit:'레시피 수정',process:'가공 재료',other:'기타 제보'}[entry.kind]||'요리 제보';
+        top.append(makeText('span','cc-report-tag',label),makeText('strong','',entry.food_name));item.append(top);
+        item.append(makeText('p','cc-report-review-content',entry.detail));
+        const meta=makeText('div','cc-report-review-meta');
+        const dt=new Date(entry.created_at);meta.textContent=`${entry.reporter_name||'익명'} · ${Number.isNaN(dt.getTime())?'':dt.toLocaleString('ko-KR')}`;
+        item.append(meta);
+        if(entry.admin_note)item.append(makeText('p','cc-report-review-note',`관리 메모 · ${entry.admin_note}`));
+        const actions=makeText('div','cc-report-review-actions');
+        const edit=makeText('button','cc-report-action cc-report-quiet','데이터에서 확인');edit.type='button';
+        edit.addEventListener('click',()=>{
+          dataKind=entry.kind==='process'?'process':'food';dataSelectedKey='';dataFilterText=entry.food_name;
+          dataModifiedOnly=false;settingsCategory='general';switchAppView('data');
+        });actions.append(edit);
+        for(const [status,text] of [['applied','반영 완료'],['dismissed','보류'],['pending','대기로 되돌리기']]){
+          if(entry.status===status)continue;
+          const button=makeText('button','cc-report-action'+(status==='applied'?' cc-report-accent':''),text);button.type='button';
+          button.disabled=reportMutationBusy;
+          button.addEventListener('click',()=>void updateCompanyReport(entry,status));actions.append(button);
+        }
+        item.append(actions);list.append(item);
+      }
+      if(pages>1){
+        const controls=makeText('div','cc-report-review-pager');
+        const previous=makeText('button','cc-report-action cc-report-quiet','이전');previous.type='button';previous.disabled=reportPage===0;
+        previous.addEventListener('click',()=>{reportPage--;paintAppSettings();});
+        const next=makeText('button','cc-report-action cc-report-quiet','다음');next.type='button';next.disabled=reportPage===pages-1;
+        next.addEventListener('click',()=>{reportPage++;paintAppSettings();});
+        controls.append(previous,makeText('span','',`${reportPage+1} / ${pages}`),next);list.append(controls);
+      }
+    }
+    box.append(list);root.append(box);
+  }
+  viewHost.append(root);
+}
+async function loadCompanyReports(){
+  if(reportInboxLoading||currentView!=='settings'||settingsCategory!=='management')return;
+  reportInboxLoading=true;reportInboxError='';paintAppSettings();
+  try{
+    if(!await checkEditorAdmin())throw Error('관리자 권한을 확인할 수 없습니다.');
+    const {data,error}=await supabase.from('company_cook_reports')
+      .select('id,created_at,kind,food_name,detail,reporter_name,status,admin_note,reviewed_at')
+      .order('created_at',{ascending:false}).limit(150);
+    if(error)throw error;
+    reportInbox=Array.isArray(data)?data:[];reportInboxLoaded=true;
+  }catch(error){reportInboxError='제보를 불러오지 못했습니다. 운영 SQL 적용 및 관리자 권한을 확인해 주세요. '+String(error?.message||'');}
+  finally{reportInboxLoading=false;if(currentView==='settings'&&settingsCategory==='management')paintAppSettings();}
+}
+async function updateCompanyReport(entry,newStatus){
+  if(reportMutationBusy||!['pending','applied','dismissed'].includes(newStatus))return;
+  if(newStatus==='applied'&&!window.confirm('레시피를 실제로 등록·수정한 후 반영 완료로 표시했나요? 제보 승인만으로 레시피가 수정되지는 않습니다.'))return;
+  reportMutationBusy=true;
+  try{
+    if(!await checkEditorAdmin())throw Error('관리자 권한을 확인할 수 없습니다.');
+    const running=await supabase.rpc('my_apps_company_cook_status');
+    if(running.error||running.data!==true)throw Error('요리계산기가 중지되어 있습니다.');
+    const {data,error}=await supabase.from('company_cook_reports')
+      .update({status:newStatus,reviewed_at:newStatus==='pending'?null:new Date().toISOString()})
+      .eq('id',entry.id).eq('status',entry.status).select('id').maybeSingle();
+    if(error)throw error;
+    if(!data)throw Error('다른 관리자가 먼저 처리했습니다. 새로고침 후 다시 시도하세요.');
+    reportInbox=reportInbox.map(row=>row.id===entry.id?{...row,status:newStatus}:row);
+    reportAdminTab=newStatus;reportPage=0;
+  }catch(error){window.alert('상태 변경 실패: '+String(error?.message||'다시 시도해 주세요.'));}
+  finally{reportMutationBusy=false;if(currentView==='settings')paintAppSettings();}
+}
+function openCompanyReportDialog(){
+  if(!companyReportDialog){
+    const dialog=makeText('dialog','cc-report-dialog');dialog.setAttribute('aria-label','요리 제보');
+    const body=makeText('div','cc-report-dialog-body');
+    const head=makeText('div','cc-report-dialog-head');
+    const words=makeText('div','');words.append(makeText('span','cc-report-eyebrow','RECIPE REQUEST'),makeText('h2','','요리 제보'));
+    const close=makeText('button','cc-report-close','×');close.type='button';close.setAttribute('aria-label','닫기');
+    close.addEventListener('click',()=>dialog.close());head.append(words,close);
+    const form=makeText('form','cc-report-form');form.noValidate=true;
+    const kindWrap=makeText('label','cc-report-field');kindWrap.append(makeText('span','','제보 종류'));
+    const kind=makeText('select','');kind.name='report_kind';
+    for(const [value,label] of [['food_add','새 요리 레시피'],['food_edit','기존 레시피 수정'],['process','가공 재료'],['other','기타 정보']]){
+      const option=makeText('option','',label);option.value=value;kind.append(option);
+    }kindWrap.append(kind);
+    const field=(name,label,placeholder,max,tag='input')=>{
+      const wrap=makeText('label','cc-report-field');wrap.append(makeText('span','',label));
+      const input=makeText(tag,'');input.name=name;input.maxLength=max;input.placeholder=placeholder;
+      if(tag==='textarea')input.rows=5;
+      wrap.append(input);return {wrap,input};
+    };
+    const food=field('food','요리·재료 이름','예: 계란 샐러드',90);
+    const detail=field('detail','제보 내용','재료와 수량, 제작시간 또는 수정 근거를 구체적으로 적어주세요.',2000,'textarea');
+    const reporter=field('reporter','제보자 닉네임 · 선택','미입력 시 익명',40);
+    const trap=field('website','', '',100);trap.wrap.classList.add('cc-report-trap');trap.input.autocomplete='off';
+    const message=makeText('p','cc-report-form-message','');message.setAttribute('role','status');
+    const foot=makeText('div','cc-report-dialog-actions');
+    const cancel=makeText('button','cc-report-action cc-report-quiet','취소');cancel.type='button';cancel.addEventListener('click',()=>dialog.close());
+    const submit=makeText('button','cc-report-action cc-report-accent','제보 보내기');submit.type='submit';
+    foot.append(cancel,submit);form.append(kindWrap,food.wrap,detail.wrap,reporter.wrap,trap.wrap,message,foot);
+    let saving=false;
+    form.addEventListener('submit',async event=>{
+      event.preventDefault();if(saving)return;
+      const name=food.input.value.trim(),content=detail.input.value.trim(),nickname=reporter.input.value.trim();
+      if(name.length<1||name.length>90||content.length<10||content.length>2000||nickname.length>40){
+        message.textContent='요리 이름과 제보 내용(10~2000자)을 확인해 주세요.';return;
+      }
+      saving=true;submit.disabled=true;cancel.disabled=true;message.textContent='제보를 접수하고 있습니다…';
+      try{
+        const running=await supabase.rpc('my_apps_company_cook_status');
+        if(running.error||running.data!==true)throw Error('현재 요리계산기 이용이 중지되어 있습니다.');
+        const {data,error}=await supabase.rpc('company_cook_submit_report',{
+          p_kind:kind.value,p_food_name:name,p_detail:content,p_reporter_name:nickname,p_website:trap.input.value,
+        });
+        if(error)throw error;
+        if(data!==true)throw Error('접수할 수 없습니다. 잠시 후 다시 시도해 주세요.');
+        message.textContent='제보가 접수됐습니다. 관리자가 반영 여부를 검토합니다.';
+        form.reset();
+        submit.textContent='접수 완료';
+      }catch(error){message.textContent='제보 접수 실패: '+String(error?.message||'서버 연결을 확인해 주세요.');}
+      finally{saving=false;submit.disabled=false;cancel.disabled=false;}
+    });
+    dialog.addEventListener('close',()=>{if(!saving){message.textContent='';submit.textContent='제보 보내기';}});
+    dialog.append(body);body.append(head,form);document.body.append(dialog);companyReportDialog=dialog;
+  }
+  if(!companyReportDialog.open)companyReportDialog.showModal();
 }
 // Same public catalog snapshot + DB overlays that the HUB calculator uses.
 // All edits are in this parent context. The anonymous iframe never receives credentials.

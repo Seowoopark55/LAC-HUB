@@ -1,0 +1,49 @@
+/* COMPANY COOK · community reports / admin moderation. No HUB-global selectors. */
+.cc-report-open{border:1px solid #b39159!important;color:#f1d098!important;background:#322718!important;font-weight:850!important}
+.cc-report-open:hover{background:#47351e!important}
+.cc-report-settings{max-width:1200px;margin:auto;color:#edf1f5}
+.cc-report-settings>h2{font-size:23px;margin:0 0 14px;font-weight:900;color:#f5e8d4}
+.cc-report-settings-tabs,.cc-report-review-tabs{display:flex;gap:6px;padding:5px;background:#101821;border:1px solid #33434e;border-radius:12px;margin-bottom:15px;flex-wrap:wrap}
+.cc-report-settings-tab,.cc-report-review-tab{min-height:39px;padding:8px 17px;border:1px solid transparent;border-radius:9px;background:transparent;color:#aabbc7;font-weight:850;cursor:pointer;font-size:13px}
+.cc-report-settings-tab[aria-current=page],.cc-report-review-tab[aria-selected=true]{background:#49351d;color:#fbe2b1;border-color:#b18b54}
+.cc-report-settings-card{padding:19px;border:1px solid #354651;border-radius:13px;background:#151e26;min-height:155px}
+.cc-report-settings-card h3{font-size:17px;margin:0 0 10px}.cc-report-settings-card>p{color:#b6c5cf;font-size:13px;line-height:1.6}
+.cc-report-admin-link{display:inline-flex;padding:9px 13px;margin-left:9px;color:#ebbd77;text-decoration:none;font-size:13px}
+.cc-report-action{padding:8px 13px;min-height:36px;border:1px solid #52616d;border-radius:9px;background:#22323d;color:#dce7eb;font-size:12px;font-weight:850;cursor:pointer;white-space:nowrap}
+.cc-report-action:focus-visible,.cc-report-close:focus-visible{outline:2px solid #edc57c;outline-offset:2px}
+.cc-report-action:disabled{opacity:.4;cursor:default}
+.cc-report-accent{border-color:#d5a55f;background:#e9ba6e;color:#171b20}
+.cc-report-accent:hover{background:#f6d297}
+.cc-report-quiet{background:#192630}
+.cc-report-inbox-heading{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:15px}
+.cc-report-inbox-heading h3{margin:0}
+.cc-report-review-list{display:grid;gap:11px;max-height:min(560px,62dvh);overflow-y:auto;overscroll-behavior:contain;padding-right:3px}
+.cc-report-review-card{padding:14px 16px;background:#111a21;border:1px solid #3b4e59;border-radius:11px}
+.cc-report-review-head{display:flex;gap:10px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
+.cc-report-review-head strong{font-size:15px;color:#f5ece0}
+.cc-report-tag{font-size:11px;color:#edc17a;padding:4px 8px;border:1px solid #79603d;border-radius:7px;background:#332719}
+.cc-report-review-content{font-size:13px;line-height:1.7;color:#d7e3eb;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 10px}
+.cc-report-review-meta{font-size:11px;color:#9eb2c1;margin-bottom:11px}
+.cc-report-review-note{font-size:12px;color:#b3c8d3}
+.cc-report-review-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #2b3b46;padding-top:11px}
+.cc-report-review-pager{display:flex;gap:12px;align-items:center;justify-content:center;padding:10px}
+.cc-report-review-pager span{font-size:12px;color:#f0cc90}
+.cc-report-empty,.cc-report-help,.cc-report-error{border:1px dashed #415461;padding:25px;border-radius:9px;text-align:center;font-size:13px;color:#b4c5d0}
+.cc-report-error{color:#ffc2ad}
+.cc-report-dialog{width:min(540px,calc(100vw - 26px));max-height:90dvh;padding:0;overflow:auto;border:1px solid #b18d58;border-radius:16px;background:#121c24;color:#eff1f4;box-shadow:0 28px 60px #000c;font-family:Inter,Pretendard,system-ui,sans-serif}
+.cc-report-dialog::backdrop{background:#02070ad9;backdrop-filter:blur(5px)}
+.cc-report-dialog-body{padding:22px}
+.cc-report-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.cc-report-eyebrow{display:block;color:#efc17a;font-size:10px;letter-spacing:.15em;font-weight:850}
+.cc-report-dialog-head h2{font-size:23px;margin:4px 0 0;color:#f9f1e2}
+.cc-report-close{display:grid;place-items:center;flex:none;width:36px;height:36px;border:1px solid #41525d;border-radius:9px;background:#25343d;color:#e6eff4;font-size:20px;cursor:pointer}
+.cc-report-form{display:grid;gap:15px}
+.cc-report-field{display:grid;gap:7px;font-size:13px;font-weight:750;color:#d9e4eb}
+.cc-report-field input,.cc-report-field textarea,.cc-report-field select{font:inherit;font-weight:500;font-size:14px;box-sizing:border-box;width:100%;min-width:0;padding:10px 12px;border-radius:9px;border:1px solid #455766;background:#0b141b;color:#f2f3f4;outline:none}
+.cc-report-field textarea{resize:vertical;min-height:115px}
+.cc-report-field input:focus,.cc-report-field textarea:focus,.cc-report-field select:focus{border-color:#ddb276;box-shadow:0 0 0 2px #deb86a27}
+.cc-report-form-message{font-size:12px;color:#e7c38e;margin:0;line-height:1.5}
+.cc-report-form-message:empty{display:none}
+.cc-report-dialog-actions{display:flex;gap:9px;justify-content:flex-end;padding-top:8px;border-top:1px solid #2c404b}
+.cc-report-trap{position:absolute!important;left:-99999px!important;top:-99999px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+@media(max-width:760px){.cc-report-settings-card{padding:13px}.cc-report-dialog-body{padding:17px}.cc-report-review-list{max-height:none}.cc-report-settings>h2{font-size:19px}}
