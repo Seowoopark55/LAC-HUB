@@ -10,13 +10,13 @@
   "theme_color": "#080b10",
   "icons": [
     {
-      "src": "/company-cook/icon-192.png",
+      "src": "/company-cook/icon-192.png?v=20261014-yp",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/company-cook/icon-512.png",
+      "src": "/company-cook/icon-512.png?v=20261014-yp",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"

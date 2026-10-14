@@ -171,6 +171,18 @@ styles.textContent = `
 
 `;
 styles.textContent += `
+
+  /* Gold chef-hat identity · no company branding */
+  .cc-header-icon{width:39px;height:39px;display:grid;place-items:center;border-radius:12px;
+    border:1px solid #a98249;background:linear-gradient(145deg,#3e3020,#171b20 82%);
+    box-shadow:inset 0 1px #f0cb8750,0 3px 12px #0009}
+  .cc-title-lockup{display:flex;flex-direction:column;min-width:0;gap:3px}
+  .cc-title-lockup>b{font-size:18px;line-height:1.1;color:#f7f1e5}
+  .cc-title-lockup>small{font-size:10px;line-height:1.2;color:#c2a77e;
+    font-weight:700;letter-spacing:.035em}
+  @media(max-width:600px){.cc-header-icon{width:33px;height:33px}
+    .cc-title-lockup>b{font-size:15px}.cc-title-lockup>small{font-size:9px}}
+
   /* COMPANY COOK · Order desk: structured ticket layout, independently scrollable. */
   .cc-order-dialog{box-sizing:border-box;width:min(1030px,calc(100vw - 30px));max-width:1030px;
     max-height:min(90dvh,820px);padding:0;overflow:hidden;border:1px solid #45565d;
@@ -442,8 +454,13 @@ function createAppShell(){
   const layout = document.createElement('main');layout.className = 'cc-layout';
   const header = document.createElement('header');header.className = 'cc-header';
   const identity = document.createElement('div');identity.className='cc-header-title';
-  const logo=document.createElement('span');logo.className='cc-header-icon';logo.innerHTML='<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 13a4 4 0 0 1-1-7.87 5 5 0 0 1 9.5-1.1A4 4 0 0 1 19 11v9H5v-7"/><path d="M8 20v-4m8 4v-4"/></svg>';logo.setAttribute('aria-hidden','true');
-  const title=document.createElement('b');title.textContent='요리계산기';identity.append(logo,title);
+  const logo=document.createElement('span');logo.className='cc-header-icon';
+  logo.innerHTML='<svg viewBox="0 0 48 48" width="26" height="26" fill="none" aria-hidden="true"><path d="M14 30.5c-4.2-1.5-6.4-5.8-4.7-9.8a8 8 0 0 1 7.8-4.9c.7-5.9 5.1-9.6 11-8.7a10 10 0 0 1 8.2 9.6c5.4 1.1 8 7.1 4.2 11.3-1 2.2-2.7 3.8-5.1 4.5" stroke="#F7D18A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 28v10.5c4.8 2.8 15.3 2.8 20 0V28M19 35v-6m10 6v-6" stroke="#F7D18A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="38" cy="8" r="2.3" fill="#FFE4AC"/></svg>';
+  logo.setAttribute('aria-hidden','true');
+  const titleBox=document.createElement('span');titleBox.className='cc-title-lockup';
+  const title=document.createElement('b');title.textContent='요리계산기';
+  const maker=document.createElement('small');maker.textContent='crafted by 영포티';
+  titleBox.append(title,maker);identity.append(logo,titleBox);
   const nav=document.createElement('nav');nav.className='cc-nav';nav.setAttribute('aria-label','요리계산기 메뉴');
   navButtons=new Map();
   const addNav=(key,text,handler)=>{
@@ -1247,6 +1264,115 @@ function renderStudioEditor(content,editing){
   content.append(form);
 }
 
+// COMPANY-only display/interaction polish. Does not modify HUB COOK's renderer.
+let companyPolishCleanup = null;
+function mountCompanyWorkbenchPolish(doc, iframe){
+  companyPolishCleanup?.();companyPolishCleanup=null;
+  if(frame!==iframe || !iframe.isConnected)return;
+  const win=iframe.contentWindow;
+  if(!win)return;
+  const search=doc.getElementById('search');
+  const results=doc.getElementById('results');
+  const searchPanel=doc.querySelector('.search-panel');
+  const ordersRoot=doc.getElementById('orders');
+  const ordersPanel=doc.querySelector('.orders-panel');
+  const purchases=doc.getElementById('purchases');
+  const cleanups=[];
+  function on(target,type,callback,options){
+    if(!target)return;
+    target.addEventListener(type,callback,options);
+    cleanups.push(()=>target.removeEventListener(type,callback,options));
+  }
+  // Keep the real search behaviour, but allow one-click/keyboard dismissal.
+  if(search&&results&&searchPanel){
+    const close=doc.createElement('button');close.type='button';
+    close.className='cc-search-dismiss';close.textContent='닫기';
+    close.setAttribute('aria-label','요리 검색 결과 닫기');
+    const dismiss=()=>{
+      if(!search.value)return;
+      search.value='';search.dispatchEvent(new win.Event('input',{bubbles:true}));
+    };
+    const refreshClose=()=>{close.hidden=!search.value.trim();};
+    searchPanel.append(close);cleanups.push(()=>close.remove());
+    on(search,'input',refreshClose);on(close,'click',dismiss);
+    on(search,'keydown',event=>{if(event.key==='Escape'){dismiss();search.blur();}});
+    on(results,'click',event=>{
+      if(event.target.closest('button.accent,button.favorite-toggle')){
+        // Native add/favourite listeners complete before clearing the results.
+        win.setTimeout(dismiss,0);
+      }
+    });
+    on(doc,'pointerdown',event=>{
+      if(search.value && !searchPanel.contains(event.target))dismiss();
+    });
+    refreshClose();
+  }
+  // Inform, don't restrict, when there are more than two distinct work items.
+  if(ordersRoot&&ordersPanel){
+    const toast=doc.createElement('div');toast.className='cc-work-hint';
+    toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.hidden=true;
+    ordersPanel.append(toast);cleanups.push(()=>toast.remove());
+    let count=ordersRoot.querySelectorAll('.order-row').length;
+    let timer=null,armed=false,armTimer=null;
+    // Initial autosaved work is not a new user action: only notify on clicks.
+    on(doc,'click',event=>{
+      if(event.target.closest('#results button.accent,.favorites-panel button[aria-label*="작업 목록에 추가"]')){
+        armed=true;
+        if(armTimer!==null)win.clearTimeout(armTimer);
+        armTimer=win.setTimeout(()=>{armed=false;},400);
+      }
+    },true);
+    const watch=new win.MutationObserver(()=>{
+      const next=ordersRoot.querySelectorAll('.order-row').length;
+      if(armed && next>count && next>2){
+        toast.textContent='작업목록은 2가지 정도로 운영하는 것을 추천합니다.';
+        toast.hidden=false;
+        if(timer!==null)win.clearTimeout(timer);
+        timer=win.setTimeout(()=>{toast.hidden=true;},4700);
+      }
+      count=next;
+    });
+    watch.observe(ordersRoot,{childList:true,subtree:true});
+    cleanups.push(()=>{watch.disconnect();if(timer!==null)win.clearTimeout(timer);
+      if(armTimer!==null)win.clearTimeout(armTimer);});
+  }
+  // The game's stall is the fixed buying choice when offered; otherwise use mart.
+  // Keep the existing chooser for unknown sellers instead of guessing a price.
+  if(purchases){
+    let syncing=false;
+    const reconcile=()=>{
+      if(syncing || frame!==iframe || !iframe.isConnected)return;
+      const selects=[...purchases.querySelectorAll('select.choice-select')];
+      for(const select of selects){
+        const options=[...select.options].filter(option=>option.value);
+        const preferred=options.find(o=>o.textContent.includes('노점상')) || options.find(o=>o.textContent.includes('마트'));
+        if(!preferred)continue;
+        if(select.value!==preferred.value){
+          syncing=true;
+          select.value=preferred.value;
+          select.dispatchEvent(new win.Event('change',{bubbles:true}));
+          syncing=false;
+          // The calculator redraws purchase rows during this change.
+          return;
+        }
+        const field=select.closest('.choice-label');
+        if(field){
+          const seller=preferred.textContent.includes('노점상')?'노점상':'마트';
+          const type=field.closest('.supply-card')?.querySelector('.check-type');
+          if(type){type.textContent=seller;type.title='고정 구매처 · '+seller;}
+          // No extra row: keep shopping cards equal-height for eggs and berries.
+          field.remove();
+        }
+      }
+    };
+    const observer=new win.MutationObserver(()=>reconcile());
+    observer.observe(purchases,{childList:true});
+    cleanups.push(()=>observer.disconnect());
+    reconcile();
+  }
+  companyPolishCleanup=()=>{for(const stop of cleanups)stop();};
+}
+
 function sizeCompanyFrame(iframe, doc){
   if(frame!==iframe || !iframe.isConnected)return;
   const content = doc.querySelector('.frame');
@@ -1574,6 +1700,7 @@ function installCompanyWorkspace(iframe){
     try {
       // Companion UI stays company-only and is never loaded by the HUB COOK route.
       mountCompanyMemo(doc, iframe);
+      mountCompanyWorkbenchPolish(doc, iframe);
       sizeCompanyFrame(iframe, doc);
     } catch (error) {
       console.error('요리계산기 화면 크기 조정 실패',error);

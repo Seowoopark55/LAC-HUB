@@ -115,3 +115,46 @@ html,body{min-height:0!important;background:#0d1217!important;overflow-x:hidden;
 .cc-order-open:hover{background:#4c3820}
 .cc-order-open:focus-visible{outline:2px solid #f2cb8a;outline-offset:2px}
 @media(max-width:600px){.cook-sidebar .cc-memo-panel{height:146px!important;min-height:146px!important}}
+
+
+/* COMPANY COOK · 2026-10-14 · consistent workbench detail */
+.cook-sidebar .favorites-panel>.panel-title,
+.cook-sidebar .orders-panel>.panel-title{
+  padding:3px 1px 11px;margin:0 0 10px!important;
+  border-bottom:1px solid #46515a;
+}
+.cook-sidebar .favorites-panel>.panel-title h3,
+.cook-sidebar .orders-panel>.panel-title h3{
+  color:#f7ebd7;font-size:15px!important;font-weight:850;letter-spacing:-.02em;
+}
+.cook-sidebar .favorites-panel .food-row,
+.cook-sidebar .orders-panel .order-row{min-height:47px;padding:7px 1px!important}
+.cook-sidebar .favorites-panel .food-row+.food-row,
+.cook-sidebar .orders-panel .order-row+.order-row{border-top:1px solid #2e3940}
+.cook-sidebar .food-text strong{font-size:13px!important;line-height:1.45}
+.cook-sidebar .favorites-panel .accent,
+.cook-sidebar .orders-panel .remove{min-height:30px;border-radius:7px}
+.cook-sidebar .search-panel .search-panel-actions{display:flex}
+.cook-sidebar .search-panel{isolation:isolate}
+.cook-sidebar .cc-search-dismiss{
+  position:absolute;z-index:23;right:15px;top:11px;
+  padding:3px 7px;min-height:24px;border:1px solid #725c3c;border-radius:6px;
+  background:#312617;color:#f7cc91;font-size:10px;font-weight:800;
+}
+.cook-sidebar .cc-search-dismiss[hidden]{display:none!important}
+.cook-sidebar .search-panel:has(.cc-search-dismiss:not([hidden])) input[type=search]{padding-right:49px}
+.cc-work-hint{margin:9px 0 0;padding:8px 10px;border:1px solid #806637;
+  border-radius:8px;background:#332819;color:#f5d49f;font-size:11px;line-height:1.5}
+.cc-work-hint[hidden]{display:none!important}
+/* One fixed point of purchase per item; no uneven dropdown rows. */
+.checklist-panel .choice-label.cc-source-fixed{display:flex;align-items:center;gap:7px;
+  margin-top:7px;padding:7px 0 0;border-top:1px solid #2c3840;
+  font-size:11px;color:#aabac6;font-weight:700}
+.cc-source-tag{padding:3px 8px;border:1px solid #736040;border-radius:999px;
+  background:#2d281d;color:#f0cd8d;font-size:10px;font-weight:850}
+.checklist-panel .supply-card{display:flex;flex-direction:column;justify-content:space-between;gap:0}
+@media(max-width:600px){
+  .cook-sidebar .cc-search-dismiss{top:9px;right:13px}
+  .cook-sidebar .favorites-panel>.panel-title,
+  .cook-sidebar .orders-panel>.panel-title{padding-bottom:9px}
+}
