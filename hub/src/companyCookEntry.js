@@ -38,8 +38,8 @@ styles.textContent = `
     box-shadow:0 20px 65px #0009,0 0 0 1px #ffffff04;
   }
   .cc-header {
-    min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding:6px 14px;border-bottom:1px solid #2d353b;background:#12181d;
+    min-height:37px;display:flex;align-items:center;justify-content:flex-end;gap:8px;
+    padding:4px 13px;border-bottom:1px solid #2d353b;background:#12181d;
   }
   /* Decorative brand-neutral kitchen hero inside the unified calculator card. */
   .cc-hero {
@@ -188,12 +188,6 @@ async function handleInstall(){
 function createAppShell(){
   const layout = document.createElement('main');layout.className = 'cc-layout';
   const header = document.createElement('header');header.className = 'cc-header';
-  const brand = document.createElement('div');brand.className = 'cc-brand';
-  const logo = document.createElement('span');logo.className = 'cc-logo';logo.textContent = 'C';
-  const name = document.createElement('div');
-  const strong = document.createElement('strong');strong.textContent = '요리계산기';
-  const small = document.createElement('small');small.textContent = '요리 제작 · 재료 계산';
-  name.append(strong,small);brand.append(logo,name);
   const actions = document.createElement('div');actions.className = 'cc-actions';
   const install = document.createElement('button');
   install.id = 'cc-install'; install.type = 'button';
@@ -202,7 +196,7 @@ function createAppShell(){
   const refresh = document.createElement('button');
   refresh.type = 'button';refresh.className = 'cc-button';refresh.textContent = '새로고침';
   refresh.addEventListener('click',() => window.location.reload());
-  actions.append(install,refresh);header.append(brand,actions);
+  actions.append(install,refresh);header.append(actions);
   const panel = document.createElement('section');
   panel.className = 'cc-panel';
   panel.setAttribute('aria-label','요리계산기');
