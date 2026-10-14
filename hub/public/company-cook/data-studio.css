@@ -207,3 +207,136 @@
  .cc-studio-tab-count{font-size:9px;padding:2px 4px}
 }
 @media(max-width:480px){.cc-studio-fish-calc-row{grid-template-columns:1fr}}
+
+/* 2026-10-14 Fish library: two-pane compact field guide, independent of recipe editor. */
+.cc-studio--fish{padding:16px 24px 18px}
+.cc-studio--fish .cc-studio-heading{margin-bottom:12px;gap:12px}
+.cc-studio--fish .cc-studio-identity h2{font-size:22px;margin-bottom:4px}
+.cc-studio--fish .cc-studio-eyebrow{margin-bottom:4px}
+.cc-studio--fish .cc-studio-toolbar{margin-bottom:10px;padding-bottom:10px}
+.cc-studio--fish .cc-studio-tabs{padding:3px}
+.cc-studio--fish .cc-studio-tab{padding:8px 12px}
+.cc-fish-area-tabs{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.cc-fish-area-tab{min-height:35px;border:1px solid #3d4a55;border-radius:8px;background:#17212a;color:#bbcad5;padding:8px 15px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+.cc-fish-area-tab:hover:not(.is-active){background:#24323d;border-color:#64727b;color:#f0f3f5}
+.cc-fish-area-tab.is-active{border-color:#b58a4b;background:linear-gradient(180deg,#42311d,#2b241c);color:#f6d69f}
+.cc-fish-area-tab:focus-visible{outline:2px solid #eab966;outline-offset:2px}
+.cc-fish-area-tab:last-child:not(.is-active){color:#cfb18a}
+.cc-studio--fish .cc-studio-tip{margin-bottom:10px;padding:8px 12px;font-size:10px}
+.cc-studio--fish .cc-studio-workspace{
+  grid-template-columns:minmax(0,1.32fr) minmax(355px,1fr);
+  gap:12px;align-items:stretch;min-height:0;
+  height:clamp(320px,calc(100dvh - 305px),575px);
+}
+.cc-studio--fish .cc-studio-browser,.cc-studio--fish .cc-studio-content{
+  min-height:0;height:100%;min-width:0;
+}
+.cc-studio--fish .cc-studio-browser-top{padding:11px 12px 9px}
+.cc-studio--fish .cc-studio-search-label{min-height:35px}
+.cc-studio--fish .cc-studio-search{padding:6px 0!important;font-size:11px!important}
+.cc-studio--fish .cc-studio-filter-line{margin-top:6px}
+.cc-studio--fish .cc-studio-list{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-auto-rows:minmax(34px,auto);align-content:start;column-gap:6px;row-gap:4px;
+  flex:1 1 auto;height:0;min-height:0;max-height:none;
+  overflow-y:auto;overflow-x:hidden;padding:8px;
+}
+.cc-studio--fish .cc-fish-list-item{
+  display:flex;align-items:center;min-height:34px;min-width:0;
+  border:1px solid #2d3a44;background:#111920;border-radius:7px;
+  padding:6px 10px;margin:0;line-height:1.35;
+}
+.cc-studio--fish .cc-fish-list-item:hover{background:#203039;border-color:#52606b}
+.cc-studio--fish .cc-fish-list-item.is-selected{background:#332b20;border-color:#a17b48;box-shadow:inset 3px 0 0 #e3b56c}
+.cc-studio--fish .cc-fish-list-item .cc-studio-list-main{width:100%;min-width:0}
+.cc-studio--fish .cc-fish-list-item strong{font-size:12px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.cc-studio--fish .cc-studio-list-empty{grid-column:1/-1}
+.cc-studio--fish .cc-studio-content{
+  display:flex;flex-direction:column;justify-content:center;
+  overflow-y:auto;overscroll-behavior:contain;padding:16px;
+}
+.cc-studio--fish .cc-studio-content:has(.cc-studio-fish-editor){justify-content:flex-start}
+.cc-studio--fish .cc-studio-detail-empty{min-height:0;padding:35px 0}
+.cc-fish-detail{width:100%;max-width:590px;margin:auto 0}
+.cc-fish-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:15px;border-bottom:1px solid #344049;margin-bottom:14px}
+.cc-fish-title{min-width:0}
+.cc-fish-title h3{margin:0 0 10px;color:#f3e9da;font-size:clamp(19px,2vw,24px);font-weight:900;letter-spacing:-.035em;line-height:1.25;overflow-wrap:anywhere}
+.cc-fish-detail-head .cc-studio-btn{padding:8px 10px;min-height:33px;font-size:11px}
+.cc-fish-recipe{display:grid;grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);gap:7px;align-items:stretch}
+.cc-fish-recipe-unit{display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0;background:#15222b;border:1px solid #354853;border-radius:9px;padding:15px}
+.cc-fish-recipe-unit.is-output{background:linear-gradient(140deg,#2c251b,#171c20);border-color:#785f40}
+.cc-fish-recipe-unit>span{font-size:10px;color:#9cb0bd;font-weight:750}
+.cc-fish-recipe-unit strong{font-size:27px;color:#f5ce8d;font-weight:900;line-height:1.1}
+.cc-fish-recipe-unit small{font-size:11px;color:#d3dee6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-fish-recipe-arrow{align-self:center;text-align:center;color:#d5ac70;font-size:23px}
+.cc-fish-time{display:flex;align-items:center;gap:7px;color:#b9c9d4;font-size:11px;padding:11px 1px 14px}
+.cc-fish-time span:first-child{color:#e5b875}
+.cc-fish-calculator{background:#111b23;border:1px solid #364853;border-radius:10px;padding:13px}
+.cc-fish-calculator>strong{display:block;color:#e8ebec;font-size:12px;margin-bottom:11px}
+.cc-fish-calc-layout{display:grid;grid-template-columns:minmax(105px,.72fr) minmax(0,1.28fr);gap:9px;align-items:end}
+.cc-fish-input{display:flex;flex-direction:column;gap:5px;color:#a8bac7;font-size:10px;font-weight:750}
+.cc-fish-input input{min-height:43px;min-width:0;width:100%;border:1px solid #50616c;border-radius:8px;background:#0c151c;color:#f1f3f5;font-size:15px;padding:10px 12px;font-weight:800}
+.cc-fish-input input:focus-visible{outline:2px solid #e6b66b;outline-offset:1px}
+.cc-fish-result{display:flex;flex-direction:column;justify-content:center;gap:4px;min-height:43px;min-width:0;padding:9px 11px;border-radius:8px;border:1px solid #5d503b;background:#261f18;line-height:1.4}
+.cc-fish-result strong{font-size:13px;color:#f4c982;overflow-wrap:anywhere}
+.cc-fish-result small{font-size:10px;color:#b9c3c9}
+.cc-fish-research-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;border:1px solid #766143;border-radius:11px;background:linear-gradient(140deg,#30251b,#181f26);padding:23px;max-width:100%}
+.cc-fish-research-icon{font-size:28px;color:#e6b776;line-height:1}
+.cc-fish-research-card>strong{font-size:18px;color:#f1cf9b}
+.cc-fish-research-card p{font-size:12px;line-height:1.6;color:#c4bbc0;margin:0}
+.cc-fish-failure-line{border-top:1px solid #75573a;padding-top:10px;color:#f0c88d;font-size:11px;line-height:1.65}
+.cc-fish-research-card .cc-fish-note{color:#afc0cb;font-size:11px}
+.cc-studio--fish .cc-studio-fish-editor{width:100%}
+/* Keep the window/page fixed on desktop; overflow belongs to the fish-name list or editor. */
+@media(min-width:761px){
+  .cc-view.cc-studio-host:has(.cc-studio--fish){min-height:0}
+  .cc-studio--fish .cc-studio-browser{overflow:hidden}
+}
+@media(max-width:1180px) and (min-width:761px){
+ .cc-studio--fish{padding:12px 15px 13px}
+ .cc-studio--fish .cc-studio-heading{margin-bottom:9px}
+ .cc-studio--fish .cc-studio-toolbar{margin-bottom:8px;padding-bottom:8px}
+ .cc-studio--fish .cc-studio-workspace{grid-template-columns:minmax(0,1.2fr) minmax(310px,1fr);height:clamp(300px,calc(100dvh - 325px),545px);gap:9px}
+ .cc-studio--fish .cc-studio-content{padding:13px}
+ .cc-fish-recipe-unit{padding:11px}
+ .cc-fish-recipe-unit strong{font-size:22px}
+}
+@media(max-width:900px) and (min-width:761px){
+ .cc-studio--fish .cc-studio-workspace{grid-template-columns:minmax(0,1.05fr) minmax(290px,1fr);height:clamp(286px,calc(100dvh - 340px),520px)}
+ .cc-studio--fish .cc-fish-list-item{padding:5px 7px;min-height:32px}
+ .cc-studio--fish .cc-fish-list-item strong{font-size:11px}
+ .cc-studio--fish .cc-studio-list{grid-auto-rows:32px;gap:3px;padding:6px}
+ .cc-fish-recipe-unit{padding:9px}
+ .cc-fish-recipe-unit strong{font-size:18px}
+ .cc-fish-detail-head{margin-bottom:10px;padding-bottom:10px}
+}
+@media(max-width:760px){
+ .cc-studio--fish{padding:14px 12px 17px}
+ .cc-fish-area-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+ .cc-fish-area-tab{padding:9px 5px;font-size:11px}
+ .cc-studio--fish .cc-studio-workspace{height:auto;min-height:0;grid-template-columns:1fr;gap:10px}
+ .cc-studio--fish .cc-studio-browser,.cc-studio--fish .cc-studio-content{height:auto;min-height:0}
+ .cc-studio--fish .cc-studio-list{max-height:220px;min-height:0;height:auto;grid-auto-rows:33px}
+ .cc-studio--fish .cc-studio-content{min-height:0;padding:15px;overflow:visible}
+ .cc-fish-detail{margin:0;max-width:none}
+ .cc-fish-recipe-unit strong{font-size:21px}
+}
+@media(max-width:410px){
+ .cc-fish-calc-layout{grid-template-columns:1fr}
+ .cc-fish-recipe-unit{padding:10px}
+ .cc-fish-recipe-unit strong{font-size:20px}
+ .cc-fish-recipe-unit small{font-size:10px}
+}
+
+/* Fish categories must not create a second page-level scrollbar on desktop. */
+@media(min-width:761px){
+ .cc-layout:has(.cc-studio--fish){padding-bottom:0!important}
+}
+@media(min-width:1181px){
+ .cc-studio--fish .cc-studio-workspace{height:clamp(305px,calc(100dvh - 327px),560px)}
+}
+@media(min-width:761px) and (max-width:900px){
+ .cc-studio--fish .cc-studio-workspace{height:clamp(220px,calc(100dvh - 405px),470px)}
+}
+/* In short PWA windows, do not center-tuck actionable controls above the scroll area. */
+.cc-studio--fish .cc-studio-content{justify-content:safe center}

@@ -203,7 +203,7 @@ let pendingHomeRefresh = false;
 let fishDbReady = false;
 let fishDbError = '';
 let fishSourceError = '';
-let fishAreaFilter = 'all';
+let fishAreaFilter = 'general';
 let fishResearchOnly = false;
 
 
@@ -558,12 +558,12 @@ function paintAppData(){
   if(!viewHost||currentView!=='data')return;
   studioRefs=null;viewHost.replaceChildren();
   viewHost.classList.add('cc-studio-host');
-  const root=studioElement('div','cc-studio');
+  const root=studioElement('div',`cc-studio ${dataKind==='fish'?'cc-studio--fish':''}`);
   const heading=studioElement('div','cc-studio-heading');
   const identity=studioElement('div','cc-studio-identity');
   identity.append(studioElement('span','cc-studio-eyebrow','LAC COOK  /  LIBRARY'),
     studioElement('h2','','데이터 라이브러리'),
-    studioElement('p','','요리·가공·생선 자료를 각각 관리합니다. 낚시로 얻는 생선 가공은 일반 레시피와 별도로 표시됩니다.'));
+    studioElement('p','',dataKind==='fish'?'일반 낚시터와 민물낚시터의 생선 가공 기록을 확인합니다.':'요리와 가공 자료를 검색하고 관리합니다.'));
   const headActions=studioElement('div','cc-studio-head-actions');
   const roleText=adminStatus==='admin'?'관리자 · 편집 가능':adminStatus==='checking'?'권한 확인 중':adminStatus==='guest'?'일반 이용 · 읽기 전용':adminStatus==='denied'?'일반 이용 · 읽기 전용':'읽기 전용';
   headActions.append(studioElement('span',`cc-studio-role ${adminStatus==='admin'?'is-admin':''}`,roleText));
@@ -606,15 +606,22 @@ function paintAppData(){
   toolbar.append(tabs,right);root.append(toolbar);
   if(dataNotice){const notice=studioElement('div','cc-studio-success',dataNotice);root.append(notice);dataNotice='';}
   if(dataKind==='fish'){
-    const meta=studioElement('div','cc-studio-fish-summary');
-    const coastCount=dataCache.filter(item=>item.kind==='fish'&&item.area==='general').length;
-    const riverCount=dataCache.filter(item=>item.kind==='fish'&&item.area==='freshwater').length;
-    const researchCount=dataCache.filter(item=>item.kind==='fish'&&item.status==='research').length;
-    meta.append(studioElement('span','','일반 낚시터  '+coastCount+'종'),studioElement('span','','민물 낚시터  '+riverCount+'종'),studioElement('span','is-research','연구 중  '+researchCount+'종'));
-    root.append(meta);
-    const expl=studioElement('p','cc-studio-fish-info',
-      '생선 가공은 낚시한 물고기 → 생선살 산출량을 기록하는 별도 자료입니다. 일반 요리·가공식에 중복 등록되지 않으며, 기존 자동 제작 계산에는 아직 반영되지 않습니다.');
-    root.append(expl);
+    // Fishing areas are direct category buttons, not a secondary dropdown.
+    const areaTabs=studioElement('nav','cc-fish-area-tabs');
+    areaTabs.setAttribute('aria-label','낚시터 분류');
+    for(const [area,label] of [['general','일반 낚시터'],['freshwater','민물 낚시터'],['research','연구 중']]){
+      const selected=fishAreaFilter===area;
+      const tab=studioButton(label,`cc-fish-area-tab ${selected?'is-active':''}`,()=>{
+        if(area===fishAreaFilter)return;
+        if(!studioConfirmExit())return;
+        fishAreaFilter=area;
+        dataSelectedKey='';dataFilterText='';fishResearchOnly=false;
+        paintAppData();
+      });
+      tab.setAttribute('aria-current',selected?'page':'false');
+      areaTabs.append(tab);
+    }
+    root.append(areaTabs);
     if(fishDbError||fishSourceError)root.append(studioElement('p','cc-studio-fish-warning',[fishDbError,fishSourceError].filter(Boolean).join(' ')));
   }
   if(adminStatus!=='admin'){
@@ -641,19 +648,15 @@ function paintAppData(){
   const search=studioElement('input','cc-studio-search');search.type='search';search.value=dataFilterText;
   search.placeholder=dataKind==='food'?'요리 이름으로 검색':dataKind==='process'?'가공 재료 이름으로 검색':'물고기 이름으로 검색';search.setAttribute('aria-label','레시피 검색');
   searchLabel.append(searchSymbol,search);browserTop.append(searchLabel);
-  if(dataKind==='fish'){
-    const areaFilter=studioElement('select','cc-studio-fish-area');areaFilter.setAttribute('aria-label','낚시터 구분');
-    for(const [value,label] of [['all','전체 낚시터'],['general','일반 낚시터'],['freshwater','민물 낚시터']]){
-      const option=studioElement('option','',label);option.value=value;areaFilter.append(option);
-    }
-    areaFilter.value=fishAreaFilter;
-    areaFilter.addEventListener('change',()=>{fishAreaFilter=areaFilter.value;dataSelectedKey='';renderList();});
-    browserTop.append(areaFilter);
-  }
   const filterBar=studioElement('div','cc-studio-filter-line');
   const quantity=studioElement('span','cc-studio-count','');
-  const modified=studioElement('label','cc-studio-modified');const modifiedCheck=studioElement('input');modifiedCheck.type='checkbox';modifiedCheck.checked=dataKind==='fish'?fishResearchOnly:dataModifiedOnly;
-  modified.append(modifiedCheck,studioElement('span','',dataKind==='fish'?'연구 중만':'수정된 데이터만'));filterBar.append(quantity,modified);
+  let modifiedCheck=null;
+  filterBar.append(quantity);
+  if(dataKind!=='fish'){
+    const modified=studioElement('label','cc-studio-modified');modifiedCheck=studioElement('input');
+    modifiedCheck.type='checkbox';modifiedCheck.checked=dataModifiedOnly;
+    modified.append(modifiedCheck,studioElement('span','','수정된 데이터만'));filterBar.append(modified);
+  }
   browserTop.append(filterBar);
   const list=studioElement('div','cc-studio-list');list.setAttribute('role','list');list.setAttribute('aria-label',studioPartName(dataKind));
   browser.append(browserTop,list);
@@ -661,7 +664,7 @@ function paintAppData(){
   workspace.append(browser,content);root.append(workspace);viewHost.append(root);
 
   const shown=()=>dataCache.filter(item=>item.kind===dataKind &&
-    (dataKind==='fish'?((fishAreaFilter==='all'||item.area===fishAreaFilter)&&(!fishResearchOnly||item.status==='research')):
+    (dataKind==='fish'?(fishAreaFilter==='research'?item.status==='research':item.area===fishAreaFilter):
       (!dataModifiedOnly||item.version!=null)) &&
     normName(item.name).includes(normName(dataFilterText)));
   const renderList=()=>{
@@ -676,15 +679,19 @@ function paintAppData(){
     }
     for(const item of entries){
       const selected=dataKey(item)===dataSelectedKey;
-      const tile=studioButton('',`cc-studio-list-item ${selected?'is-selected':''}`,()=>studioChoose(dataKind,item));
+      const tile=studioButton('',`cc-studio-list-item ${item.kind==='fish'?'cc-fish-list-item':''} ${selected?'is-selected':''}`,()=>studioChoose(dataKind,item));
       tile.setAttribute('aria-pressed',String(selected));
       const top=studioElement('span','cc-studio-list-main');top.append(studioElement('strong','',item.name));
-      const tag=studioElement('span',`cc-studio-tag ${item.kind==='fish'?(item.status==='research'?'is-research':'is-revised'):(item.version!=null?'is-revised':'')}`,studioStatus(item));top.append(tag);
-      const bottom=studioElement('span','cc-studio-list-meta');
-      bottom.textContent=item.kind==='fish'
-        ?`${item.area==='general'?'일반':'민물'} 낚시터 · ${item.status==='confirmed'?`${item.inputQty}마리 → ${item.outputMaterial} ${item.outputQty}개`:'성공 조합 미확정'}`
-        :`생산 ${item.qty||'미확인'}  ·  ${studioTime(item)}  ·  재료 ${(item.ingredients||[]).length}종`;
-      tile.append(top,bottom);list.append(tile);
+      if(item.kind==='fish'){
+        // Compact fish library: the list displays fish names only. Details live on the right.
+        tile.append(top);
+      }else{
+        const tag=studioElement('span',`cc-studio-tag ${item.version!=null?'is-revised':''}`,studioStatus(item));top.append(tag);
+        const bottom=studioElement('span','cc-studio-list-meta',
+          `생산 ${item.qty||'미확인'}  ·  ${studioTime(item)}  ·  재료 ${(item.ingredients||[]).length}종`);
+        tile.append(top,bottom);
+      }
+      list.append(tile);
     }
     renderDetail();
   };
@@ -741,66 +748,63 @@ function paintAppData(){
   };
   studioRefs={renderList,renderDetail};
   search.addEventListener('input',()=>{dataFilterText=search.value;renderList();});
-  modifiedCheck.addEventListener('change',()=>{
-    if(dataKind==='fish')fishResearchOnly=modifiedCheck.checked;
-    else dataModifiedOnly=modifiedCheck.checked;
-    dataSelectedKey='';renderList();
+  modifiedCheck?.addEventListener('change',()=>{
+    dataModifiedOnly=modifiedCheck.checked;dataSelectedKey='';renderList();
   });
   renderList();
 }
 // Fish-only library detail. No food/process catalog mutation and no fish auto-crafting recipes.
 function renderFishDetail(content,item){
-  const head=studioElement('div','cc-studio-detail-top');
-  const info=studioElement('div','cc-studio-detail-title');
-  info.append(studioElement('span','cc-studio-eyebrow',item.area==='general'?'GENERAL FISHING':'FRESHWATER RESEARCH'),
+  const card=studioElement('div','cc-fish-detail');
+  const head=studioElement('div','cc-fish-detail-head');
+  const info=studioElement('div','cc-fish-title');
+  info.append(studioElement('span','cc-studio-eyebrow',item.area==='general'?'GENERAL FISHING':'FRESHWATER FISHING'),
     studioElement('h3','',item.name));
   const tags=studioElement('div','cc-studio-detail-tags');
   tags.append(studioElement('span','cc-studio-label-chip',item.area==='general'?'일반 낚시터':'민물 낚시터'),
     studioElement('span',`cc-studio-label-chip ${item.status==='confirmed'?'is-accent':''}`,studioStatus(item)));
   info.append(tags);head.append(info);
-  if(adminStatus==='admin'&&fishDbReady)head.append(studioButton('✎  생선 기록 수정','cc-studio-btn cc-studio-btn-accent',()=>studioBeginEdit('fish',item)));
-  content.append(head);
+  if(adminStatus==='admin'&&fishDbReady)
+    head.append(studioButton('✎  기록 수정','cc-studio-btn cc-studio-btn-accent',()=>studioBeginEdit('fish',item)));
+  card.append(head);
   if(item.status!=='confirmed'){
-    const research=studioElement('div','cc-studio-fish-research');
-    research.append(studioElement('strong','','가공 성공 조합 미확정'),studioElement('p','','민물낚시 연구가 진행 중입니다. 실패한 투입 마릿수를 확정된 레시피처럼 계산에 사용하지 않습니다.'));
-    if(item.failedAttempts?.length)research.append(studioElement('div','cc-studio-fish-failures','가공 실패 기록  ·  '+item.failedAttempts.map(n=>`${n}마리`).join(' / ')));
-    if(item.note)research.append(studioElement('p','',item.note));
-    content.append(research);
+    const research=studioElement('div','cc-fish-research-card');
+    research.append(studioElement('span','cc-fish-research-icon','◌'),
+      studioElement('strong','','가공 결과 연구 중'),
+      studioElement('p','','확인된 산출량이 없어 가공 수량을 계산하지 않습니다.'));
+    if(item.failedAttempts?.length)
+      research.append(studioElement('div','cc-fish-failure-line',
+        '실패 기록  ·  '+item.failedAttempts.map(n=>`${n}마리`).join(' · ')));
+    if(item.note)research.append(studioElement('p','cc-fish-note',item.note));
+    card.append(research);
   }else{
-    const flow=studioElement('section','cc-studio-fish-flow');
-    const from=studioElement('div','cc-studio-fish-step');
-    from.append(studioElement('span','cc-studio-fish-step-label','투입 물고기'),
-      studioElement('strong','',`${item.inputQty}마리`),studioElement('small','',item.name));
-    const arrow=studioElement('span','cc-studio-fish-arrow','➜');arrow.setAttribute('aria-hidden','true');
-    const to=studioElement('div','cc-studio-fish-step is-output');
-    to.append(studioElement('span','cc-studio-fish-step-label','가공 결과'),
-      studioElement('strong','',`${item.outputQty}개`),studioElement('small','',item.outputMaterial));
-    flow.append(from,arrow,to);content.append(flow);
-    const metrics=studioElement('div','cc-studio-fish-stats');
-    metrics.append(studioElement('span','','1회 투입 '+item.inputQty+'마리'),
-      studioElement('span','','가공시간 '+studioTime(item)),
-      studioElement('span','','1회 산출 '+item.outputQty+'개'));
-    content.append(metrics);
-    const calc=studioElement('section','cc-studio-fish-calc');
-    calc.append(studioElement('strong','','보유 생선 수량 계산'));
-    const row=studioElement('div','cc-studio-fish-calc-row');
-    const label=studioElement('label');label.append(studioElement('span','','보유 마릿수'));
+    const recipe=studioElement('div','cc-fish-recipe');
+    const from=studioElement('div','cc-fish-recipe-unit');
+    from.append(studioElement('span','','투입'),studioElement('strong','',`${item.inputQty}마리`),studioElement('small','',item.name));
+    const arrow=studioElement('span','cc-fish-recipe-arrow','→');arrow.setAttribute('aria-hidden','true');
+    const to=studioElement('div','cc-fish-recipe-unit is-output');
+    to.append(studioElement('span','','산출'),studioElement('strong','',`${item.outputQty}개`),studioElement('small','',item.outputMaterial));
+    recipe.append(from,arrow,to);card.append(recipe);
+    const time=studioElement('div','cc-fish-time');
+    time.append(studioElement('span','','◷'),studioElement('span','',`1회 가공 ${studioTime(item)}`));
+    card.append(time);
+    const calc=studioElement('div','cc-fish-calculator');
+    const calcHeading=studioElement('strong','','보유 생선으로 가공하기');
+    const calcRow=studioElement('div','cc-fish-calc-layout');
+    const label=studioElement('label','cc-fish-input');label.append(studioElement('span','','보유 마릿수'));
     const input=studioElement('input');input.type='number';input.min='0';input.step='1';input.max='999999';
     input.value=String(item.inputQty);input.setAttribute('aria-label','보유 생선 마릿수');label.append(input);
-    const output=studioElement('div','cc-studio-fish-calc-out');
+    const output=studioElement('div','cc-fish-result');output.setAttribute('role','status');
     const recalc=()=>{
       const valid=/^\d+$/.test(input.value)&&Number.isSafeInteger(Number(input.value))&&Number(input.value)<=999999;
       if(!valid){output.textContent='0 이상의 정수 마릿수를 입력해 주세요.';return;}
       const amount=Number(input.value),runs=Math.floor(amount/item.inputQty),remain=amount%item.inputQty;
       output.replaceChildren(studioElement('strong','',`${item.outputMaterial} ${(runs*item.outputQty).toLocaleString('ko-KR')}개`),
-        studioElement('small','',`가공 ${runs.toLocaleString('ko-KR')}회 · 생선 ${remain}마리 남음`));
+        studioElement('small','',`가공 ${runs.toLocaleString('ko-KR')}회 · ${remain}마리 남음`));
     };
-    input.addEventListener('input',recalc);row.append(label,output);calc.append(row);content.append(calc);recalc();
+    input.addEventListener('input',recalc);calcRow.append(label,output);calc.append(calcHeading,calcRow);card.append(calc);recalc();
   }
-  const foot=studioElement('div','cc-studio-detail-foot');
-  foot.append(studioElement('span','','생선 전용 자료 · 일반 요리/가공 레시피에는 추가되지 않습니다.'));
-  if(item.version!=null)foot.append(studioElement('span','',`생선 기록 버전 ${item.version}`));
-  content.append(foot);
+  content.append(card);
 }
 function renderFishEditor(content,editing){
   const item=editing.item;
