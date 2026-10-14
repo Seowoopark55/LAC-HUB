@@ -1467,3 +1467,9 @@
     min-height:180px!important;max-height:275px!important;flex:none!important;
   }
 }
+
+/* Together lifecycle controls: keep the one-screen lobby layout. */
+.lac-together--detail .lac-together__start-action{background:linear-gradient(120deg,#a5d5c1,#80bda9)!important;border:1px solid #a4e0c7!important;color:#0c2928!important;font-weight:850!important}
+.lac-together--detail .lac-together__start-action:hover{filter:brightness(1.08)}
+.lac-together--detail .lac-together__running-note{font-size:12px;font-weight:750;color:#a9dcc3;white-space:nowrap}
+.lac-together--detail .lac-together__voice-compact-state .lac-together__primary{margin-left:9px;padding:6px 11px;font-size:11px}
