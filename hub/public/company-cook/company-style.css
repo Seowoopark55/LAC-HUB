@@ -19,10 +19,10 @@ html,body{min-height:0!important;background:#101519!important;overflow:hidden}
 }
 /* The single visible header is the app header immediately above the iframe. */
 .header,.cook-toolbar,.preview-tag,.header .back,#cook-return-preview{display:none!important}
-.workspace{display:block!important;min-height:0!important;padding:14px 16px 14px!important}
+.workspace{display:block!important;min-height:0!important;padding:17px 19px 18px!important}
 .cook-workbench{
-  grid-template-columns:minmax(285px,34%) minmax(0,1fr)!important;
-  align-items:start;gap:12px!important;
+  grid-template-columns:minmax(285px,35%) minmax(0,1fr)!important;
+  align-items:start;gap:13px!important;
 }
 .cook-sidebar,.cook-results{gap:11px!important}
 .cook-disclaimer{padding-top:9px;margin-top:8px!important}
@@ -40,26 +40,12 @@ html,body{min-height:0!important;background:#101519!important;overflow:hidden}
   .cook-recipes-row{grid-template-columns:1fr!important}
 }
 
-/* Compact mode applies ONLY to the installed PWA's iframe.
-   Its outer card fills the app window; browser access keeps centered styling. */
-html.cc-compact-mode,html.cc-compact-mode body{background:#101519!important}
-html.cc-compact-mode .frame,html.cc-compact-mode .shell{background:#101519!important}
-html.cc-compact-mode .workspace{padding:10px 12px 12px!important}
-html.cc-compact-mode .cook-workbench{gap:9px!important}
-html.cc-compact-mode .cook-sidebar,html.cc-compact-mode .cook-results{gap:8px!important}
-html.cc-compact-mode .cook-workbench .panel{padding:10px 11px;border-radius:9px}
-html.cc-compact-mode .cook-disclaimer{margin-top:5px!important}
-@media(min-width:720px) and (max-width:900px){
-  html.cc-compact-mode .cook-workbench{
-    grid-template-columns:minmax(235px,35%) minmax(0,1fr)!important;
-  }
-  html.cc-compact-mode .cook-recipes-row{grid-template-columns:1fr!important}
+
+/* Subtle depth echoes the useful proportions of the earlier COOK tool. */
+.cook-workbench .panel{
+  background:linear-gradient(170deg,#171e23,#11171c 84%);
+  border-color:#37414a;
+  box-shadow:0 4px 16px rgba(0,0,0,.14);
 }
-@media(max-width:719px){
-  html.cc-compact-mode .cook-workbench{grid-template-columns:1fr!important}
-  html.cc-compact-mode .cook-recipes-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-}
-@media(max-width:520px){
-  html.cc-compact-mode .workspace{padding:9px!important}
-  html.cc-compact-mode .cook-recipes-row{grid-template-columns:1fr!important}
-}
+.cook-workbench .panel-title h3{letter-spacing:-.015em}
+@media(min-width:1050px){.cook-sidebar,.cook-results{gap:12px!important}}

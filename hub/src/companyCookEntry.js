@@ -33,13 +33,22 @@ styles.textContent = `
   }
   /* Auto margins center a small workbench, but collapse when its content grows. */
   .cc-panel {
-    flex:none;width:min(1240px,100%);margin:auto 0;overflow:hidden;
+    flex:none;width:min(1320px,100%);margin:auto 0;overflow:hidden;
     background:#101519;border:1px solid rgba(192,146,79,.28);border-radius:15px;
     box-shadow:0 20px 65px #0009,0 0 0 1px #ffffff04;
   }
   .cc-header {
     min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:12px;
     padding:6px 14px;border-bottom:1px solid #2d353b;background:#12181d;
+  }
+  /* Decorative brand-neutral kitchen hero inside the unified calculator card. */
+  .cc-hero {
+    height:clamp(108px,11.8vw,157px);
+    background:
+      linear-gradient(90deg,rgba(7,10,13,.05) 0%,transparent 20%,transparent 80%,rgba(7,10,13,.05) 100%),
+      url('/company-cook/hero-kitchen.webp') center center / cover no-repeat,
+      #12171b;
+    border-bottom:1px solid rgba(194,147,80,.26);
   }
   .cc-brand {display:flex;align-items:center;gap:9px;min-width:0}
   .cc-logo {width:24px;height:24px;flex:none;display:grid;place-items:center;border:1px solid #705732;
@@ -71,6 +80,13 @@ styles.textContent = `
     .cc-layout {padding-top:max(34px,calc(env(titlebar-area-height,0px) + 8px))}
     .cc-header,.cc-actions,.cc-button{-webkit-app-region:no-drag}
   }
+  /* In compact windows preserve the working area; banner yields to function. */
+  @media(max-height:680px) and (min-width:751px){
+    .cc-layout{padding-top:10px;padding-bottom:10px}
+    .cc-hero{height:84px}
+  }
+  @media(max-height:540px){.cc-hero{display:none}}
+  @media(max-width:750px){.cc-hero{display:none}}
   @media(max-width:620px){
     .cc-layout{padding:9px}
     .cc-panel{border-radius:11px}
@@ -78,29 +94,7 @@ styles.textContent = `
     .cc-brand small{display:none}
     .cc-button{padding:5px 8px}
   }
-  /* Installed PWA: no decorative full-window backdrop or floating centered card.
-     The actual OS window is browser-controlled; adapt to its width and height. */
-  html.cc-compact-mode,html.cc-compact-mode body,html.cc-compact-mode #app{background:#101519}
-  html.cc-compact-mode .cc-layout{
-    min-height:100dvh;display:block;padding:0;background:#101519;
-  }
-  html.cc-compact-mode .cc-panel{
-    width:100%;max-width:none;margin:0;overflow:visible;
-    border:0;border-radius:0;box-shadow:none;background:#101519;
-  }
-  html.cc-compact-mode .cc-header{
-    min-height:39px;padding:4px 11px;position:sticky;top:0;z-index:5;
-    background:#141a1f;border-bottom:1px solid #313c45;
-  }
-  html.cc-compact-mode .cc-brand small{font-size:9px}
-  html.cc-compact-mode .cc-frame{background:#101519}
-  @media(display-mode:window-controls-overlay){
-    html.cc-compact-mode .cc-layout{padding-top:max(34px,calc(env(titlebar-area-height,0px) + 7px))}
-  }
-  @media(max-width:620px){
-    html.cc-compact-mode .cc-layout{padding:0}
-    html.cc-compact-mode .cc-header{padding:4px 8px}
-  }
+
 `;
 document.head.append(styles);
 
@@ -142,8 +136,7 @@ function installedMode(){
     window.matchMedia('(display-mode: window-controls-overlay)').matches ||
     navigator.standalone === true;
 }
-// In an installed PWA, collapse the decorative stage into a compact app surface.
-// Normal web access remains completely unchanged.
+// Installed apps use the same balanced workbench; only the install button differs.
 function syncDisplayMode(){
   const compact = installedMode();
   document.documentElement.classList.toggle('cc-compact-mode',compact);
@@ -214,7 +207,11 @@ function createAppShell(){
   const panel = document.createElement('section');
   panel.className = 'cc-panel';
   panel.setAttribute('aria-label','요리계산기');
-  panel.append(header);
+  // Image is decorative and never changes recipes, permissions or stored work.
+  const hero = document.createElement('div');
+  hero.className = 'cc-hero';
+  hero.setAttribute('aria-hidden','true');
+  panel.append(header,hero);
   layout.append(panel);app.replaceChildren(layout);
   updateInstallButton();
   return panel;
