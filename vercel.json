@@ -5,6 +5,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "hub/dist",
   "trailingSlash": false,
+  "headers": [{"source":"/company-cook/version.json","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]}],
   "rewrites": [
     {"source":"/company-cook","destination":"/index.html"},
     {"source":"/company-cook/","destination":"/index.html"},

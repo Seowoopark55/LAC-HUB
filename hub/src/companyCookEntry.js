@@ -327,12 +327,19 @@ styles.textContent += `
   @media(prefers-reduced-motion:reduce){.cc-order-dialog button{transition:none}}
 
 `;
+styles.textContent += '\n\n/* COMPANY COOK: compact customer tickets and bounded pagination. */\n.cc-order-manager{display:flex;flex-direction:column;gap:0}\n.cc-order-list{display:grid;align-content:start;gap:7px;min-height:0;overflow-y:auto;overscroll-behavior:contain}\n.cc-order-record{padding:10px 12px 9px!important;border-radius:10px}\n.cc-order-record-top{margin:0 0 5px!important;gap:8px}\n.cc-order-record-identity{display:flex;align-items:center;gap:8px;min-width:0}\n.cc-order-record-index{font-size:9px;white-space:nowrap}\n.cc-order-record-identity strong{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.cc-order-stage{font-size:10px;padding:3px 7px;white-space:nowrap}\n.cc-order-record-items{display:block;margin:0 0 8px!important;padding:5px 0 7px!important}\n.cc-order-record-summary{display:block;font-size:12px;color:#dce5e8;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.cc-order-record-more{margin-top:5px;border-top:1px dashed #3d4e56;padding-top:5px}\n.cc-order-record-more>summary{cursor:pointer;width:max-content;max-width:100%;padding:3px 0;color:#e6bd79;font-size:11px;font-weight:800}\n.cc-order-record-more .cc-order-record-item{padding:5px 2px;min-height:26px}\n.cc-order-record-more .cc-order-record-item+.cc-order-record-item{border-top:1px solid #29363e}\n.cc-order-record-actions{gap:5px}\n.cc-order-record-actions button{padding:5px 9px;min-height:28px;font-size:11px}\n.cc-order-record-actions .cc-order-next{margin-left:auto}\n.cc-order-pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #2d4049}\n.cc-order-pagination[hidden]{display:none!important}\n.cc-order-pagination button{min-height:30px;padding:5px 11px;border:1px solid #53646e;border-radius:8px;background:#1b2a33;color:#e5edf0;font-size:11px;font-weight:800}\n.cc-order-pagination button:disabled{opacity:.35;cursor:default}\n.cc-order-page-label{font-size:12px;color:#dfc18d;font-variant-numeric:tabular-nums;white-space:nowrap}\n.cc-update-notice{position:fixed;z-index:80;top:78px;right:18px;display:flex;align-items:center;gap:10px;max-width:min(460px,calc(100vw - 26px));padding:9px 12px;border:1px solid #98734b;border-radius:11px;background:#1b252c;color:#f4e9d4;box-shadow:0 12px 35px #000b;font-size:12px}\n.cc-update-notice[hidden]{display:none!important}\n.cc-update-notice button{cursor:pointer;border-radius:7px;border:1px solid #bb9157;background:#dcb46c;color:#21180f;padding:6px 10px;font-size:12px;font-weight:850;white-space:nowrap}\n.cc-update-notice button:disabled{opacity:.6;cursor:wait}\n@media(max-width:760px){\n .cc-order-list{overflow:visible}\n .cc-update-notice{top:auto;bottom:12px;right:12px;left:12px;max-width:none;justify-content:space-between}\n}\n';
 document.head.append(styles);
 const studioStyles = document.createElement('link');
 studioStyles.rel='stylesheet';
 studioStyles.href='/company-cook/data-studio.css';
 document.head.append(studioStyles);
 
+const CURRENT_COOK_REVISION = import.meta.env.VITE_COMPANY_COOK_VERSION || '';
+let newestCookRevision = '';
+let lastCookVersionCheck = 0;
+let cookVersionChecking = false;
+let cookUpdateNotice = null;
+let cookUpdateMessage = null;
 let frame = null;
 let seq = 0;
 let statusInFlight = false;
@@ -450,6 +457,50 @@ async function handleInstall(){
   } catch {openInstallGuide();}
   updateInstallButton();
 }
+
+// The build writes this release marker from the same revision injected into Vite.
+// A changed marker means updated production files are available; never force reload.
+async function checkCompanyCookVersion(){
+  if(!CURRENT_COOK_REVISION || cookVersionChecking || document.visibilityState==='hidden')return;
+  const now=Date.now();
+  if(now-lastCookVersionCheck<60000)return;
+  lastCookVersionCheck=now;cookVersionChecking=true;
+  try{
+    const response=await fetch('/company-cook/version.json?t='+now,{cache:'no-store',credentials:'same-origin'});
+    if(!response.ok)return;
+    const data=await response.json();
+    const version=data?.revision;
+    if(typeof version!=='string'||!/^[a-f0-9]{12,64}$/.test(version))return;
+    if(version!==CURRENT_COOK_REVISION){
+      newestCookRevision=version;
+      if(cookUpdateNotice){cookUpdateMessage.textContent='새 버전이 준비됐습니다.';cookUpdateNotice.hidden=false;}
+    }else{
+      newestCookRevision='';
+      if(cookUpdateNotice)cookUpdateNotice.hidden=true;
+    }
+  }catch{/* Offline or unavailable version marker: keep the calculator usable. */}
+  finally{cookVersionChecking=false;}
+}
+async function applyCompanyCookUpdate(button){
+  if(!newestCookRevision)return;
+  // Never destroy unsaved customer orders or active recipe edits.
+  if(companyOrderDialog?.open){cookUpdateMessage.textContent='주문 입력을 저장하거나 창을 닫은 뒤 업데이트해 주세요.';return;}
+  if(dataEditing){
+    if(dataEditing.saving){cookUpdateMessage.textContent='레시피 저장이 끝나면 업데이트해 주세요.';return;}
+    if(!studioConfirmExit())return;
+  }
+  button.disabled=true;
+  cookUpdateMessage.textContent='업데이트를 적용합니다…';
+  try{
+    const reg=await navigator.serviceWorker?.getRegistration?.('/company-cook');
+    if(reg)await reg.update();
+  }catch{/* Older browser or unavailable service worker. */}
+  // URL stays inside the standalone PWA scope; cache buster avoids a stale HTML shell.
+  const target=new URL('/company-cook',window.location.origin);
+  target.searchParams.set('app-revision',newestCookRevision);
+  window.location.replace(target.href);
+}
+
 function createAppShell(){
   const layout = document.createElement('main');layout.className = 'cc-layout';
   const header = document.createElement('header');header.className = 'cc-header';
@@ -477,6 +528,12 @@ function createAppShell(){
   const refresh=document.createElement('button');refresh.type='button';refresh.className='cc-button';
   refresh.textContent='새로고침';refresh.addEventListener('click',()=>window.location.reload());
   actions.append(install,refresh);header.append(identity,nav,actions);
+  const updateNotice=document.createElement('aside');updateNotice.id='cc-update-notice';updateNotice.className='cc-update-notice';
+  updateNotice.hidden=true;updateNotice.setAttribute('role','status');updateNotice.setAttribute('aria-live','polite');
+  const updateText=document.createElement('span');updateText.textContent='새 버전이 준비됐습니다.';
+  const updateAction=document.createElement('button');updateAction.type='button';updateAction.textContent='지금 업데이트';
+  updateAction.addEventListener('click',()=>void applyCompanyCookUpdate(updateAction));
+  updateNotice.append(updateText,updateAction);cookUpdateNotice=updateNotice;cookUpdateMessage=updateText;
   const panel=document.createElement('section');panel.className='cc-panel';
   panel.setAttribute('aria-label','요리계산기');
   const hero=document.createElement('div');hero.className='cc-hero';
@@ -489,7 +546,8 @@ function createAppShell(){
   text.append(mark,main,sub,detail);hero.append(text);
   viewHost=document.createElement('section');viewHost.className='cc-view';viewHost.hidden=true;
   viewHost.setAttribute('aria-live','polite');
-  panel.append(hero,viewHost);layout.append(header,panel);app.replaceChildren(layout);
+  panel.append(hero,viewHost);layout.append(header,panel,updateNotice);app.replaceChildren(layout);
+  void checkCompanyCookVersion();
   switchAppView('home');updateInstallButton();return panel;
 }
 function switchAppView(view){
@@ -1516,7 +1574,12 @@ function mountCompanyMemo(doc, iframe){
   const list=document.createElement('div');list.className='cc-order-list';list.setAttribute('role','tabpanel');
   list.id='cc-orders-list';list.setAttribute('aria-label','주문 목록');
   activeTab.setAttribute('aria-controls',list.id);deliveredTab.setAttribute('aria-controls',list.id);
-  manager.append(listHead,tabs,list);content.append(editor,manager);shell.append(bar,content);dialog.append(shell);document.body.append(dialog);
+  const pager=document.createElement('nav');pager.className='cc-order-pagination';pager.setAttribute('aria-label','주문 페이지');pager.hidden=true;
+  const prevPage=document.createElement('button');prevPage.type='button';prevPage.textContent='이전';
+  const pageLabel=document.createElement('span');pageLabel.className='cc-order-page-label';
+  const nextPage=document.createElement('button');nextPage.type='button';nextPage.textContent='다음';
+  pager.append(prevPage,pageLabel,nextPage);
+  manager.append(listHead,tabs,list,pager);content.append(editor,manager);shell.append(bar,content);dialog.append(shell);document.body.append(dialog);
 
   const pickRows=()=>[...foodRows.querySelectorAll('.cc-order-food-row')];
   function addDishRow(name='',count=1){
@@ -1561,14 +1624,17 @@ function mountCompanyMemo(doc, iframe){
   dialog.addEventListener('click',event=>{if(event.target===dialog)closeDialog();});
   cancelEdit.addEventListener('click',()=>{if(confirmDiscard())resetForm();});
   addDish.addEventListener('click',()=>{addDishRow()?.focus();});
-  let orderTab='active';
-  activeTab.addEventListener('click',()=>{orderTab='active';renderList();});
-  deliveredTab.addEventListener('click',()=>{orderTab='delivered';renderList();});
+  let orderTab='active',orderPage=0;
+  const ORDER_PAGE_SIZE=5;
+  activeTab.addEventListener('click',()=>{orderTab='active';orderPage=0;renderList();});
+  deliveredTab.addEventListener('click',()=>{orderTab='delivered';orderPage=0;renderList();});
   for(const tab of [activeTab,deliveredTab])tab.addEventListener('keydown',event=>{
     if(event.key!=='ArrowLeft'&&event.key!=='ArrowRight')return;
     event.preventDefault();const next=tab===activeTab?deliveredTab:activeTab;next.click();next.focus();
   });
-  open.addEventListener('click',()=>{if(companyOrderDialog!==dialog)return;resetForm();orderTab='active';renderList();dialog.showModal();customer.focus();});
+  prevPage.addEventListener('click',()=>{if(orderPage>0){orderPage--;renderList();list.scrollTop=0;}});
+  nextPage.addEventListener('click',()=>{orderPage++;renderList();list.scrollTop=0;});
+  open.addEventListener('click',()=>{if(companyOrderDialog!==dialog)return;resetForm();orderTab='active';orderPage=0;renderList();dialog.showModal();customer.focus();});
   resetForm();
   const optionNames=new Set();
   const addOptions=foods=>{
@@ -1613,27 +1679,42 @@ function mountCompanyMemo(doc, iframe){
     deliveredTab.tabIndex=orderTab==='delivered'?0:-1;
     list.setAttribute('aria-labelledby',orderTab==='active'?activeTab.id:deliveredTab.id);
     const visible=orderTab==='active'?activeOrders:deliveredOrders;
+    const pageCount=Math.max(1,Math.ceil(visible.length/ORDER_PAGE_SIZE));
+    orderPage=Math.max(0,Math.min(orderPage,pageCount-1));
+    pager.hidden=visible.length<=ORDER_PAGE_SIZE;
+    pageLabel.textContent=`${orderPage+1} / ${pageCount}`;
+    prevPage.disabled=orderPage===0;nextPage.disabled=orderPage>=pageCount-1;
     if(!visible.length){
       const empty=document.createElement('p');empty.className='cc-order-empty';
       empty.textContent=orderTab==='active'?'진행 중인 주문이 없습니다.':'전달 완료된 주문이 없습니다.';
       list.append(empty);return;
     }
-    for(const [position,order] of visible.entries()){
+    for(const [position,order] of visible.slice(orderPage*ORDER_PAGE_SIZE,(orderPage+1)*ORDER_PAGE_SIZE).entries()){
       const card=document.createElement('article');card.className='cc-order-record';card.dataset.stage=order.stage;
       const top=document.createElement('div');top.className='cc-order-record-top';
       const ident=document.createElement('div');ident.className='cc-order-record-identity';
-      const number=document.createElement('span');number.className='cc-order-record-index';number.textContent=`ORDER  ${String(position+1).padStart(2,'0')}`;
+      const number=document.createElement('span');number.className='cc-order-record-index';number.textContent=`#${String(orderPage*ORDER_PAGE_SIZE+position+1).padStart(2,'0')}`;
       const name=document.createElement('strong');name.textContent=order.customer;ident.append(number,name);
       const badge=document.createElement('span');badge.className='cc-order-stage';badge.textContent=order.stage==='received'?'접수':order.stage==='cooked'?'조리 완료':'전달 완료';
       top.append(ident,badge);
       const parts=document.createElement('div');parts.className='cc-order-record-items';
-      for(const [itemIndex,item] of order.items.entries()){
-        const line=document.createElement('div');line.className='cc-order-record-item';
-        const caption=document.createElement('div');caption.className='cc-order-item-caption';
-        const index=document.createElement('span');index.className='cc-order-item-no';index.textContent=String(itemIndex+1).padStart(2,'0');
-        const food=document.createElement('span');food.textContent=item.food;caption.append(index,food);
-        const qty=document.createElement('b');qty.textContent=`${item.sets}세트`;
-        line.append(caption,qty);parts.append(line);
+      const summaryLine=document.createElement('span');summaryLine.className='cc-order-record-summary';
+      summaryLine.textContent=order.items.slice(0,2).map(x=>`${x.food} ${x.sets}세트`).join('  ·  ')+(order.items.length>2?`  ·  외 ${order.items.length-2}종`:'');
+      summaryLine.title=order.items.map(x=>`${x.food} ${x.sets}세트`).join(' · ');
+      parts.append(summaryLine);
+      if(order.items.length>2){
+        const more=document.createElement('details');more.className='cc-order-record-more';
+        const trigger=document.createElement('summary');trigger.textContent=`전체 ${order.items.length}종 보기`;
+        more.append(trigger);
+        for(const [itemIndex,item] of order.items.entries()){
+          const line=document.createElement('div');line.className='cc-order-record-item';
+          const caption=document.createElement('div');caption.className='cc-order-item-caption';
+          const num=document.createElement('span');num.className='cc-order-item-no';num.textContent=String(itemIndex+1).padStart(2,'0');
+          const name=document.createElement('span');name.textContent=item.food;caption.append(num,name);
+          const qty=document.createElement('b');qty.textContent=`${item.sets}세트`;
+          line.append(caption,qty);more.append(line);
+        }
+        parts.append(more);
       }
       const actions=document.createElement('div');actions.className='cc-order-record-actions';
       const index=COMPANY_DELIVERY_STAGES.indexOf(order.stage);
@@ -1779,7 +1860,7 @@ window.addEventListener('message',async event => {
   }
 });
 
-function tick(){if(document.visibilityState==='visible')void checkStatus();}
+function tick(){if(document.visibilityState==='visible'){void checkStatus();void checkCompanyCookVersion();}}
 document.addEventListener('visibilitychange',tick);
 window.addEventListener('focus',tick);
 window.addEventListener('online',tick);
