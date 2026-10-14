@@ -57,7 +57,6 @@ styles.textContent = `
 `;
 document.head.append(styles);
 
-const RECENTS_KEY = 'lac-company-cook-recent-foods-v1';
 let frame = null;
 let seq = 0;
 let statusInFlight = false;
@@ -150,12 +149,6 @@ function createAppShell(){
   updateInstallButton();
   return layout;
 }
-function safeRecents(storage){
-  try {
-    const raw = JSON.parse(storage.getItem(RECENTS_KEY)||'[]');
-    return Array.isArray(raw) ? raw.filter(v => typeof v==='string' && v.length>0 && v.length<=90).slice(0,8) : [];
-  } catch {return [];}
-}
 function installCompanyWorkspace(iframe){
   if(frame!==iframe || !iframe.isConnected) return;
   const doc = iframe.contentDocument;
@@ -169,108 +162,15 @@ function installCompanyWorkspace(iframe){
   stylesheet.href = '/company-cook/company-style.css';
   stylesheet.onload = () => {
     if(frame!==iframe) return;
-    // A supplementary dashboard must never hide the working calculator.
-    try {
-      makeInsights(doc, iframe);
-    } catch(error) {
-      console.error('요리계산기 보조 패널 렌더링 실패',error);
-    } finally {
-      if(frame===iframe) iframe.style.visibility = 'visible';
-    }
+    // Decorative backdrop is pure CSS: no extra dashboard DOM and no local-data mutation.
+    // Keep the calculator visible even if future optional decoration fails.
+    if(frame===iframe) iframe.style.visibility = 'visible';
   };
   stylesheet.onerror = () => {
     if(frame===iframe) showStatus('화면 스타일을 불러오지 못했습니다','잠시 후 다시 접속해 주세요.',true);
   };
   doc.head.append(stylesheet);
 }
-function makeInsights(doc, iframe){
-  const work = doc.querySelector('.workspace');
-  if(!work || doc.querySelector('#cc-insights')) return;
-  const section = doc.createElement('section');
-  section.className = 'cc-insights';section.id = 'cc-insights';
-  section.setAttribute('aria-label','빠른 시작과 작업 현황');
-  section.innerHTML = `
-    <article class="cc-insight-card cc-insight-card--quick">
-      <div class="cc-insight-head"><span>빠른 시작</span><small>자주 만드는 요리로 바로 이동</small></div>
-      <p class="cc-insight-explain">요리를 검색하거나 최근 작업한 메뉴를 다시 찾아보세요.</p>
-      <button type="button" class="cc-search-shortcut">＋ 요리 검색 시작</button>
-      <div class="cc-recent-title">최근 작업 요리</div>
-      <div class="cc-recent-list" id="cc-recents"><span class="cc-muted">최근 추가한 요리가 여기에 표시됩니다.</span></div>
-    </article>
-    <article class="cc-insight-card cc-insight-card--overview">
-      <div class="cc-insight-head"><span>작업 현황</span><small>현재 브라우저 작업</small></div>
-      <div class="cc-stats">
-        <div><strong id="cc-menu-count">0</strong><span>선택 메뉴</span></div>
-        <div><strong id="cc-batch-count">0</strong><span>제작 세트</span></div>
-        <div><strong id="cc-progress-count">0 / 0</strong><span>준비 완료</span></div>
-      </div>
-      <div class="cc-steps"><b>이렇게 활용하세요</b>
-        <p><span>01</span> 요리를 검색하고 작업 목록에 추가</p>
-        <p><span>02</span> 재료 및 가공 수량을 확인</p>
-        <p><span>03</span> 구매·준비 항목에 체크</p>
-      </div>
-      <div class="cc-local-note">작업 목록은 현재 브라우저에 자동 저장됩니다.</div>
-    </article>`;
-  const disclaimer = work.querySelector('.cook-disclaimer');
-  if(disclaimer) work.insertBefore(section,disclaimer);
-  else work.append(section);
-  const search = doc.getElementById('search');
-  const gotoSearch = (value='') => {
-    if(!search)return;
-    if(value){search.value=value;search.dispatchEvent(new iframe.contentWindow.Event('input',{bubbles:true}));}
-    search.focus();search.scrollIntoView({behavior:'smooth',block:'center'});
-  };
-  section.querySelector('.cc-search-shortcut').addEventListener('click',() => gotoSearch());
-  let storage = null;
-  try { storage = iframe.contentWindow.localStorage; } catch { /* Private browsing may deny storage. */ }
-  let priorOrderNames = new Set();
-  const paintRecents = () => {
-    const host = section.querySelector('#cc-recents');
-    host.replaceChildren();
-    const recents = safeRecents(storage);
-    if(!recents.length){
-      const msg = doc.createElement('span');msg.className='cc-muted';
-      msg.textContent='첫 요리를 추가하면 최근 사용 메뉴가 표시됩니다.';
-      host.append(msg);return;
-    }
-    for(const name of recents){
-      const button=doc.createElement('button');
-      button.type='button';button.className='cc-recent-chip';button.textContent=name;
-      button.title=`${name} 검색`;
-      button.addEventListener('click',() => gotoSearch(name));
-      host.append(button);
-    }
-  };
-  const update = () => {
-    if(frame!==iframe || !section.isConnected) return;
-    const rows = [...doc.querySelectorAll('#orders .order-row')];
-    const newNames = rows.map(row => row.querySelector('.food-text strong')?.textContent?.trim()).filter(Boolean);
-    const added = newNames.filter(name => !priorOrderNames.has(name));
-    priorOrderNames = new Set(newNames);
-    if(added.length){
-      const recent = [...added.reverse(),...safeRecents(storage)];
-      const deduped = [...new Set(recent)].slice(0,8);
-      try{storage.setItem(RECENTS_KEY,JSON.stringify(deduped));}catch{}
-      paintRecents();
-    }
-    const batches = rows.reduce((acc,row) => {
-      const raw = Number(row.querySelector('input.qty')?.value || '0');
-      return acc + (Number.isFinite(raw) && raw > 0 ? raw : 0);
-    },0);
-    section.querySelector('#cc-menu-count').textContent=String(rows.length);
-    section.querySelector('#cc-batch-count').textContent=batches.toLocaleString('ko-KR');
-    section.querySelector('#cc-progress-count').textContent=doc.getElementById('prep-progress')?.textContent?.trim()||'0 / 0';
-  };
-  paintRecents();update();
-  // A single observer tracks the existing rendered workbench; no COOK engine modification.
-  const workbench = doc.querySelector('.cook-workbench');
-  if(workbench){
-    const observer = new iframe.contentWindow.MutationObserver(update);
-    observer.observe(workbench,{childList:true,subtree:true,characterData:true});
-    iframe.addEventListener('load',() => observer.disconnect(),{once:true});
-  }
-}
-
 async function checkStatus(){
   // Never briefly show an unauthorised/offline app while checking its ON/OFF state.
   if(statusInFlight)return;
