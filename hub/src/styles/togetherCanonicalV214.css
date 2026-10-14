@@ -697,3 +697,47 @@
 .lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open:focus-visible,.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-help:focus-visible{outline:2px solid #eed1a5;outline-offset:3px}
 @media(max-width:440px){.lac-together--detail .lac-together__voice--compact .lac-together__voice-entry-actions{margin-left:44px}.lac-together--detail .lac-together__voice--compact .lac-together__voice-entry-actions .lac-together__voice-compact-open{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-help{transition:none}}
+
+
+/* 2026-10-14 party detail polish: merge ready state into roster and soften the detail UI. */
+.lac-together--detail .lac-together__post-section{background:linear-gradient(180deg,rgba(12,27,41,.96),rgba(9,22,35,.98));}
+.lac-together--detail .lac-together__post-side{gap:0}
+.lac-together--detail .lac-together__voice--compact{padding:12px 16px 11px;background:linear-gradient(115deg,rgba(35,53,70,.72),rgba(16,30,43,.84));border-bottom:1px solid rgba(195,159,109,.24)}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open{min-width:118px;background:linear-gradient(180deg,#d0b083,#bc9667);border-color:#cfb086;color:#122131!important}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-help{width:34px;height:34px;border-radius:10px;border:1px solid rgba(196,165,114,.3);background:rgba(27,43,58,.86);color:#e9d0a6;font-weight:800}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-help:hover{background:rgba(39,58,74,.96)}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-note{margin:6px 0 0!important;font-size:10.5px;color:#c0ccd4}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-links{margin-top:4px;gap:12px}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-copy,.lac-together--detail .lac-together__voice--compact .lac-together__voice-web-link{font-size:10px;color:#93aabc}
+.lac-together--detail .lac-together__section-heading{margin-bottom:14px}
+.lac-together--detail .lac-together__people-shell{display:grid;gap:12px}
+.lac-together--detail .lac-together__people--detail{gap:9px}
+.lac-together--detail .lac-together__person--detail{align-items:center;gap:12px;padding:13px 14px;border:1px solid rgba(183,199,214,.12);border-radius:14px;background:linear-gradient(180deg,rgba(26,44,60,.72),rgba(18,33,48,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+.lac-together--detail .lac-together__person--detail:first-child{padding-top:13px}
+.lac-together--detail .lac-together__person--detail:last-child{padding-bottom:13px;border-bottom:1px solid rgba(183,199,214,.12)}
+.lac-together--detail .lac-together__person--detail.is-ready{border-color:rgba(205,177,128,.24);background:linear-gradient(180deg,rgba(31,49,64,.78),rgba(19,33,46,.88))}
+.lac-together--detail .lac-together__person-stack{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;flex:1;min-width:0;align-items:center}
+.lac-together--detail .lac-together__person--detail .lac-together__person-name strong{font-size:13px;color:#f0f3f4}
+.lac-together--detail .lac-together__person--detail .lac-together__person-name small{font-size:10px;color:#99adba}
+.lac-together--detail .lac-together__person--detail .lac-together__person-phone{min-width:110px;justify-self:end}
+.lac-together--detail .lac-together__person--detail .lac-together__person-phone span{font-size:10px;color:#7f96aa}
+.lac-together--detail .lac-together__person--detail .lac-together__person-phone strong{font-size:11.5px;color:#dbe4ea}
+.lac-together--detail .lac-together__person-controls{display:flex;align-items:center;gap:8px;flex:none}
+.lac-together--detail .lac-together__person-state{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 11px;border-radius:999px;background:rgba(116,136,154,.12);border:1px solid rgba(158,179,196,.16);color:#b2c0ca;font-size:11px;font-weight:720;white-space:nowrap}
+.lac-together--detail .lac-together__person-state.is-ready{background:rgba(192,157,102,.16);border-color:rgba(210,182,136,.26);color:#f0ddba}
+.lac-together--detail .lac-together__person-state-dot{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.08);font-size:10px}
+.lac-together--detail .lac-together__person-state.is-ready .lac-together__person-state-dot{background:rgba(234,202,151,.18)}
+.lac-together--detail .lac-together__person-kick{min-height:30px;padding:0 10px;border-radius:9px;border:1px solid rgba(189,142,122,.28);background:rgba(68,45,40,.44);color:#dfb8ab;font-size:10.5px;font-weight:700}
+.lac-together--detail .lac-together__person-kick:hover{background:rgba(81,55,50,.62);border-color:rgba(220,157,136,.42)}
+.lac-together--detail .lac-together__people-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 0}
+.lac-together--detail .lac-together__people-summary{display:flex;align-items:baseline;gap:8px;color:#d6dfe5}
+.lac-together--detail .lac-together__people-summary strong{font-size:22px;line-height:1;color:#f1d6aa;font-weight:820;font-variant-numeric:tabular-nums}
+.lac-together--detail .lac-together__people-summary span{font-size:11px;color:#9eb0bd}
+.lac-together--detail .lac-together__people-ready-toggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:11px;border:1px solid rgba(194,167,125,.4);background:linear-gradient(180deg,#2a3947,#1c2b38);color:#efe1c9;font-size:12px;font-weight:790}
+.lac-together--detail .lac-together__people-ready-toggle:hover{background:linear-gradient(180deg,#344452,#243544)}
+.lac-together--detail .lac-together__people-ready-toggle.is-ready{background:linear-gradient(180deg,#c6a16f,#af885b);border-color:#c6a16f;color:#11202d}
+.lac-together--detail .lac-together__people-ready-toggle-icon{font-size:13px}
+.lac-together--detail .lac-together__privacy{margin-top:14px}
+.lac-together--detail .lac-together__ready-section{display:none}
+@media(max-width:900px){.lac-together--detail .lac-together__person-stack{grid-template-columns:1fr}.lac-together--detail .lac-together__person--detail .lac-together__person-phone{justify-self:start;align-items:flex-start}.lac-together--detail .lac-together__people-footer{flex-direction:column;align-items:stretch}.lac-together--detail .lac-together__people-ready-toggle{width:100%}}
+@media(max-width:540px){.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-head{align-items:flex-start;flex-wrap:wrap}.lac-together--detail .lac-together__voice-entry-actions{width:100%;margin-left:44px}.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open{flex:1}.lac-together--detail .lac-together__person--detail{align-items:flex-start;flex-wrap:wrap}.lac-together--detail .lac-together__person-controls{width:100%;justify-content:space-between}.lac-together--detail .lac-together__person-state{flex:1}}
