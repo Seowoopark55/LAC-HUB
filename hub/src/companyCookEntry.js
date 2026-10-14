@@ -171,75 +171,149 @@ styles.textContent = `
 
 `;
 styles.textContent += `
-  .cc-order-dialog{border:1px solid #495765;background:#10171e;color:#eaf0f4;border-radius:15px;
-    width:min(975px,calc(100vw - 28px));max-width:975px;max-height:min(88dvh,780px);padding:0;
-    box-shadow:0 25px 85px #000c;overflow:hidden;font-family:Inter,Pretendard,system-ui,sans-serif}
-  .cc-order-dialog::backdrop{background:rgba(2,5,8,.8);backdrop-filter:blur(3px)}
-  .cc-order-dialog button,.cc-order-dialog input{font:inherit;box-sizing:border-box}
-  .cc-order-dialog button{cursor:pointer}
-  .cc-order-dialog button:focus-visible,.cc-order-dialog input:focus-visible{outline:2px solid #e8b96d;outline-offset:2px}
-  .cc-order-shell{display:flex;flex-direction:column;max-height:min(88dvh,780px);min-height:0}
-  .cc-order-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 22px;
-    border-bottom:1px solid #35414b;background:linear-gradient(125deg,#192530,#10171e)}
-  .cc-order-title span{display:block;font-size:10px;color:#ddb370;letter-spacing:.13em;font-weight:800;margin-bottom:3px}
-  .cc-order-title h2{font-size:22px;margin:0;color:#f4f0e8;line-height:1.35}
-  .cc-order-title p{font-size:12px;margin:5px 0 0;color:#9eb2c1}
-  .cc-order-close{border:1px solid #45535f;background:#1b2731;color:#dce8f1;font-size:18px;padding:5px 10px;border-radius:8px}
-  .cc-order-content{display:grid;grid-template-columns:minmax(300px,.95fr) minmax(0,1.05fr);gap:0;
+  /* COMPANY COOK · Order desk: structured ticket layout, independently scrollable. */
+  .cc-order-dialog{box-sizing:border-box;width:min(1030px,calc(100vw - 30px));max-width:1030px;
+    max-height:min(90dvh,820px);padding:0;overflow:hidden;border:1px solid #45565d;
+    border-radius:17px;background:#10181e;color:#eaf0f2;font-family:Inter,Pretendard,system-ui,sans-serif;
+    box-shadow:0 32px 100px #000d,0 0 0 1px #edbd6120}
+  .cc-order-dialog::backdrop{background:#02070bce;backdrop-filter:blur(5px)}
+  .cc-order-dialog button,.cc-order-dialog input{box-sizing:border-box;font-family:inherit}
+  .cc-order-dialog button{cursor:pointer;transition:background-color .14s,border-color .14s,color .14s}
+  .cc-order-dialog button:focus-visible,.cc-order-dialog input:focus-visible{
+    outline:2px solid #f4c77c;outline-offset:2px}
+  .cc-order-shell{display:flex;flex-direction:column;max-height:min(90dvh,820px);min-height:0}
+  .cc-order-bar{position:relative;display:flex;align-items:center;justify-content:space-between;
+    gap:14px;padding:19px 26px 17px;border-bottom:1px solid #2c3a40;
+    background:linear-gradient(110deg,#202b30 0%,#131d23 64%,#0e161c 100%)}
+  .cc-order-bar::before{content:'';position:absolute;left:26px;bottom:-1px;width:92px;height:2px;
+    background:linear-gradient(90deg,#eec67e,transparent)}
+  .cc-order-title span{display:block;margin-bottom:5px;color:#d8ac68;font-size:10px;letter-spacing:.18em;font-weight:850}
+  .cc-order-title h2{margin:0;color:#f7f1e7;font-size:23px;line-height:1.25;letter-spacing:-.04em}
+  .cc-order-title p{display:none}
+  .cc-order-close{display:grid;place-items:center;width:38px;height:38px;padding:0;flex-shrink:0;
+    border:1px solid #40515d;background:#1b2931;color:#d9e5eb;font-size:18px;border-radius:10px}
+  .cc-order-close:hover{background:#2b3a44;border-color:#6b8190}
+  .cc-order-content{display:grid;grid-template-columns:minmax(345px,.94fr) minmax(0,1.06fr);
     flex:1;min-height:0;overflow:hidden}
-  .cc-order-editor,.cc-order-manager{min-width:0;min-height:0;padding:21px;overflow-y:auto;overscroll-behavior:contain}
-  .cc-order-editor{border-right:1px solid #303c47;background:#141d25}
-  .cc-order-manager{background:#10171e}
-  .cc-order-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:17px}
-  .cc-order-section-title h3{font-size:16px;color:#e9e9e8;margin:0}
-  .cc-order-section-title>span{font-size:11px;color:#96aab8}
-  .cc-order-form{display:grid;gap:14px}
-  .cc-order-field{display:grid;gap:7px;color:#b8cad6;font-size:12px;font-weight:750}
-  .cc-order-field input,.cc-order-food-row input{min-width:0;width:100%;height:39px;padding:8px 10px;
-    border:1px solid #4a5a66;border-radius:8px;background:#0c141b;color:#edf1f2;font-size:13px}
-  .cc-order-field input::placeholder,.cc-order-food-row input::placeholder{color:#758a99}
-  .cc-order-food-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:-7px}
-  .cc-order-food-head strong{font-size:13px;color:#cbd7dd}
-  .cc-order-add{padding:7px 10px;color:#f1c47c;border:1px solid #765d3c;background:#32291e;border-radius:7px;font-size:12px;font-weight:800}
+  .cc-order-editor,.cc-order-manager{box-sizing:border-box;min-width:0;min-height:0;
+    padding:24px;overflow-y:auto;overscroll-behavior:contain;scrollbar-color:#52606b transparent}
+  .cc-order-editor{border-right:1px solid #2d3d43;background:#131d23}
+  .cc-order-manager{background:#0e171d}
+  .cc-order-section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px}
+  .cc-order-section-title h3{display:flex;align-items:center;gap:9px;margin:0;font-size:17px;
+    font-weight:850;letter-spacing:-.025em;color:#f1ede4}
+  .cc-order-editor .cc-order-section-title h3::before,.cc-order-manager .cc-order-section-title h3::before{
+    content:'01';display:grid;place-items:center;width:27px;height:27px;border:1px solid #806139;
+    border-radius:8px;color:#f0c278;background:#352b1d;font-size:11px;letter-spacing:0}
+  .cc-order-manager .cc-order-section-title h3::before{content:'02'}
+  .cc-order-section-title>span,.cc-order-list-count{display:none!important}
+  .cc-order-form{display:flex;flex-direction:column;gap:13px}
+  .cc-order-form-section{border:1px solid #31424a;border-radius:12px;padding:15px;
+    background:linear-gradient(150deg,#17242c,#111b21)}
+  .cc-order-section-caption{display:block;margin:0 0 10px;color:#b99766;font-size:10px;
+    font-weight:900;letter-spacing:.14em}
+  .cc-order-field{display:grid;gap:9px;font-size:13px;font-weight:800;color:#dce7ec}
+  .cc-order-field input,.cc-order-food-row input{min-width:0;width:100%;height:42px;padding:9px 12px;
+    border:1px solid #485c68;border-radius:9px;background:#0c161c;color:#f3f5f5;font-size:14px}
+  .cc-order-field input:hover,.cc-order-food-row input:hover{border-color:#70808b}
+  .cc-order-field input:focus,.cc-order-food-row input:focus{border-color:#e5b96d;
+    box-shadow:0 0 0 3px #e5b96d1a}
+  .cc-order-field input::placeholder,.cc-order-food-row input::placeholder{color:#82939f}
+  .cc-order-food-head{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:11px}
+  .cc-order-food-head strong{font-size:13px;color:#dce7ec;font-weight:800}
+  .cc-order-add{display:inline-flex;align-items:center;justify-content:center;min-height:34px;
+    padding:6px 11px;border-radius:8px;border:1px solid #947249;background:#3a2c1d;
+    color:#f7d39e;font-size:12px;font-weight:850}
+  .cc-order-add:hover{background:#594025;border-color:#cf9f5a}
+  .cc-order-add:disabled{opacity:.45;cursor:not-allowed}
   .cc-order-food-rows{display:grid;gap:8px}
-  .cc-order-food-row{display:grid;grid-template-columns:minmax(0,1fr) 72px 27px 30px;gap:6px;align-items:center}
-  .cc-order-food-row input[type=number]{text-align:center;padding:8px 2px}
-  .cc-order-unit{color:#a4b5c1;font-size:11px}
-  .cc-order-remove{border:1px solid #58474b;border-radius:7px;background:#2d2327;color:#e4a7a7;height:34px}
-  .cc-order-form-actions{display:flex;gap:8px;flex-wrap:wrap}
-  .cc-order-save,.cc-order-quiet{padding:9px 15px;border-radius:8px;border:1px solid #c49955;font-size:12px;font-weight:850}
-  .cc-order-save{background:#e7b969;color:#20180c}
-  .cc-order-quiet{background:#24303a;color:#cdd9e0;border-color:#43515d}
-  .cc-order-feedback{min-height:15px;margin:0;font-size:12px;color:#e4b77d}
-  .cc-order-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:-3px 0 13px;
-    padding:4px;background:#0d151c;border:1px solid #35434e;border-radius:10px;position:sticky;top:-20px;z-index:2}
-  .cc-order-tab{min-width:0;padding:10px 7px;border:1px solid transparent;border-radius:7px;
-    background:transparent;color:#a9bac7;font-size:12px;font-weight:850}
-  .cc-order-tab[aria-selected="true"]{background:#342719;color:#f8d396;border-color:#916f42}
-  .cc-order-tab:hover:not([aria-selected="true"]){background:#202b34;color:#e6eff3}
-  .cc-order-list{display:grid;align-content:start;gap:10px}
-  .cc-order-record{border:1px solid #394852;border-radius:10px;background:#18212a;padding:13px}
-  .cc-order-record[data-stage=delivered]{opacity:.8}
-  .cc-order-record-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
-  .cc-order-record-top strong{font-size:14px;color:#faf1e4;overflow-wrap:anywhere}
-  .cc-order-stage{font-size:11px;font-weight:800;color:#ebc486;border:1px solid #80613b;background:#34281b;border-radius:999px;padding:4px 8px;white-space:nowrap}
-  .cc-order-record[data-stage=delivered] .cc-order-stage{background:#17382d;border-color:#39614e;color:#abe4bb}
-  .cc-order-record-items{display:grid;gap:5px;margin-bottom:12px}
-  .cc-order-record-item{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed #34424c;padding-bottom:4px;color:#bdccd6;font-size:12px}
-  .cc-order-record-item b{color:#f1c782;white-space:nowrap}
-  .cc-order-record-actions{display:flex;gap:6px;flex-wrap:wrap}
-  .cc-order-record-actions button{font-size:11px;font-weight:750;padding:7px 9px;border-radius:7px;border:1px solid #465663;background:#23313c;color:#d7e2e8}
-  .cc-order-record-actions .cc-order-next{background:#dcb36b;color:#20190e;border-color:#dcb36b}
-  .cc-order-record-actions .cc-order-danger{background:#292125;border-color:#65464b;color:#e0b4b4}
-  .cc-order-empty{font-size:12px;color:#96a8b6;text-align:center;padding:36px 12px;border:1px dashed #394650;border-radius:9px}
-  @media(max-width:720px){
-    .cc-order-dialog{max-height:92dvh}
-    .cc-order-shell{max-height:92dvh}
+  .cc-order-food-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 25px 32px;
+    align-items:center;gap:6px;min-width:0;padding:8px;background:#0e181e;border:1px solid #334550;border-radius:10px}
+  .cc-order-food-row input[type=number]{height:39px;padding:7px 2px;text-align:center;font-weight:850;
+    color:#f5c982;border-color:#735d40;background:#251f19}
+  .cc-order-unit{text-align:center;color:#b1bdc5;font-size:11px;white-space:nowrap}
+  .cc-order-remove{height:34px;width:32px;padding:0;display:grid;place-items:center;
+    border:1px solid #5c464b;border-radius:8px;background:#291f24;color:#e7aba7;font-size:17px}
+  .cc-order-remove:hover{background:#432b30;border-color:#a56c70}
+  .cc-order-totals{display:flex;justify-content:space-between;align-items:center;gap:9px;
+    margin-top:12px;padding-top:11px;border-top:1px dashed #42515a;font-size:12px;color:#a6b9c3}
+  .cc-order-totals strong{font-size:13px;color:#f2cb8e;white-space:nowrap}
+  .cc-order-form-actions{display:flex;align-items:center;justify-content:flex-start;gap:9px;flex-wrap:wrap;margin-top:3px}
+  .cc-order-save,.cc-order-quiet{min-height:41px;padding:9px 20px;border-radius:9px;
+    border:1px solid #bc965d;font-size:13px;font-weight:900}
+  .cc-order-save{background:linear-gradient(180deg,#f5d18c,#dcac5b);border-color:#e4bc72;color:#241a0b;
+    box-shadow:0 2px 0 #9e7337}
+  .cc-order-save:hover{background:#ffe0a2}
+  .cc-order-quiet{background:#21303a;color:#d6e1e6;border-color:#4d626d}
+  .cc-order-quiet:hover{background:#30404a}
+  .cc-order-feedback{margin:0;color:#efbd81;font-size:12px;line-height:1.5}
+  .cc-order-feedback:empty{display:none}
+  .cc-order-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
+    position:sticky;top:-24px;z-index:2;margin-bottom:14px;padding:5px;
+    background:#0a1319;border:1px solid #354951;border-radius:11px}
+  .cc-order-tab{min-width:0;min-height:41px;padding:8px;border:1px solid transparent;
+    border-radius:8px;background:transparent;color:#aabcc7;font-size:13px;font-weight:850}
+  .cc-order-tab[aria-selected='true']{background:#44321e;color:#ffe0a3;border-color:#aa8249;
+    box-shadow:inset 0 1px 0 #fff1}
+  .cc-order-tab:hover:not([aria-selected='true']){background:#213039;color:#f0f3f3}
+  .cc-order-list{display:grid;align-content:start;gap:11px}
+  .cc-order-record{position:relative;overflow:hidden;padding:15px 16px 12px;
+    border:1px solid #3b5059;border-radius:12px;background:linear-gradient(145deg,#1a2930,#131f26);
+    box-shadow:0 5px 17px #0002}
+  .cc-order-record::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(180deg,#f0c983,#9c7745)}
+  .cc-order-record[data-stage=delivered]::before{background:linear-gradient(180deg,#77ba99,#376d54)}
+  .cc-order-record-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+  .cc-order-record-identity{display:grid;gap:3px;min-width:0}
+  .cc-order-record-index{font-size:10px;font-weight:850;color:#a1b4bf;letter-spacing:.08em}
+  .cc-order-record-identity strong{font-size:16px;font-weight:900;color:#f5f0e9;overflow-wrap:anywhere}
+  .cc-order-stage{flex-shrink:0;padding:5px 9px;border-radius:999px;border:1px solid #886943;
+    background:#382a1d;color:#f0c989;font-size:11px;font-weight:900;white-space:nowrap}
+  .cc-order-record[data-stage=delivered] .cc-order-stage{background:#193b31;border-color:#4a7b63;color:#b2ebc4}
+  .cc-order-record-items{display:grid;gap:0;margin-bottom:11px;padding:5px 0;
+    border-top:1px dashed #425158;border-bottom:1px dashed #425158}
+  .cc-order-record-item{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:8px 1px;color:#d1dce1;font-size:13px}
+  .cc-order-record-item+.cc-order-record-item{border-top:1px solid #2c3c45}
+  .cc-order-item-caption{display:flex;align-items:center;gap:8px;min-width:0}
+  .cc-order-item-no{display:grid;place-items:center;width:22px;height:22px;flex-shrink:0;
+    background:#27343d;border-radius:6px;color:#9fb4c1;font-size:10px;font-weight:800}
+  .cc-order-item-caption>span:last-child{overflow-wrap:anywhere}
+  .cc-order-record-item b{flex-shrink:0;padding:4px 8px;border-radius:7px;background:#34291b;
+    border:1px solid #675135;color:#f5d092;font-size:12px;white-space:nowrap}
+  .cc-order-record-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .cc-order-record-actions button{min-height:31px;padding:6px 11px;border-radius:7px;
+    border:1px solid #435a67;background:#24333c;color:#d3e0e5;font-size:12px;font-weight:800}
+  .cc-order-record-actions button:hover{background:#354752;border-color:#718391}
+  .cc-order-record-actions .cc-order-next{margin-left:auto;background:#e6bb70;border-color:#e6bb70;
+    color:#241a0d;font-weight:900}
+  .cc-order-record-actions .cc-order-next:hover{background:#ffdb99}
+  .cc-order-record-actions .cc-order-danger{background:transparent;border-color:#554047;color:#c99b9d}
+  .cc-order-record-actions .cc-order-danger:hover{background:#39252b;color:#ffc0bf}
+  .cc-order-empty{display:grid;place-items:center;min-height:170px;padding:26px 12px;
+    border:1px dashed #3a4e57;border-radius:12px;background:#121c22;
+    color:#a5b8c5;text-align:center;font-size:13px;line-height:1.6}
+  @media(max-width:760px){
+    .cc-order-dialog{max-height:93dvh;width:min(100vw - 16px,600px)}
+    .cc-order-shell{max-height:93dvh}
     .cc-order-content{display:flex;flex-direction:column;overflow-y:auto}
-    .cc-order-editor,.cc-order-manager{overflow:visible;padding:14px}
-    .cc-order-editor{border-right:0;border-bottom:1px solid #34414d}
-    .cc-order-bar{padding:12px 14px}.cc-order-title h2{font-size:19px}
+    .cc-order-editor,.cc-order-manager{flex:0 0 auto;overflow:visible;padding:17px}
+    .cc-order-editor{border-right:0;border-bottom:1px solid #35454f}
+    .cc-order-bar{padding:15px 17px}
+    .cc-order-bar::before{left:17px}
+    .cc-order-title h2{font-size:21px}
+    .cc-order-tabs{top:-17px}
   }
+  @media(max-width:390px){
+    .cc-order-form-section{padding:11px}
+    .cc-order-food-row{grid-template-columns:minmax(0,1fr) 54px 22px 29px;gap:4px;padding:5px}
+    .cc-order-food-row input{padding:7px 8px}
+    .cc-order-food-row input[type=number]{padding:7px 1px}
+    .cc-order-editor,.cc-order-manager{padding:12px}
+    .cc-order-record{padding:12px}
+  }
+  @media(prefers-reduced-motion:reduce){.cc-order-dialog button{transition:none}}
+
 `;
 document.head.append(styles);
 const studioStyles = document.createElement('link');
@@ -1265,21 +1339,19 @@ function mountCompanyMemo(doc, iframe){
   const shell=document.createElement('div');shell.className='cc-order-shell';
   const bar=document.createElement('header');bar.className='cc-order-bar';
   const titlebox=document.createElement('div');titlebox.className='cc-order-title';
-  const eyebrow=document.createElement('span');eyebrow.textContent='ORDER DESK';
+  const eyebrow=document.createElement('span');eyebrow.textContent='LAC COOK  /  ORDER SHEET';
   const title=document.createElement('h2');title.textContent='주문관리';
-  const subtitle=document.createElement('p');subtitle.textContent='주문자별로 여러 요리를 묶어서 접수하고 전달을 확인하세요.';
-  titlebox.append(eyebrow,title,subtitle);
+  titlebox.append(eyebrow,title);
   const close=document.createElement('button');close.type='button';close.className='cc-order-close';close.setAttribute('aria-label','주문 관리 닫기');close.textContent='✕';
   bar.append(titlebox,close);
   const content=document.createElement('div');content.className='cc-order-content';
   const editor=document.createElement('section');editor.className='cc-order-editor';
   const editorHead=document.createElement('div');editorHead.className='cc-order-section-title';
   const editorTitle=document.createElement('h3');editorTitle.textContent='새 주문 접수';
-  const formInfo=document.createElement('span');formInfo.textContent='요리별 세트 수 입력';
-  editorHead.append(editorTitle,formInfo);
+  editorHead.append(editorTitle);
   const form=document.createElement('form');form.className='cc-order-form';form.autocomplete='off';
   const customerLabel=document.createElement('label');customerLabel.className='cc-order-field';
-  const customerTitle=document.createElement('span');customerTitle.textContent='주문자';
+  const customerTitle=document.createElement('span');customerTitle.textContent='주문자 이름';
   const customer=document.createElement('input');customer.type='text';customer.maxLength=60;customer.required=true;
   customer.placeholder='주문자 이름';customerLabel.append(customerTitle,customer);
   const foodsHeader=document.createElement('div');foodsHeader.className='cc-order-food-head';
@@ -1293,13 +1365,21 @@ function mountCompanyMemo(doc, iframe){
   const cancelEdit=document.createElement('button');cancelEdit.type='button';cancelEdit.className='cc-order-quiet';cancelEdit.textContent='수정 취소';cancelEdit.hidden=true;
   actionRow.append(submit,cancelEdit);
   const feedback=document.createElement('p');feedback.className='cc-order-feedback';feedback.setAttribute('role','status');
-  form.append(customerLabel,foodsHeader,foodRows,suggestions,actionRow,feedback);
+  const buyerBlock=document.createElement('div');buyerBlock.className='cc-order-form-section';
+  const buyerStep=document.createElement('span');buyerStep.className='cc-order-section-caption';buyerStep.textContent='CUSTOMER  /  01';
+  buyerBlock.append(buyerStep,customerLabel);
+  const menuBlock=document.createElement('div');menuBlock.className='cc-order-form-section';
+  const menuStep=document.createElement('span');menuStep.className='cc-order-section-caption';menuStep.textContent='MENU  /  02';
+  const totals=document.createElement('div');totals.className='cc-order-totals';totals.setAttribute('aria-live','polite');
+  const totalsLabel=document.createElement('span');totalsLabel.textContent='주문 합계';
+  const totalsValue=document.createElement('strong');totals.append(totalsLabel,totalsValue);
+  menuBlock.append(menuStep,foodsHeader,foodRows,suggestions,totals);
+  form.append(buyerBlock,menuBlock,actionRow,feedback);
   editor.append(editorHead,form);
   const manager=document.createElement('section');manager.className='cc-order-manager';
   const listHead=document.createElement('div');listHead.className='cc-order-section-title';
   const listTitle=document.createElement('h3');listTitle.textContent='주문 현황';
-  const total=document.createElement('span');total.className='cc-order-list-count';
-  listHead.append(listTitle,total);
+  listHead.append(listTitle);
   const tabs=document.createElement('div');tabs.className='cc-order-tabs';tabs.setAttribute('role','tablist');
   tabs.setAttribute('aria-label','주문 진행 상태');
   const activeTab=document.createElement('button');activeTab.type='button';activeTab.className='cc-order-tab';
@@ -1325,7 +1405,15 @@ function mountCompanyMemo(doc, iframe){
     remove.addEventListener('click',()=>{if(pickRows().length>1)row.remove();updateAddDish();});
     row.append(input,countInput,units,remove);foodRows.append(row);updateAddDish();return input;
   }
-  function updateAddDish(){addDish.disabled=pickRows().length>=COMPANY_MAX_DISHES;}
+  function updateAddDish(){
+    const rows=pickRows();addDish.disabled=rows.length>=COMPANY_MAX_DISHES;
+    const sum=rows.reduce((acc,row)=>{
+      const raw=row.children[1].value.trim();const amount=/^\d{1,5}$/.test(raw)?Number(raw):0;
+      return acc+(Number.isSafeInteger(amount)&&amount>=1&&amount<=10000?amount:0);
+    },0);
+    totalsValue.textContent=`${rows.length}종 · ${sum.toLocaleString('ko-KR')}세트`;
+  }
+  foodRows.addEventListener('input',updateAddDish);
   let editingId=null,formBaseline='';
   const snapshot=()=>JSON.stringify([customer.value.trim(),pickRows().map(row=>[row.children[0].value.trim(),row.children[1].value.trim()])]);
   function resetForm(){
@@ -1336,7 +1424,7 @@ function mountCompanyMemo(doc, iframe){
     editingId=order.id;editorTitle.textContent='주문 수정';submit.textContent='변경 저장';cancelEdit.hidden=false;
     customer.value=order.customer;foodRows.replaceChildren();
     for(const item of order.items)addDishRow(item.food,item.sets);
-    feedback.textContent='';formBaseline=snapshot();customer.focus();
+    feedback.textContent='';updateAddDish();formBaseline=snapshot();customer.focus();
   }
   function confirmDiscard(){
     return snapshot()===formBaseline || window.confirm('저장하지 않은 주문 입력을 버릴까요?');
@@ -1399,24 +1487,27 @@ function mountCompanyMemo(doc, iframe){
     deliveredTab.tabIndex=orderTab==='delivered'?0:-1;
     list.setAttribute('aria-labelledby',orderTab==='active'?activeTab.id:deliveredTab.id);
     const visible=orderTab==='active'?activeOrders:deliveredOrders;
-    total.textContent=`${visible.length}건`;
     if(!visible.length){
       const empty=document.createElement('p');empty.className='cc-order-empty';
       empty.textContent=orderTab==='active'?'진행 중인 주문이 없습니다.':'전달 완료된 주문이 없습니다.';
       list.append(empty);return;
     }
-    for(const order of visible){
+    for(const [position,order] of visible.entries()){
       const card=document.createElement('article');card.className='cc-order-record';card.dataset.stage=order.stage;
       const top=document.createElement('div');top.className='cc-order-record-top';
-      const name=document.createElement('strong');name.textContent=order.customer;
+      const ident=document.createElement('div');ident.className='cc-order-record-identity';
+      const number=document.createElement('span');number.className='cc-order-record-index';number.textContent=`ORDER  ${String(position+1).padStart(2,'0')}`;
+      const name=document.createElement('strong');name.textContent=order.customer;ident.append(number,name);
       const badge=document.createElement('span');badge.className='cc-order-stage';badge.textContent=order.stage==='received'?'접수':order.stage==='cooked'?'조리 완료':'전달 완료';
-      top.append(name,badge);
+      top.append(ident,badge);
       const parts=document.createElement('div');parts.className='cc-order-record-items';
-      for(const item of order.items){
+      for(const [itemIndex,item] of order.items.entries()){
         const line=document.createElement('div');line.className='cc-order-record-item';
-        const food=document.createElement('span');food.textContent=item.food;
+        const caption=document.createElement('div');caption.className='cc-order-item-caption';
+        const index=document.createElement('span');index.className='cc-order-item-no';index.textContent=String(itemIndex+1).padStart(2,'0');
+        const food=document.createElement('span');food.textContent=item.food;caption.append(index,food);
         const qty=document.createElement('b');qty.textContent=`${item.sets}세트`;
-        line.append(food,qty);parts.append(line);
+        line.append(caption,qty);parts.append(line);
       }
       const actions=document.createElement('div');actions.className='cc-order-record-actions';
       const index=COMPANY_DELIVERY_STAGES.indexOf(order.stage);
