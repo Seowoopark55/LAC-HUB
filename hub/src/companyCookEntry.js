@@ -170,6 +170,71 @@ styles.textContent = `
   }
 
 `;
+styles.textContent += `
+  .cc-order-dialog{border:1px solid #495765;background:#10171e;color:#eaf0f4;border-radius:15px;
+    width:min(975px,calc(100vw - 28px));max-width:975px;max-height:min(88dvh,780px);padding:0;
+    box-shadow:0 25px 85px #000c;overflow:hidden;font-family:Inter,Pretendard,system-ui,sans-serif}
+  .cc-order-dialog::backdrop{background:rgba(2,5,8,.8);backdrop-filter:blur(3px)}
+  .cc-order-dialog button,.cc-order-dialog input{font:inherit;box-sizing:border-box}
+  .cc-order-dialog button{cursor:pointer}
+  .cc-order-dialog button:focus-visible,.cc-order-dialog input:focus-visible{outline:2px solid #e8b96d;outline-offset:2px}
+  .cc-order-shell{display:flex;flex-direction:column;max-height:min(88dvh,780px);min-height:0}
+  .cc-order-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 22px;
+    border-bottom:1px solid #35414b;background:linear-gradient(125deg,#192530,#10171e)}
+  .cc-order-title span{display:block;font-size:10px;color:#ddb370;letter-spacing:.13em;font-weight:800;margin-bottom:3px}
+  .cc-order-title h2{font-size:22px;margin:0;color:#f4f0e8;line-height:1.35}
+  .cc-order-title p{font-size:12px;margin:5px 0 0;color:#9eb2c1}
+  .cc-order-close{border:1px solid #45535f;background:#1b2731;color:#dce8f1;font-size:18px;padding:5px 10px;border-radius:8px}
+  .cc-order-content{display:grid;grid-template-columns:minmax(300px,.95fr) minmax(0,1.05fr);gap:0;
+    flex:1;min-height:0;overflow:hidden}
+  .cc-order-editor,.cc-order-manager{min-width:0;min-height:0;padding:21px;overflow-y:auto;overscroll-behavior:contain}
+  .cc-order-editor{border-right:1px solid #303c47;background:#141d25}
+  .cc-order-manager{background:#10171e}
+  .cc-order-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:17px}
+  .cc-order-section-title h3{font-size:16px;color:#e9e9e8;margin:0}
+  .cc-order-section-title>span{font-size:11px;color:#96aab8}
+  .cc-order-form{display:grid;gap:14px}
+  .cc-order-field{display:grid;gap:7px;color:#b8cad6;font-size:12px;font-weight:750}
+  .cc-order-field input,.cc-order-food-row input{min-width:0;width:100%;height:39px;padding:8px 10px;
+    border:1px solid #4a5a66;border-radius:8px;background:#0c141b;color:#edf1f2;font-size:13px}
+  .cc-order-field input::placeholder,.cc-order-food-row input::placeholder{color:#758a99}
+  .cc-order-food-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:-7px}
+  .cc-order-food-head strong{font-size:13px;color:#cbd7dd}
+  .cc-order-add{padding:7px 10px;color:#f1c47c;border:1px solid #765d3c;background:#32291e;border-radius:7px;font-size:12px;font-weight:800}
+  .cc-order-food-rows{display:grid;gap:8px}
+  .cc-order-food-row{display:grid;grid-template-columns:minmax(0,1fr) 72px 27px 30px;gap:6px;align-items:center}
+  .cc-order-food-row input[type=number]{text-align:center;padding:8px 2px}
+  .cc-order-unit{color:#a4b5c1;font-size:11px}
+  .cc-order-remove{border:1px solid #58474b;border-radius:7px;background:#2d2327;color:#e4a7a7;height:34px}
+  .cc-order-form-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .cc-order-save,.cc-order-quiet{padding:9px 15px;border-radius:8px;border:1px solid #c49955;font-size:12px;font-weight:850}
+  .cc-order-save{background:#e7b969;color:#20180c}
+  .cc-order-quiet{background:#24303a;color:#cdd9e0;border-color:#43515d}
+  .cc-order-feedback{min-height:15px;margin:0;font-size:12px;color:#e4b77d}
+  .cc-order-list{display:grid;align-content:start;gap:10px}
+  .cc-order-record{border:1px solid #394852;border-radius:10px;background:#18212a;padding:13px}
+  .cc-order-record[data-stage=delivered]{opacity:.8}
+  .cc-order-record-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+  .cc-order-record-top strong{font-size:14px;color:#faf1e4;overflow-wrap:anywhere}
+  .cc-order-stage{font-size:11px;font-weight:800;color:#ebc486;border:1px solid #80613b;background:#34281b;border-radius:999px;padding:4px 8px;white-space:nowrap}
+  .cc-order-record[data-stage=delivered] .cc-order-stage{background:#17382d;border-color:#39614e;color:#abe4bb}
+  .cc-order-record-items{display:grid;gap:5px;margin-bottom:12px}
+  .cc-order-record-item{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed #34424c;padding-bottom:4px;color:#bdccd6;font-size:12px}
+  .cc-order-record-item b{color:#f1c782;white-space:nowrap}
+  .cc-order-record-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .cc-order-record-actions button{font-size:11px;font-weight:750;padding:7px 9px;border-radius:7px;border:1px solid #465663;background:#23313c;color:#d7e2e8}
+  .cc-order-record-actions .cc-order-next{background:#dcb36b;color:#20190e;border-color:#dcb36b}
+  .cc-order-record-actions .cc-order-danger{background:#292125;border-color:#65464b;color:#e0b4b4}
+  .cc-order-empty{font-size:12px;color:#96a8b6;text-align:center;padding:36px 12px;border:1px dashed #394650;border-radius:9px}
+  @media(max-width:720px){
+    .cc-order-dialog{max-height:92dvh}
+    .cc-order-shell{max-height:92dvh}
+    .cc-order-content{display:flex;flex-direction:column;overflow-y:auto}
+    .cc-order-editor,.cc-order-manager{overflow:visible;padding:14px}
+    .cc-order-editor{border-right:0;border-bottom:1px solid #34414d}
+    .cc-order-bar{padding:12px 14px}.cc-order-title h2{font-size:19px}
+  }
+`;
 document.head.append(styles);
 const studioStyles = document.createElement('link');
 studioStyles.rel='stylesheet';
@@ -208,6 +273,7 @@ let fishResearchOnly = false;
 
 
 function resetView(){
+  clearCompanyOrderDialog();
   frameResizeObserver?.disconnect();
   frameResizeObserver = null;
   frameResizeCleanup?.();
@@ -1134,186 +1200,240 @@ function sizeCompanyFrame(iframe, doc){
   childWindow.document.fonts?.ready?.then(() => measure()).catch(()=>{});
 }
 
-// Company-only customer delivery tracker. Browser-local and intentionally separate
-// from COOK's recipe/workspace storage and from private company/order tables.
-const COMPANY_MEMO_KEY = 'lac-company-cook-private-memo-v1';
+// Company-only customer order ledger. Preserves the legacy v1 storage key and
+// single-dish records; never writes into the COOK workspace or the company DB.
+const COMPANY_MEMO_KEY = 'lac-company-cook-private-memo-v1'; // Retained; never deleted.
 const COMPANY_DELIVERY_KEY = 'lac-company-cook-delivery-ledger-v1';
 const COMPANY_DELIVERY_STAGES = ['received','cooked','delivered'];
+const COMPANY_MAX_DISHES = 16;
+let companyOrderDialog = null;
 function readCompanyDeliveries(storage){
   try {
     const raw=JSON.parse(storage.getItem(COMPANY_DELIVERY_KEY)||'[]');
     if(!Array.isArray(raw))return [];
-    const seen=new Set();
-    return raw.slice(0,120).filter(item=>{
-      if(!item || typeof item!=='object' || typeof item.id!=='string' ||
-        !item.id || item.id.length>100 || seen.has(item.id) ||
-        typeof item.customer!=='string' || !item.customer.trim() || item.customer.length>60 ||
-        typeof item.food!=='string' || !item.food.trim() || item.food.length>90 ||
-        !Number.isSafeInteger(item.sets) || item.sets<1 || item.sets>10000 ||
-        !COMPANY_DELIVERY_STAGES.includes(item.stage))return false;
-      seen.add(item.id);return true;
-    });
-  } catch {return [];}
+    const seen=new Set(), output=[];
+    for(const row of raw.slice(0,120)){
+      if(!row||typeof row!=='object'||typeof row.id!=='string'||!row.id||row.id.length>100||seen.has(row.id)||
+        typeof row.customer!=='string'||!row.customer.trim()||row.customer.length>60||
+        !COMPANY_DELIVERY_STAGES.includes(row.stage))continue;
+      // Upgrade in memory only; legacy data is left untouched until the next save.
+      const input=Array.isArray(row.items)?row.items:[{food:row.food,sets:row.sets}];
+      if(!input.length||input.length>COMPANY_MAX_DISHES)continue;
+      const items=[];
+      for(const part of input){
+        if(!part||typeof part.food!=='string'||!part.food.trim()||part.food.length>90||
+          !Number.isSafeInteger(part.sets)||part.sets<1||part.sets>10000){items.length=0;break;}
+        items.push({food:part.food.trim(),sets:part.sets});
+      }
+      if(items.length!==input.length||new Set(items.map(item=>item.food.toLocaleLowerCase('ko'))).size!==items.length)continue;
+      seen.add(row.id);
+      output.push({id:row.id,customer:row.customer.trim(),items,stage:row.stage});
+    }
+    return output;
+  }catch{return [];}
+}
+function clearCompanyOrderDialog(){
+  if(!companyOrderDialog)return;
+  try{if(companyOrderDialog.open)companyOrderDialog.close();}catch{}
+  companyOrderDialog.remove();companyOrderDialog=null;
 }
 function mountCompanyMemo(doc, iframe){
-  if(frame!==iframe || !iframe.isConnected)return;
+  if(frame!==iframe||!iframe.isConnected)return;
   const sidebar=doc.querySelector('.cook-sidebar');
-  if(!sidebar || sidebar.querySelector('#cc-memo'))return;
-  const section=doc.createElement('section');
-  section.id='cc-memo';section.className='panel cc-memo-panel';
+  if(!sidebar||sidebar.querySelector('#cc-memo'))return;
+  clearCompanyOrderDialog();
+  // Fixed-height summary card replaces the old memo and tall inline order form.
+  const section=doc.createElement('section');section.id='cc-memo';section.className='panel cc-memo-panel';
   const heading=doc.createElement('div');heading.className='panel-title';
-  const h=doc.createElement('h3');h.textContent='주문 · 전달 관리';
-  const hint=doc.createElement('small');hint.textContent='이 브라우저에만 저장';
-  heading.append(h,hint);
-  const form=doc.createElement('form');form.className='cc-delivery-form';form.autocomplete='off';
-  const makeField=(labelText,placeholder,type='text',maxLength=90)=>{
-    const label=doc.createElement('label');label.className='cc-delivery-field';
-    const title=doc.createElement('span');title.textContent=labelText;
-    const input=doc.createElement('input');input.type=type;input.placeholder=placeholder;
-    input.required=true;
-    if(type==='number'){input.min='1';input.max='10000';input.step='1';input.inputMode='numeric';}
-    else input.maxLength=maxLength;
-    label.append(title,input);return {label,input};
-  };
-  const customer=makeField('주문자','주문자 이름','text',60);
-  const food=makeField('요리 종류','예: 계란 샐러드','text',90);
-  const sets=makeField('세트','1','number');sets.input.value='1';
-  food.input.setAttribute('list','cc-delivery-food-options');
-  const suggestions=doc.createElement('datalist');suggestions.id='cc-delivery-food-options';
-  // Autocomplete is a convenience, not a prerequisite for saving an order.
-  const catalogUrl=new URL('/cook-preview/data/catalog.js',window.location.origin).href;
-  import(/* @vite-ignore */ catalogUrl).then(({default:catalog})=>{
-    if(!form.isConnected)return;
-    const seen=new Set();
-    for(const row of catalog.foods||[]){
-      const name=String(row.food_name||'').trim();
-      if(row.is_active!=='TRUE'||!name||seen.has(name))continue;
-      seen.add(name);
-      const option=doc.createElement('option');option.value=name;suggestions.append(option);
-    }
-    for(const item of dataCache.filter(row=>row.kind==='food')){
-      if(!item.name||seen.has(item.name))continue;
-      seen.add(item.name);
-      const option=doc.createElement('option');option.value=item.name;suggestions.append(option);
-    }
-  }).catch(()=>{});
-  const submit=doc.createElement('button');submit.type='submit';
-  submit.className='cc-delivery-submit';submit.textContent='+ 주문 등록';
-  const cancelEdit=doc.createElement('button');cancelEdit.type='button';
-  cancelEdit.className='cc-delivery-cancel';cancelEdit.textContent='수정 취소';cancelEdit.hidden=true;
-  let editingId=null;
-  const resetForm=()=>{
-    editingId=null;customer.input.value='';food.input.value='';sets.input.value='1';
-    submit.textContent='+ 주문 등록';cancelEdit.hidden=true;
-  };
-  cancelEdit.addEventListener('click',resetForm);
-  form.append(customer.label,food.label,sets.label,submit,cancelEdit,suggestions);
-  const summary=doc.createElement('div');summary.className='cc-delivery-overview';
-  const list=doc.createElement('div');list.className='cc-delivery-list';
-  list.setAttribute('aria-label','주문 및 전달 현황');
-  const status=doc.createElement('p');status.className='cc-memo-state';status.setAttribute('role','status');
+  const h=doc.createElement('h3');h.textContent='주문관리';heading.append(h);
+  const summary=doc.createElement('div');summary.className='cc-order-summary';
+  const last=doc.createElement('p');last.className='cc-order-last';
+  const open=doc.createElement('button');open.type='button';open.className='cc-order-open';open.textContent='주문관리 열기  ↗';
+  section.append(heading,summary,last,open);sidebar.append(section);
+
   let storage=null;
-  try {storage=iframe.contentWindow.localStorage;}catch{}
+  try{storage=window.localStorage;}catch{}
   let orders=storage?readCompanyDeliveries(storage):[];
-  const save=(next)=>{
-    if(!storage){status.textContent='브라우저 저장소를 사용할 수 없습니다.';return false;}
-    try {storage.setItem(COMPANY_DELIVERY_KEY,JSON.stringify(next));orders=next;status.textContent='저장됨';return true;}
-    catch {status.textContent='저장 실패 · 브라우저 저장 공간을 확인해 주세요.';return false;}
+  const dialog=document.createElement('dialog');dialog.className='cc-order-dialog';
+  dialog.setAttribute('aria-label','주문관리');
+  companyOrderDialog=dialog;
+  const shell=document.createElement('div');shell.className='cc-order-shell';
+  const bar=document.createElement('header');bar.className='cc-order-bar';
+  const titlebox=document.createElement('div');titlebox.className='cc-order-title';
+  const eyebrow=document.createElement('span');eyebrow.textContent='ORDER DESK';
+  const title=document.createElement('h2');title.textContent='주문관리';
+  const subtitle=document.createElement('p');subtitle.textContent='주문자별로 여러 요리를 묶어서 접수하고 전달을 확인하세요.';
+  titlebox.append(eyebrow,title,subtitle);
+  const close=document.createElement('button');close.type='button';close.className='cc-order-close';close.setAttribute('aria-label','주문 관리 닫기');close.textContent='✕';
+  bar.append(titlebox,close);
+  const content=document.createElement('div');content.className='cc-order-content';
+  const editor=document.createElement('section');editor.className='cc-order-editor';
+  const editorHead=document.createElement('div');editorHead.className='cc-order-section-title';
+  const editorTitle=document.createElement('h3');editorTitle.textContent='새 주문 접수';
+  const formInfo=document.createElement('span');formInfo.textContent='요리별 세트 수 입력';
+  editorHead.append(editorTitle,formInfo);
+  const form=document.createElement('form');form.className='cc-order-form';form.autocomplete='off';
+  const customerLabel=document.createElement('label');customerLabel.className='cc-order-field';
+  const customerTitle=document.createElement('span');customerTitle.textContent='주문자';
+  const customer=document.createElement('input');customer.type='text';customer.maxLength=60;customer.required=true;
+  customer.placeholder='주문자 이름';customerLabel.append(customerTitle,customer);
+  const foodsHeader=document.createElement('div');foodsHeader.className='cc-order-food-head';
+  const foodTitle=document.createElement('strong');foodTitle.textContent='주문 요리';
+  const addDish=document.createElement('button');addDish.type='button';addDish.className='cc-order-add';addDish.textContent='+ 요리 추가';
+  foodsHeader.append(foodTitle,addDish);
+  const foodRows=document.createElement('div');foodRows.className='cc-order-food-rows';
+  const suggestions=document.createElement('datalist');suggestions.id='cc-order-food-suggestions';
+  const actionRow=document.createElement('div');actionRow.className='cc-order-form-actions';
+  const submit=document.createElement('button');submit.type='submit';submit.className='cc-order-save';submit.textContent='주문 등록';
+  const cancelEdit=document.createElement('button');cancelEdit.type='button';cancelEdit.className='cc-order-quiet';cancelEdit.textContent='수정 취소';cancelEdit.hidden=true;
+  actionRow.append(submit,cancelEdit);
+  const feedback=document.createElement('p');feedback.className='cc-order-feedback';feedback.setAttribute('role','status');
+  form.append(customerLabel,foodsHeader,foodRows,suggestions,actionRow,feedback);
+  editor.append(editorHead,form);
+  const manager=document.createElement('section');manager.className='cc-order-manager';
+  const listHead=document.createElement('div');listHead.className='cc-order-section-title';
+  const listTitle=document.createElement('h3');listTitle.textContent='주문 현황';
+  const total=document.createElement('span');total.className='cc-order-list-count';
+  listHead.append(listTitle,total);
+  const list=document.createElement('div');list.className='cc-order-list';list.setAttribute('aria-label','주문 목록');
+  manager.append(listHead,list);content.append(editor,manager);shell.append(bar,content);dialog.append(shell);document.body.append(dialog);
+
+  const pickRows=()=>[...foodRows.querySelectorAll('.cc-order-food-row')];
+  function addDishRow(name='',count=1){
+    if(pickRows().length>=COMPANY_MAX_DISHES){feedback.textContent=`한 주문에는 최대 ${COMPANY_MAX_DISHES}종까지 등록할 수 있습니다.`;return;}
+    const row=document.createElement('div');row.className='cc-order-food-row';
+    const input=document.createElement('input');input.type='text';input.maxLength=90;input.required=true;
+    input.placeholder='요리 이름';input.setAttribute('list','cc-order-food-suggestions');input.setAttribute('aria-label','요리 종류');input.value=name;
+    const countInput=document.createElement('input');countInput.type='number';countInput.min='1';countInput.max='10000';countInput.step='1';countInput.required=true;
+    countInput.inputMode='numeric';countInput.setAttribute('aria-label','세트 수');countInput.value=String(count);
+    const units=document.createElement('span');units.textContent='세트';units.className='cc-order-unit';
+    const remove=document.createElement('button');remove.type='button';remove.className='cc-order-remove';remove.title='요리 제거';remove.setAttribute('aria-label','요리 제거');remove.textContent='×';
+    remove.addEventListener('click',()=>{if(pickRows().length>1)row.remove();updateAddDish();});
+    row.append(input,countInput,units,remove);foodRows.append(row);updateAddDish();return input;
+  }
+  function updateAddDish(){addDish.disabled=pickRows().length>=COMPANY_MAX_DISHES;}
+  let editingId=null,formBaseline='';
+  const snapshot=()=>JSON.stringify([customer.value.trim(),pickRows().map(row=>[row.children[0].value.trim(),row.children[1].value.trim()])]);
+  function resetForm(){
+    editingId=null;editorTitle.textContent='새 주문 접수';submit.textContent='주문 등록';cancelEdit.hidden=true;
+    customer.value='';foodRows.replaceChildren();addDishRow();feedback.textContent='';formBaseline=snapshot();
+  }
+  function populateForm(order){
+    editingId=order.id;editorTitle.textContent='주문 수정';submit.textContent='변경 저장';cancelEdit.hidden=false;
+    customer.value=order.customer;foodRows.replaceChildren();
+    for(const item of order.items)addDishRow(item.food,item.sets);
+    feedback.textContent='';formBaseline=snapshot();customer.focus();
+  }
+  function confirmDiscard(){
+    return snapshot()===formBaseline || window.confirm('저장하지 않은 주문 입력을 버릴까요?');
+  }
+  function closeDialog(){if(!confirmDiscard())return;resetForm();dialog.close();}
+  close.addEventListener('click',closeDialog);
+  dialog.addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
+  dialog.addEventListener('click',event=>{if(event.target===dialog)closeDialog();});
+  cancelEdit.addEventListener('click',()=>{if(confirmDiscard())resetForm();});
+  addDish.addEventListener('click',()=>{addDishRow()?.focus();});
+  open.addEventListener('click',()=>{if(companyOrderDialog!==dialog)return;resetForm();renderList();dialog.showModal();customer.focus();});
+  resetForm();
+  const optionNames=new Set();
+  const addOptions=foods=>{
+    for(const row of foods||[]){
+      const name=String(row.food_name||row.name||'').trim();
+      if(!name||name.length>90||optionNames.has(name))continue;
+      if(row.is_active&&row.is_active!=='TRUE')continue;
+      optionNames.add(name);const option=document.createElement('option');option.value=name;suggestions.append(option);
+    }
   };
-  const command=(label,handler,className='')=>{
-    const b=doc.createElement('button');b.type='button';b.className=className;
-    b.textContent=label;b.addEventListener('click',handler);return b;
+  addOptions(dataCache.filter(row=>row.kind==='food'));
+  const catalogUrl=new URL('/cook-preview/data/catalog.js',window.location.origin).href;
+  import(/* @vite-ignore */catalogUrl).then(({default:catalog})=>{if(companyOrderDialog===dialog)addOptions(catalog.foods);}).catch(()=>{});
+
+  function persist(next){
+    if(!storage){feedback.textContent='저장 공간에 접근할 수 없습니다.';return false;}
+    try{storage.setItem(COMPANY_DELIVERY_KEY,JSON.stringify(next.map(row=>({...row,food:row.items[0].food,sets:row.items[0].sets}))));orders=next;return true;}
+    catch{feedback.textContent='저장하지 못했습니다. 브라우저 저장 공간을 확인하세요.';return false;}
+  }
+  const button=(text,action,kind='')=>{
+    const element=document.createElement('button');element.type='button';element.textContent=text;element.className=kind;
+    element.addEventListener('click',action);return element;
   };
-  const render=()=>{
-    summary.replaceChildren();list.replaceChildren();
-    const inProgress=orders.filter(row=>row.stage!=='delivered').length;
-    const completed=orders.length-inProgress;
-    const total=doc.createElement('span');total.textContent=`진행 중 ${inProgress}`;
-    const done=doc.createElement('span');done.textContent=`전달 완료 ${completed}`;
-    summary.append(total,done);
+  function renderSummary(){
+    summary.replaceChildren();
+    const stats=[['접수',orders.filter(row=>row.stage==='received').length],['조리 완료',orders.filter(row=>row.stage==='cooked').length],['전달 완료',orders.filter(row=>row.stage==='delivered').length]];
+    for(const [label,count] of stats){
+      const cell=doc.createElement('div');cell.className='cc-order-summary-cell';
+      const value=doc.createElement('strong');value.textContent=String(count);
+      const key=doc.createElement('span');key.textContent=label;cell.append(value,key);summary.append(cell);
+    }
+    const latest=orders.find(row=>row.stage!=='delivered');
+    last.textContent=latest?`${latest.customer} · ${latest.items.length}종 · 총 ${latest.items.reduce((sum,item)=>sum+item.sets,0)}세트`:
+      (orders.length?'진행 중인 주문이 없습니다.':'주문을 등록하면 진행 상황이 표시됩니다.');
+  }
+  function renderList(){
+    renderSummary();list.replaceChildren();
+    total.textContent=`${orders.length}건`;
     if(!orders.length){
-      const empty=doc.createElement('p');empty.className='cc-delivery-empty';
-      empty.textContent='주문자와 요리, 세트 수를 입력해 첫 주문을 등록하세요.';
-      list.append(empty);return;
+      const empty=document.createElement('p');empty.className='cc-order-empty';empty.textContent='접수된 주문이 없습니다.';list.append(empty);return;
     }
-    // Keep active orders most accessible; delivered orders remain until manually removed.
-    const ordered=[...orders].sort((a,b)=>Number(a.stage==='delivered')-Number(b.stage==='delivered'));
-    for(const item of ordered){
-      const row=doc.createElement('article');row.className='cc-delivery-row';row.dataset.stage=item.stage;
-      const info=doc.createElement('div');info.className='cc-delivery-info';
-      const top=doc.createElement('div');top.className='cc-delivery-top';
-      const name=doc.createElement('strong');name.textContent=item.customer;
-      const pill=doc.createElement('span');pill.className='cc-delivery-stage';
-      pill.textContent=item.stage==='received'?'접수':item.stage==='cooked'?'조리 완료':'전달 완료';
-      top.append(name,pill);
-      const detail=doc.createElement('div');detail.className='cc-delivery-detail';
-      detail.textContent=`${item.food} · ${item.sets}세트`;
-      info.append(top,detail);
-      const actions=doc.createElement('div');actions.className='cc-delivery-row-actions';
-      const index=COMPANY_DELIVERY_STAGES.indexOf(item.stage);
-      actions.append(command('수정',()=>{
-        editingId=item.id;customer.input.value=item.customer;food.input.value=item.food;
-        sets.input.value=String(item.sets);submit.textContent='변경 저장';cancelEdit.hidden=false;
-        customer.input.focus();
-      },'cc-delivery-edit'));
-      if(index<2){
-        actions.append(command(index===0?'조리 완료':'전달 완료',()=>{
-          const next=orders.map(order=>order.id===item.id?{...order,stage:COMPANY_DELIVERY_STAGES[index+1]}:order);
-          if(save(next))render();
-        },'cc-delivery-next'));
+    for(const order of [...orders].sort((a,b)=>Number(a.stage==='delivered')-Number(b.stage==='delivered'))){
+      const card=document.createElement('article');card.className='cc-order-record';card.dataset.stage=order.stage;
+      const top=document.createElement('div');top.className='cc-order-record-top';
+      const name=document.createElement('strong');name.textContent=order.customer;
+      const badge=document.createElement('span');badge.className='cc-order-stage';badge.textContent=order.stage==='received'?'접수':order.stage==='cooked'?'조리 완료':'전달 완료';
+      top.append(name,badge);
+      const parts=document.createElement('div');parts.className='cc-order-record-items';
+      for(const item of order.items){
+        const line=document.createElement('div');line.className='cc-order-record-item';
+        const food=document.createElement('span');food.textContent=item.food;
+        const qty=document.createElement('b');qty.textContent=`${item.sets}세트`;
+        line.append(food,qty);parts.append(line);
       }
-      if(index>0){
-        actions.append(command('되돌리기',()=>{
-          const next=orders.map(order=>order.id===item.id?{...order,stage:COMPANY_DELIVERY_STAGES[index-1]}:order);
-          if(save(next))render();
-        },'cc-delivery-undo'));
-      }
-      actions.append(command('삭제',()=>{
-        if(!iframe.contentWindow.confirm(`${item.customer}님의 주문 기록을 삭제할까요?`))return;
-        if(save(orders.filter(order=>order.id!==item.id))){
-          if(editingId===item.id)resetForm();
-          render();
-        }
-      },'cc-delivery-delete'));
-      row.append(info,actions);list.append(row);
+      const actions=document.createElement('div');actions.className='cc-order-record-actions';
+      const index=COMPANY_DELIVERY_STAGES.indexOf(order.stage);
+      actions.append(button('수정',()=>{
+        if(!confirmDiscard())return;
+        populateForm(order);
+        editor.scrollIntoView({block:'nearest',behavior:'smooth'});
+      }));
+      if(index<2)actions.append(button(index===0?'조리 완료':'전달 완료',()=>{
+        if(persist(orders.map(row=>row.id===order.id?{...row,stage:COMPANY_DELIVERY_STAGES[index+1]}:row)))renderList();
+      },'cc-order-next'));
+      if(index>0)actions.append(button('되돌리기',()=>{
+        if(persist(orders.map(row=>row.id===order.id?{...row,stage:COMPANY_DELIVERY_STAGES[index-1]}:row)))renderList();
+      }));
+      actions.append(button('삭제',()=>{
+        if(!window.confirm(`${order.customer}님의 주문 기록을 삭제할까요?`))return;
+        if(persist(orders.filter(row=>row.id!==order.id))){if(editingId===order.id)resetForm();renderList();}
+      },'cc-order-danger'));
+      card.append(top,parts,actions);list.append(card);
     }
-  };
+  }
   form.addEventListener('submit',event=>{
     event.preventDefault();
-    const name=customer.input.value.trim(),dish=food.input.value.trim();
-    const raw=sets.input.value.trim();
-    const count=/^\d{1,5}$/.test(raw)?Number(raw):0;
-    if(!name||!dish||name.length>60||dish.length>90||!Number.isSafeInteger(count)||count<1||count>10000){
-      status.textContent='주문자·요리명·세트 수(1~10,000)를 확인해 주세요.';return;
+    const name=customer.value.trim();
+    const items=[];
+    for(const row of pickRows()){
+      const food=row.children[0].value.trim(),raw=row.children[1].value.trim();
+      const sets=/^\d{1,5}$/.test(raw)?Number(raw):0;
+      if(!food||food.length>90||!Number.isSafeInteger(sets)||sets<1||sets>10000){
+        feedback.textContent='요리 이름과 세트 수(1~10,000)를 확인해 주세요.';return;
+      }
+      items.push({food,sets});
     }
-    if(!editingId&&orders.length>=120){status.textContent='주문은 최대 120건까지 보관할 수 있습니다. 완료한 기록을 정리해 주세요.';return;}
+    if(!name||name.length>60||items.length<1||items.length>COMPANY_MAX_DISHES){
+      feedback.textContent='주문자 이름과 요리 종류를 확인해 주세요.';return;
+    }
+    if(new Set(items.map(x=>x.food.toLocaleLowerCase('ko'))).size!==items.length){
+      feedback.textContent='같은 요리는 한 줄에 세트 수를 합쳐 입력해 주세요.';return;
+    }
+    if(!editingId&&orders.length>=120){feedback.textContent='보관 가능한 주문은 최대 120건입니다.';return;}
     const id=typeof crypto?.randomUUID==='function'?crypto.randomUUID():`${Date.now()}-${Math.random()}`;
     const next=editingId
-      ? orders.map(row=>row.id===editingId?{...row,customer:name,food:dish,sets:count}:row)
-      : [{id,customer:name,food:dish,sets:count,stage:'received'},...orders];
-    if(save(next)){
-      resetForm();render();customer.input.focus();
-    }
+      ? orders.map(row=>row.id===editingId?{...row,customer:name,items}:row)
+      : [{id,customer:name,items,stage:'received'},...orders];
+    if(persist(next)){resetForm();renderList();customer.focus();}
   });
-  const memoDetails=doc.createElement('details');memoDetails.className='cc-memo-fold';
-  const memoSummary=doc.createElement('summary');memoSummary.textContent='기존 작업 메모';
-  const label=doc.createElement('label');label.className='sr-only';label.htmlFor='cc-memo-text';label.textContent='기존 작업 메모';
-  const memo=doc.createElement('textarea');memo.id='cc-memo-text';memo.maxLength=3000;
-  memo.placeholder='주문 관련 별도 메모를 입력해 주세요.';
-  memo.setAttribute('aria-label','기존 작업 메모');
-  try {memo.value=storage?.getItem(COMPANY_MEMO_KEY)||'';}
-  catch {status.textContent='기존 메모를 불러오지 못했습니다.';}
-  if(memo.value)memoSummary.textContent='기존 작업 메모 · 내용 있음';
-  memo.addEventListener('input',()=>{
-    if(!storage){status.textContent='현재 브라우저에서는 메모를 저장할 수 없습니다.';return;}
-    try {storage.setItem(COMPANY_MEMO_KEY,memo.value);status.textContent='메모 저장됨';}
-    catch {status.textContent='메모 저장 실패';}
-  });
-  memoDetails.append(memoSummary,label,memo);
-  section.append(heading,form,summary,list,memoDetails,status);
-  sidebar.append(section);render();
-  // The legacy restore button remains in the hidden disclosure but is reachable
-  // from the settings page instead of being removed along with its saved data.
+  renderSummary();
 }
 
 function installCompanyWorkspace(iframe){

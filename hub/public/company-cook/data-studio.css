@@ -340,3 +340,19 @@
 }
 /* In short PWA windows, do not center-tuck actionable controls above the scroll area. */
 .cc-studio--fish .cc-studio-content{justify-content:safe center}
+
+/* Legibility pass: COMPANY COOK data library only; no structural or DB changes. */
+.cc-studio-identity p,.cc-studio-tip,.cc-studio-feedback p{font-size:13px}
+.cc-studio-role,.cc-studio-count,.cc-studio-modified{font-size:12px}
+.cc-studio-search{font-size:13px!important}
+.cc-studio-list-main strong{font-size:14px}
+.cc-studio-list-meta,.cc-studio-label-chip{font-size:11px}
+.cc-studio-metric>span,.cc-studio-section-note{font-size:12px}
+.cc-studio-ingredient-display strong{font-size:13px}
+.cc-studio-ingredient-qty{font-size:14px}
+.cc-studio--fish .cc-fish-list-item strong{font-size:13px}
+.cc-studio--fish .cc-studio-search{font-size:12px!important}
+.cc-fish-recipe-unit>span,.cc-fish-result small{font-size:11px}
+.cc-fish-recipe-unit small,.cc-fish-time,.cc-fish-input{font-size:12px}
+.cc-fish-result strong{font-size:14px}
+@media(max-width:1100px){.cc-studio--fish .cc-fish-list-item strong{font-size:12px}}
