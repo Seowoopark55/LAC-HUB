@@ -782,3 +782,34 @@
 .lac-together--detail .lac-together__voice-guide-visual{color:#a6dfd3}
 @media(max-width:540px){.lac-together--detail .lac-together__person--detail{padding:10px}.lac-together--detail .lac-together__chat-welcome{min-height:120px}}
 @media(prefers-reduced-motion:reduce){.lac-together--detail .lac-together__person--detail{transition:none}}
+
+
+/* 2026-10-14 density/passenger layout polish: fill lower space and defend larger parties. */
+.lac-together--detail .lac-together__raid-deck{grid-template-columns:minmax(340px,.98fr) minmax(0,1.02fr);align-items:stretch;min-height:600px}
+.lac-together--detail .lac-together__post-side{display:flex;flex-direction:column;min-height:100%}
+.lac-together--detail .lac-together__party-panel,.lac-together--detail .lac-together__lounge-panel{display:flex;flex-direction:column}
+.lac-together--detail .lac-together__party-panel{flex:1}
+.lac-together--detail .lac-together__lounge-panel{min-height:100%}
+.lac-together--detail .lac-together__people-shell{display:flex;flex-direction:column;gap:12px;flex:1;min-height:100%}
+.lac-together--detail .lac-together__people--detail{display:grid;grid-template-columns:1fr;gap:10px;flex:1;grid-auto-rows:minmax(86px,1fr);align-content:stretch}
+.lac-together--detail .lac-together__people-shell.is-many .lac-together__people--detail{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(74px,1fr);gap:9px}
+.lac-together--detail .lac-together__people-shell.is-crowded .lac-together__people--detail{grid-auto-rows:minmax(68px,1fr);gap:8px}
+.lac-together--detail .lac-together__person--detail{height:100%;min-height:0}
+.lac-together--detail .lac-together__people-shell.is-many .lac-together__person--detail{padding:12px 12px 11px;gap:10px;border-radius:13px}
+.lac-together--detail .lac-together__people-shell.is-crowded .lac-together__person--detail{padding:10px 11px;gap:9px;border-radius:12px}
+.lac-together--detail .lac-together__people-shell.is-crowded .lac-together__person--detail .lac-together__person-name strong{font-size:12px}
+.lac-together--detail .lac-together__people-shell.is-crowded .lac-together__person--detail .lac-together__person-name small,.lac-together--detail .lac-together__people-shell.is-crowded .lac-together__person--detail .lac-together__person-phone span{font-size:9px}
+.lac-together--detail .lac-together__people-shell.is-crowded .lac-together__person--detail .lac-together__person-phone strong{font-size:10.5px}
+.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-stack{grid-template-columns:1fr;gap:6px;align-items:start}
+.lac-together--detail .lac-together__people-shell.is-many .lac-together__person--detail .lac-together__person-phone{min-width:0;justify-self:start;align-items:flex-start}
+.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-controls{align-self:stretch;justify-content:space-between;width:100%;padding-top:2px}
+.lac-together--detail .lac-together__people-shell.is-crowded .lac-together__person-controls{gap:6px}
+.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-state{padding:0 10px;min-height:30px;font-size:10.5px}
+.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-kick{min-height:30px;padding:0 9px;font-size:10px}
+.lac-together--detail .lac-together__people-footer{margin-top:auto;padding-top:2px}
+.lac-together--detail .lac-together__privacy{margin-top:12px}
+.lac-together--detail .lac-together__post-chat .lac-together__messages{flex:1;min-height:0;max-height:none}
+.lac-together--detail .lac-together__post-chat .lac-together__chat-welcome{min-height:100%;padding:18px 10px}
+.lac-together--detail .lac-together__post-chat .lac-together__chat-form{margin-top:12px}
+@media(max-width:920px){.lac-together--detail .lac-together__raid-deck{grid-template-columns:1fr;min-height:0}.lac-together--detail .lac-together__post-side{border-right:0;border-bottom:1px solid rgba(186,205,225,.14)}.lac-together--detail .lac-together__party-panel{flex:none}.lac-together--detail .lac-together__people--detail,.lac-together--detail .lac-together__people-shell.is-many .lac-together__people--detail{grid-template-columns:1fr;grid-auto-rows:auto}}
+@media(max-width:560px){.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-controls{flex-wrap:wrap}.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-state{flex:1}.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-kick{width:100%}}
