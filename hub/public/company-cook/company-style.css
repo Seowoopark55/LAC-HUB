@@ -1,36 +1,28 @@
-/* 요리계산기 PWA 전용: 기존 HUB COOK은 수정하지 않습니다.
- * 짧은 작업에 억지 패널/높이를 추가하지 않고, 남는 화면을 브랜드 배경으로 유지합니다.
+/* 요리계산기 전용 iframe: 외부 앱 카드와 상단바가 한 장처럼 보이게 합니다.
+ * 기존 HUB COOK 레시피/DB/편집/저장 동작은 수정하지 않습니다.
+ * 높이는 부모의 ResizeObserver가 컨텐츠에 맞춰 계산합니다.
  */
-:root{color-scheme:dark;background:#090d12}
-html,body{min-height:100%;background:#090d12}
+:root{color-scheme:dark;background:#101519}
+html,body{min-height:0!important;background:#101519!important;overflow:hidden}
 .frame{
   display:block!important;
-  min-height:100dvh;
-  padding:18px max(18px,calc((100vw - 1280px)/2)) 44px!important;
-  background:
-    radial-gradient(ellipse 42% 34% at 50% 76%,rgba(195,141,73,.10),transparent 78%),
-    radial-gradient(ellipse 36% 45% at 90% 56%,rgba(61,94,112,.10),transparent 80%),
-    linear-gradient(180deg,rgba(7,10,14,.48) 0%,rgba(7,11,15,.67) 52%,rgba(5,9,13,.90) 100%),
-    url('/brand/lac-one-shell-clean.png') center top / cover no-repeat,
-    #090d12;
-  background-attachment:scroll,scroll,scroll,fixed,scroll;
+  width:100%;min-height:0!important;height:auto!important;
+  margin:0!important;padding:0!important;
+  background:transparent!important;
+  background-attachment:scroll!important;
 }
 .shell{
-  width:100%;max-width:1240px;
-  min-height:0!important;height:auto!important;
-  display:block!important;
-  margin:0 auto;
-  border:1px solid rgba(192,146,79,.28);
-  border-radius:15px;
+  width:100%;max-width:none!important;min-height:0!important;height:auto!important;
+  display:block!important;margin:0!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
   background:#101519;
-  box-shadow:0 20px 65px #0009,0 0 0 1px #ffffff04;
 }
-/* COMPANY COOK은 자체 상단바를 가지며, 레시피 수정은 읽기 전용입니다. */
+/* The single visible header is the app header immediately above the iframe. */
 .header,.cook-toolbar,.preview-tag,.header .back,#cook-return-preview{display:none!important}
-.workspace{display:block!important;min-height:0!important;padding:16px 17px 19px!important}
+.workspace{display:block!important;min-height:0!important;padding:14px 16px 14px!important}
 .cook-workbench{
   grid-template-columns:minmax(285px,34%) minmax(0,1fr)!important;
-  gap:12px!important;align-items:start;
+  align-items:start;gap:12px!important;
 }
 .cook-sidebar,.cook-results{gap:11px!important}
 .cook-disclaimer{padding-top:9px;margin-top:8px!important}
@@ -39,14 +31,11 @@ html,body{min-height:100%;background:#090d12}
   .cook-recipes-row{grid-template-columns:1fr!important}
 }
 @media(max-width:790px){
-  .frame{padding:12px!important;background-attachment:scroll!important}
   .workspace{padding:12px!important}
   .cook-workbench{grid-template-columns:1fr!important}
   .cook-recipes-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
 @media(max-width:620px){
-  .frame{padding:0!important}
-  .shell{border:0!important;border-radius:0!important}
-  .workspace{padding:12px 10px 16px!important}
+  .workspace{padding:11px!important}
   .cook-recipes-row{grid-template-columns:1fr!important}
 }

@@ -17,25 +17,44 @@ theme.content = '#0c1015';
 document.head.append(theme);
 const styles = document.createElement('style');
 styles.textContent = `
-  html,body,#app {margin:0;min-height:100%;background:#0c1015;color:#f3f5f7;font-family:Inter,Pretendard,system-ui,sans-serif}
+  html,body,#app {margin:0;min-height:100%;background:#090d12;color:#f3f5f7;font-family:Inter,Pretendard,system-ui,sans-serif}
   * {box-sizing:border-box}
   #app {min-height:100dvh}
-  .cc-layout {display:flex;flex-direction:column;height:100dvh;min-height:420px}
-  .cc-header {height:58px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
-    border-bottom:1px solid #28313c;background:#12171d;padding:0 20px}
-  .cc-brand {display:flex;gap:10px;align-items:center;min-width:0}
-  .cc-logo {width:32px;height:32px;display:grid;place-items:center;border:1px solid #6c5531;border-radius:9px;
-    background:#2e261a;color:#ffce80;font-size:17px;font-weight:900}
-  .cc-brand strong {display:block;font-size:14px;letter-spacing:.035em}
-  .cc-brand small {display:block;color:#9caab8;font-size:10px;margin-top:2px}
-  .cc-actions {display:flex;align-items:center;gap:8px;flex-shrink:0}
-  .cc-button {min-height:33px;padding:7px 12px;border-radius:9px;border:1px solid #45515d;background:#1d252e;
-    color:#e6edf3;font-size:12px;font-weight:750;cursor:pointer}
+  /* The background belongs to the stage, not an oversized iframe. */
+  .cc-layout {
+    min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+    padding:clamp(12px,3vh,32px) 16px;
+    background:
+      radial-gradient(ellipse 42% 34% at 50% 76%,rgba(195,141,73,.09),transparent 78%),
+      radial-gradient(ellipse 36% 45% at 90% 56%,rgba(61,94,112,.10),transparent 80%),
+      linear-gradient(180deg,rgba(7,10,14,.46) 0%,rgba(7,11,15,.65) 52%,rgba(5,9,13,.88) 100%),
+      url('/brand/lac-one-shell-clean.png') center center / cover fixed no-repeat,
+      #090d12;
+  }
+  /* Auto margins center a small workbench, but collapse when its content grows. */
+  .cc-panel {
+    flex:none;width:min(1240px,100%);margin:auto 0;overflow:hidden;
+    background:#101519;border:1px solid rgba(192,146,79,.28);border-radius:15px;
+    box-shadow:0 20px 65px #0009,0 0 0 1px #ffffff04;
+  }
+  .cc-header {
+    min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:6px 14px;border-bottom:1px solid #2d353b;background:#12181d;
+  }
+  .cc-brand {display:flex;align-items:center;gap:9px;min-width:0}
+  .cc-logo {width:24px;height:24px;flex:none;display:grid;place-items:center;border:1px solid #705732;
+    border-radius:7px;background:#2e261a;color:#ffce80;font-size:12px;font-weight:900}
+  .cc-brand strong {display:block;font-size:13px;line-height:1.1;letter-spacing:.01em}
+  .cc-brand small {display:block;margin-top:2px;color:#8e9eab;font-size:9px}
+  .cc-actions {display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .cc-button {min-height:29px;padding:5px 10px;border-radius:7px;border:1px solid #45515d;
+    background:#1d252e;color:#e6edf3;font-size:11px;font-weight:750;cursor:pointer}
   .cc-button:hover {background:#273340}
   .cc-button:focus-visible {outline:2px solid #f0bf76;outline-offset:3px}
   .cc-button--primary {border-color:#bd904e;background:#d5ad68;color:#151616}
   .cc-button--primary:hover {background:#ecc782}
-  .cc-frame {flex:1 1 auto;min-height:0;width:100%;border:0;display:block;background:#0c1015}
+  /* Resized to the calculator's real height; never an internally scrolling viewport. */
+  .cc-frame {width:100%;height:1px;border:0;display:block;overflow:hidden;background:#101519}
   .cc-status {min-height:100dvh;display:grid;place-items:center;padding:22px}
   .cc-box {width:min(465px,100%);padding:28px;border:1px solid #354152;border-radius:16px;background:#151c24;text-align:center}
   .cc-box h1 {font-size:20px;margin:0 0 10px}
@@ -47,13 +66,18 @@ styles.textContent = `
   .cc-dialog p,.cc-dialog li {font-size:12px;line-height:1.8;color:#c0ccd7}
   .cc-dialog ol {padding-left:21px}
   .cc-dialog button {float:right;margin-top:10px}
-  /* On supporting desktop PWA browsers, use the native title-bar space.
-     Keep controls clear of the system close/minimise buttons. */
+  /* Keep the browser's native controls clear when a desktop PWA uses overlays. */
   @media(display-mode:window-controls-overlay) {
-    .cc-header{min-height:48px;height:max(48px,env(titlebar-area-height,48px));padding-right:150px;-webkit-app-region:drag}
-    .cc-actions,.cc-button{-webkit-app-region:no-drag}
+    .cc-layout {padding-top:max(34px,calc(env(titlebar-area-height,0px) + 8px))}
+    .cc-header,.cc-actions,.cc-button{-webkit-app-region:no-drag}
   }
-  @media(max-width:530px){.cc-header{padding:0 10px;height:54px}.cc-brand small{display:none}.cc-button{padding:7px 9px;font-size:11px}.cc-actions{gap:5px}}
+  @media(max-width:620px){
+    .cc-layout{padding:9px}
+    .cc-panel{border-radius:11px}
+    .cc-header{padding:6px 9px}
+    .cc-brand small{display:none}
+    .cc-button{padding:5px 8px}
+  }
 `;
 document.head.append(styles);
 
@@ -61,8 +85,14 @@ let frame = null;
 let seq = 0;
 let statusInFlight = false;
 let pendingInstallEvent = null;
+let frameResizeObserver = null;
+let frameResizeCleanup = null;
 
 function resetView(){
+  frameResizeObserver?.disconnect();
+  frameResizeObserver = null;
+  frameResizeCleanup?.();
+  frameResizeCleanup = null;
   frame = null;
   app.replaceChildren();
 }
@@ -145,10 +175,47 @@ function createAppShell(){
   refresh.type = 'button';refresh.className = 'cc-button';refresh.textContent = '새로고침';
   refresh.addEventListener('click',() => window.location.reload());
   actions.append(install,refresh);header.append(brand,actions);
-  layout.append(header);app.replaceChildren(layout);
+  const panel = document.createElement('section');
+  panel.className = 'cc-panel';
+  panel.setAttribute('aria-label','요리계산기');
+  panel.append(header);
+  layout.append(panel);app.replaceChildren(layout);
   updateInstallButton();
-  return layout;
+  return panel;
 }
+function sizeCompanyFrame(iframe, doc){
+  if(frame!==iframe || !iframe.isConnected)return;
+  const content = doc.querySelector('.frame');
+  const shell = doc.querySelector('.shell');
+  if(!content || !shell)throw new Error('COOK 화면 높이를 계산할 수 없습니다.');
+  const childWindow = iframe.contentWindow;
+  const measure = () => {
+    if(frame!==iframe || !iframe.isConnected)return;
+    // The company stylesheet removes all viewport-height rules inside the iframe.
+    // Content grows with recipes, checklists and expanded detail sections.
+    const measured = Math.ceil(Math.max(content.scrollHeight, shell.getBoundingClientRect().bottom - content.getBoundingClientRect().top));
+    const nextHeight = `${Math.max(1,measured + 1)}px`;
+    if(iframe.style.height!==nextHeight) iframe.style.height = nextHeight;
+  };
+  if(typeof childWindow.ResizeObserver==='function'){
+    frameResizeObserver = new childWindow.ResizeObserver(measure);
+    frameResizeObserver.observe(content);
+    frameResizeObserver.observe(shell);
+  } else if(typeof childWindow.MutationObserver==='function'){
+    const observer = new childWindow.MutationObserver(measure);
+    observer.observe(shell,{subtree:true,childList:true,characterData:true,attributes:true});
+    frameResizeCleanup = () => observer.disconnect();
+  }
+  childWindow.addEventListener('resize',measure);
+  const priorCleanup = frameResizeCleanup;
+  frameResizeCleanup = () => {
+    childWindow.removeEventListener('resize',measure);
+    priorCleanup?.();
+  };
+  measure();
+  childWindow.document.fonts?.ready?.then(() => measure()).catch(()=>{});
+}
+
 function installCompanyWorkspace(iframe){
   if(frame!==iframe || !iframe.isConnected) return;
   const doc = iframe.contentDocument;
@@ -162,9 +229,15 @@ function installCompanyWorkspace(iframe){
   stylesheet.href = '/company-cook/company-style.css';
   stylesheet.onload = () => {
     if(frame!==iframe) return;
-    // Decorative backdrop is pure CSS: no extra dashboard DOM and no local-data mutation.
-    // Keep the calculator visible even if future optional decoration fails.
-    if(frame===iframe) iframe.style.visibility = 'visible';
+    try {
+      sizeCompanyFrame(iframe, doc);
+    } catch (error) {
+      console.error('요리계산기 화면 크기 조정 실패',error);
+      // A sizing issue must not hide the functional calculator.
+      iframe.style.height = 'max(460px,80dvh)';
+    } finally {
+      if(frame===iframe) iframe.style.visibility = 'visible';
+    }
   };
   stylesheet.onerror = () => {
     if(frame===iframe) showStatus('화면 스타일을 불러오지 못했습니다','잠시 후 다시 접속해 주세요.',true);
