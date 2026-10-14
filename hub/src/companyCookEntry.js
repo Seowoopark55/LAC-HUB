@@ -23,7 +23,7 @@ styles.textContent = `
   /* The background belongs to the stage, not an oversized iframe. */
   .cc-layout {
     min-height:100dvh;display:flex;flex-direction:column;align-items:center;
-    padding:clamp(10px,1.7vh,18px) 16px 28px;
+    padding:0 0 28px;
     background:
       radial-gradient(ellipse 42% 34% at 50% 76%,rgba(195,141,73,.09),transparent 78%),
       radial-gradient(ellipse 36% 45% at 90% 56%,rgba(61,94,112,.10),transparent 80%),
@@ -33,14 +33,51 @@ styles.textContent = `
   }
   /* A full workbench, like the previous cooking app: content fills the stage. */
   .cc-panel {
-    flex:none;width:min(1460px,100%);margin:0 auto;overflow:hidden;
+    flex:none;width:min(1460px,calc(100% - 32px));margin:12px auto 0;overflow:hidden;
     background:#101519;border:1px solid rgba(192,146,79,.28);border-radius:15px;
     box-shadow:0 20px 65px #0009,0 0 0 1px #ffffff04;
   }
   .cc-header {
-    min-height:37px;display:flex;align-items:center;justify-content:flex-end;gap:8px;
-    padding:4px 13px;border-bottom:1px solid #2d353b;background:#12181d;
+    width:100%;min-height:68px;display:grid;grid-template-columns:minmax(160px,1fr) auto minmax(160px,1fr);
+    align-items:center;gap:12px;padding:9px max(18px,calc((100vw - 1460px)/2));
+    background:linear-gradient(180deg,#0f141a,#0b1015);border-bottom:1px solid #27313a;
   }
+  .cc-header-title{display:flex;gap:12px;align-items:center;min-width:0}
+  .cc-header-title b{font-size:19px;color:#f1f3f5;white-space:nowrap}
+  .cc-header-icon{width:35px;height:35px;flex:none;display:grid;place-items:center;background:#dba956;
+    border-radius:9px;color:#181715;font-size:19px;font-weight:900;box-shadow:0 0 22px #b879302a}
+  .cc-nav{display:flex;justify-content:center;align-items:center;gap:5px;border:1px solid #303842;
+    border-radius:999px;padding:4px;background:#14191f;min-width:0}
+  .cc-nav-button{border:0;border-radius:999px;background:transparent;color:#aebbc9;font-size:12px;font-weight:800;
+    padding:9px 15px;cursor:pointer;white-space:nowrap}
+  .cc-nav-button:hover{background:#252e38;color:#fff}
+  .cc-nav-button[aria-current="page"]{background:#e9b452;color:#151617}
+  .cc-nav-button:focus-visible{outline:2px solid #ecc37c;outline-offset:2px}
+  .cc-view{padding:25px;min-height:450px;color:#dce5ed}
+  .cc-view[hidden],.cc-frame[hidden]{display:none!important}
+  .cc-view-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .cc-view h2{font-size:19px;margin:0;color:#fff}
+  .cc-view p{font-size:12px;line-height:1.7;color:#a9b8c6}
+  .cc-view-card{background:#151c23;border:1px solid #34404b;border-radius:13px;padding:19px;margin:0 0 12px}
+  .cc-view-card h3{font-size:15px;margin:0 0 10px;color:#f2eee5}
+  .cc-view-filters{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}
+  .cc-view-filters input,.cc-view-filters select{padding:9px 11px;border-radius:8px;border:1px solid #465362;
+    background:#0d141b;color:#eef2f5;font:inherit;font-size:12px}
+  .cc-view-filters input{flex:1 1 240px}
+  .cc-data-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;max-height:490px;overflow:auto}
+  .cc-data-item{border:1px solid #34404b;border-radius:9px;padding:12px;background:#10161c}
+  .cc-data-item strong{display:block;font-size:12px;color:#f1e5d2}
+  .cc-data-item small{display:block;font-size:10px;color:#92a4b4;margin-top:5px;line-height:1.6}
+  .cc-link{display:inline-flex;align-items:center;text-decoration:none;padding:9px 13px;border-radius:9px;
+    border:1px solid #af8a51;background:#302515;color:#f3d09a;font-size:12px;font-weight:800}
+  .cc-link:hover{background:#48341b}
+  .cc-hero-text{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;color:#f6d89a;text-shadow:0 2px 12px #020304,0 2px 4px #020304;padding:8px 15px}
+  .cc-hero-mark{font-size:31px;line-height:1;margin-bottom:1px;font-weight:900}
+  .cc-hero-text strong{font-size:clamp(25px,3.2vw,43px);font-weight:900;letter-spacing:-.045em;line-height:1.18}
+  .cc-hero-text em{font-style:normal;font-size:11px;font-weight:800;letter-spacing:.5em;margin:3px 0 7px}
+  .cc-hero-text small{font-size:12px;font-weight:750;color:#f6e5ca}
+
   /* Decorative brand-neutral kitchen hero inside the unified calculator card. */
   .cc-hero {
     height:clamp(160px,12.2vw,205px);
@@ -55,7 +92,7 @@ styles.textContent = `
     border-radius:7px;background:#2e261a;color:#ffce80;font-size:12px;font-weight:900}
   .cc-brand strong {display:block;font-size:13px;line-height:1.1;letter-spacing:.01em}
   .cc-brand small {display:block;margin-top:2px;color:#8e9eab;font-size:9px}
-  .cc-actions {display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .cc-actions {display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-shrink:0}
   .cc-button {min-height:29px;padding:5px 10px;border-radius:7px;border:1px solid #45515d;
     background:#1d252e;color:#e6edf3;font-size:11px;font-weight:750;cursor:pointer}
   .cc-button:hover {background:#273340}
@@ -75,23 +112,27 @@ styles.textContent = `
   .cc-dialog p,.cc-dialog li {font-size:12px;line-height:1.8;color:#c0ccd7}
   .cc-dialog ol {padding-left:21px}
   .cc-dialog button {float:right;margin-top:10px}
-  /* Keep the browser's native controls clear when a desktop PWA uses overlays. */
-  @media(display-mode:window-controls-overlay) {
-    .cc-layout {padding-top:max(34px,calc(env(titlebar-area-height,0px) + 8px))}
-    .cc-header,.cc-actions,.cc-button{-webkit-app-region:no-drag}
-  }
+  /* Desktop PWA: controls remain within the page, never under OS buttons. */
   /* Keep the hero when possible; narrow/tiny windows favour actual controls. */
   @media(max-height:680px) and (min-width:751px){
     .cc-hero{height:112px}
   }
   @media(max-height:500px){.cc-hero{display:none}}
-  @media(max-width:720px){.cc-hero{display:none}}
+  @media(max-width:720px){.cc-hero{height:114px}.cc-hero-text strong{font-size:25px}.cc-hero-text small{font-size:10px}}
+  @media(max-width:970px){
+    .cc-header{grid-template-columns:1fr auto;gap:7px;padding:10px 14px}
+    .cc-nav{grid-column:1/-1;grid-row:2;justify-self:center}
+    .cc-actions{grid-column:2;grid-row:1}
+  }
   @media(max-width:620px){
-    .cc-layout{padding:9px}
-    .cc-panel{border-radius:11px}
-    .cc-header{padding:6px 9px}
-    .cc-brand small{display:none}
+    .cc-panel{width:calc(100% - 16px);border-radius:11px}
+    .cc-header{padding:9px}
+    .cc-header-title b{font-size:15px}
+    .cc-header-icon{width:28px;height:28px;font-size:14px}
+    .cc-nav-button{padding:8px 10px;font-size:11px}
     .cc-button{padding:5px 8px}
+    .cc-data-list{grid-template-columns:1fr}
+    .cc-view{padding:13px;min-height:330px}
   }
 
 `;
@@ -103,6 +144,13 @@ let statusInFlight = false;
 let pendingInstallEvent = null;
 let frameResizeObserver = null;
 let frameResizeCleanup = null;
+let currentView = 'home';
+let dataLoaded = false;
+let dataLoadInFlight = false;
+let dataCache = [];
+let dataError = '';
+let viewHost = null;
+let navButtons = null;
 
 function resetView(){
   frameResizeObserver?.disconnect();
@@ -110,6 +158,9 @@ function resetView(){
   frameResizeCleanup?.();
   frameResizeCleanup = null;
   frame = null;
+  viewHost = null;
+  navButtons = null;
+  currentView = 'home';
   app.replaceChildren();
 }
 function showStatus(title, detail, retry = false){
@@ -188,27 +239,146 @@ async function handleInstall(){
 function createAppShell(){
   const layout = document.createElement('main');layout.className = 'cc-layout';
   const header = document.createElement('header');header.className = 'cc-header';
-  const actions = document.createElement('div');actions.className = 'cc-actions';
-  const install = document.createElement('button');
-  install.id = 'cc-install'; install.type = 'button';
-  install.className = 'cc-button cc-button--primary';install.textContent = '앱 설치';
-  install.addEventListener('click',() => void handleInstall());
-  const refresh = document.createElement('button');
-  refresh.type = 'button';refresh.className = 'cc-button';refresh.textContent = '새로고침';
-  refresh.addEventListener('click',() => window.location.reload());
-  actions.append(install,refresh);header.append(actions);
-  const panel = document.createElement('section');
-  panel.className = 'cc-panel';
+  const identity = document.createElement('div');identity.className='cc-header-title';
+  const logo=document.createElement('span');logo.className='cc-header-icon';logo.innerHTML='<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 13a4 4 0 0 1-1-7.87 5 5 0 0 1 9.5-1.1A4 4 0 0 1 19 11v9H5v-7"/><path d="M8 20v-4m8 4v-4"/></svg>';logo.setAttribute('aria-hidden','true');
+  const title=document.createElement('b');title.textContent='요리계산기';identity.append(logo,title);
+  const nav=document.createElement('nav');nav.className='cc-nav';nav.setAttribute('aria-label','요리계산기 메뉴');
+  navButtons=new Map();
+  const addNav=(key,text,handler)=>{
+    const button=document.createElement('button');button.type='button';button.className='cc-nav-button';
+    button.textContent=text;button.addEventListener('click',handler);nav.append(button);navButtons.set(key,button);
+  };
+  addNav('home','⌂  홈',()=>switchAppView('home'));
+  addNav('data','▦  데이터',()=>switchAppView('data'));
+  addNav('edit','✎  레시피 수정 ↗',()=>{
+    // Deliberately use the existing authenticated HUB route for editing.
+    // The public PWA never receives write capabilities, credentials, or role bypasses.
+    window.open('/cook','_blank','noopener,noreferrer');
+  });
+  addNav('settings','⚙  설정',()=>switchAppView('settings'));
+  const actions=document.createElement('div');actions.className='cc-actions';
+  const install=document.createElement('button');install.id='cc-install';install.type='button';
+  install.className='cc-button cc-button--primary';install.textContent='앱 설치';
+  install.addEventListener('click',()=>void handleInstall());
+  const refresh=document.createElement('button');refresh.type='button';refresh.className='cc-button';
+  refresh.textContent='새로고침';refresh.addEventListener('click',()=>window.location.reload());
+  actions.append(install,refresh);header.append(identity,nav,actions);
+  const panel=document.createElement('section');panel.className='cc-panel';
   panel.setAttribute('aria-label','요리계산기');
-  // Image is decorative and never changes recipes, permissions or stored work.
-  const hero = document.createElement('div');
-  hero.className = 'cc-hero';
-  hero.setAttribute('aria-hidden','true');
-  panel.append(header,hero);
-  layout.append(panel);app.replaceChildren(layout);
-  updateInstallButton();
-  return panel;
+  const hero=document.createElement('div');hero.className='cc-hero';
+  hero.setAttribute('aria-label','요리계산기 · LAC COOK');
+  const text=document.createElement('div');text.className='cc-hero-text';
+  const mark=document.createElement('span');mark.className='cc-hero-mark';mark.innerHTML='<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 13a4 4 0 0 1-1-7.87 5 5 0 0 1 9.5-1.1A4 4 0 0 1 19 11v9H5v-7"/><path d="M8 20v-4m8 4v-4"/></svg>';mark.setAttribute('aria-hidden','true');
+  const main=document.createElement('strong');main.textContent='요리계산기';
+  const sub=document.createElement('em');sub.textContent='LAC COOK';
+  const detail=document.createElement('small');detail.textContent='요리 계산부터 재료 준비까지, 더 빠르고 편하게';
+  text.append(mark,main,sub,detail);hero.append(text);
+  viewHost=document.createElement('section');viewHost.className='cc-view';viewHost.hidden=true;
+  viewHost.setAttribute('aria-live','polite');
+  panel.append(hero,viewHost);layout.append(header,panel);app.replaceChildren(layout);
+  switchAppView('home');updateInstallButton();return panel;
 }
+function switchAppView(view){
+  if(!['home','data','settings'].includes(view) || !viewHost)return;
+  currentView=view;
+  for(const [name,button] of navButtons||[]){
+    if(name===view)button.setAttribute('aria-current','page');
+    else button.removeAttribute('aria-current');
+  }
+  const hero=app.querySelector('.cc-hero');
+  if(hero) hero.hidden=view!=='home';
+  viewHost.hidden=view==='home';
+  if(frame){frame.hidden=view!=='home';
+    if(view==='home')requestAnimationFrame(()=>frame?.contentWindow?.dispatchEvent(new Event('resize')));
+  }
+  if(view==='home')return;
+  if(view==='settings')paintAppSettings();
+  if(view==='data'){
+    paintAppData();
+    if(!dataLoaded && !dataLoadInFlight)void loadAppData();
+  }
+}
+function makeText(tag,className,text){
+  const item=document.createElement(tag);if(className)item.className=className;
+  if(text!=null)item.textContent=text;return item;
+}
+function paintAppSettings(){
+  if(!viewHost)return;
+  viewHost.replaceChildren();
+  const heading=makeText('h2','','앱 설정');
+  const intro=makeText('p','','설치·데이터 보관·운영 안내를 확인할 수 있습니다. 요리계산기의 공통 레시피는 이 화면에서 수정할 수 없습니다.');
+  const install=makeText('div','cc-view-card',null);
+  install.append(makeText('h3','','설치형 요리계산기'),makeText('p','',installedMode()?'현재 설치형 앱으로 실행 중입니다.':'브라우저의 설치 기능을 이용하면 바탕화면 아이콘으로 실행할 수 있습니다.'));
+  const installButton=makeText('button','cc-button cc-button--primary','앱 설치 / 설치 안내');
+  installButton.type='button';installButton.addEventListener('click',()=>void handleInstall());
+  install.append(installButton);
+  const storage=makeText('div','cc-view-card',null);
+  storage.append(makeText('h3','','작업 정보 보관'),makeText('p','','작업 목록·즐겨찾기·작업 메모는 현재 브라우저에 저장됩니다. 브라우저 사이트 데이터를 삭제하면 사라질 수 있습니다.'));
+  const management=makeText('div','cc-view-card',null);
+  management.append(makeText('h3','','레시피 수정 및 운영 관리'),makeText('p','','공통 레시피 수정은 기존 LAC HUB 로그인과 편집 권한이 필요합니다. 요리계산기 앱은 공개 읽기 전용입니다.'));
+  const link=makeText('a','cc-link','보호된 HUB COOK 열기 ↗');link.href='/cook';link.target='_blank';link.rel='noopener noreferrer';management.append(link);
+  viewHost.append(heading,intro,install,storage,management);
+}
+async function loadAppData(){
+  dataLoadInFlight=true;dataError='';
+  try {
+    const {default:catalog}=await import('/cook-preview/data/catalog.js');
+    // This tab is informational; public database reads never enable mutations.
+    const [recipes,processes]=await Promise.all([
+      supabase.from('lac_cook_recipe_entries').select('food_id,food_name,set_qty,cook_time,source_kind,version'),
+      supabase.from('lac_cook_process_entries').select('process_material_name,result_qty,process_time,source_kind,version'),
+    ]);
+    if(recipes.error || processes.error)throw new Error('공통 DB 조회 실패');
+    const foodMap=new Map((catalog.foods||[]).filter(x=>x.is_active==='TRUE').map(x=>[x.food_id,{name:x.food_name,time:x.cook_time,qty:x.set_qty,kind:'food'}]));
+    for(const item of recipes.data||[]){
+      if(item.source_kind==='new')foodMap.set(item.food_id,{name:item.food_name,time:item.cook_time,qty:item.set_qty,kind:'food'});
+      else if(foodMap.has(item.food_id))foodMap.set(item.food_id,{...foodMap.get(item.food_id),name:item.food_name||foodMap.get(item.food_id).name,time:item.cook_time??foodMap.get(item.food_id).time,qty:item.set_qty??foodMap.get(item.food_id).qty});
+    }
+    const processMap=new Map((catalog.processes||[]).filter(x=>x.is_active==='TRUE').map(x=>[x.result_material_name||x.material_name||x.process_material_name,{name:x.result_material_name||x.material_name||x.process_material_name,qty:x.result_qty,time:x.process_time,kind:'process'}]));
+    for(const item of processes.data||[]){
+      processMap.set(item.process_material_name,{name:item.process_material_name,time:item.process_time,qty:item.result_qty,kind:'process'});
+    }
+    dataCache=[...foodMap.values(),...processMap.values()].filter(x=>x.name).sort((a,b)=>xname(a).localeCompare(xname(b),'ko'));
+    dataLoaded=true;
+  }catch{
+    dataError='데이터를 불러오지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.';
+  }finally{
+    dataLoadInFlight=false;if(currentView==='data')paintAppData();
+  }
+}
+function xname(item){return String(item.name||'');}
+function paintAppData(){
+  if(!viewHost)return;
+  viewHost.replaceChildren();
+  const head=makeText('div','cc-view-head',null);
+  head.append(makeText('h2','','레시피 데이터'),makeText('span','',dataLoaded?'읽기 전용 · 공통 데이터 연동':'조회 중'));
+  const intro=makeText('p','','요리와 가공 데이터의 이름·제작시간·생산량을 확인할 수 있습니다. 등록·수정은 기존 HUB COOK에서 관리자 권한으로 진행하세요.');
+  const box=makeText('div','cc-view-card',null);
+  if(dataError){box.append(makeText('p','',dataError));const retry=makeText('button','cc-button','다시 확인');retry.addEventListener('click',()=>void loadAppData());box.append(retry);viewHost.append(head,intro,box);return;}
+  if(!dataLoaded){box.append(makeText('p','','데이터를 불러오는 중입니다…'));viewHost.append(head,intro,box);return;}
+  const controls=makeText('div','cc-view-filters',null);
+  const query=makeText('input');query.type='search';query.placeholder='레시피 이름 검색';query.setAttribute('aria-label','레시피 데이터 검색');
+  const kind=makeText('select');kind.setAttribute('aria-label','데이터 종류');
+  for(const [value,label] of [['all','전체'],['food','요리'],['process','가공']]){const option=makeText('option','',label);option.value=value;kind.append(option);}
+  controls.append(query,kind);
+  const count=makeText('p','','');const list=makeText('div','cc-data-list',null);
+  const filter=()=>{
+    const needle=query.value.trim().toLocaleLowerCase('ko');
+    const entries=dataCache.filter(x=>(kind.value==='all'||x.kind===kind.value)&&xname(x).toLocaleLowerCase('ko').includes(needle)).slice(0,160);
+    list.replaceChildren();
+    for(const item of entries){
+      const card=makeText('div','cc-data-item',null);
+      const note=item.kind==='food'?'요리 · ':'가공 · ';
+      card.append(makeText('strong','',item.name),makeText('small','',note+'시간 '+(item.time||'미확인')+' · 생산량 '+(item.qty||'미확인')));
+      list.append(card);
+    }
+    count.textContent=`${entries.length}건 표시 · 전체 ${dataCache.length}건`;
+    if(!entries.length)list.append(makeText('p','','검색 결과가 없습니다.'));
+  };
+  query.addEventListener('input',filter);kind.addEventListener('change',filter);
+  box.append(controls,count,list);viewHost.append(head,intro,box);filter();
+}
+
 function sizeCompanyFrame(iframe, doc){
   if(frame!==iframe || !iframe.isConnected)return;
   const content = doc.querySelector('.frame');
