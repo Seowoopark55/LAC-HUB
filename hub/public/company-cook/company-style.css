@@ -158,3 +158,132 @@ html,body{min-height:0!important;background:#0d1217!important;overflow-x:hidden;
   .cook-sidebar .favorites-panel>.panel-title,
   .cook-sidebar .orders-panel>.panel-title{padding-bottom:9px}
 }
+
+
+/* COMPANY COOK · search action alignment and compact favourite catalog.
+   Only the installed company calculator uses this stylesheet; HUB COOK remains unchanged. */
+.cook-sidebar .search-panel .results .food-row {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;
+  column-gap:6px;
+  min-width:0;
+  padding:7px 5px!important;
+}
+.cook-sidebar .search-panel .results .food-row>.food-text {
+  min-width:0;
+  grid-column:1;
+  grid-row:1;
+}
+.cook-sidebar .search-panel .results .food-row>button.accent {
+  grid-column:2;
+  grid-row:1;
+  order:2;
+  justify-self:end;
+  white-space:nowrap;
+  margin:0!important;
+}
+.cook-sidebar .search-panel .results .food-row>button.favorite-toggle {
+  grid-column:3;
+  grid-row:1;
+  order:3;
+  margin:0!important;
+  padding:0!important;
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+}
+.cook-sidebar .search-panel .results .food-text strong {
+  display:block;
+  font-size:13px;
+  line-height:1.3;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.cook-sidebar .search-panel .results .food-text small {
+  display:block;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font-size:10px;
+}
+/* Two-column, compact item cards; overflow stays inside the favourites panel. */
+.cook-sidebar .favorites-panel .favorites {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-content:start;
+  gap:6px!important;
+  max-height:178px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  scrollbar-gutter:stable;
+  overscroll-behavior:contain;
+  padding:2px 2px 3px 0;
+}
+.cook-sidebar .favorites-panel .favorites>.favorite-row {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:4px!important;
+  align-items:center;
+  min-height:45px!important;
+  padding:6px!important;
+  border:1px solid #34434a!important;
+  background:#111a20;
+  border-radius:8px;
+  margin:0!important;
+}
+.cook-sidebar .favorites-panel .favorites>.favorite-row+.food-row {
+  border-top:1px solid #34434a!important;
+}
+.cook-sidebar .favorites-panel .favorites>.favorite-row>.favorite-name {
+  min-width:0;
+  grid-column:1;
+  grid-row:1;
+  display:block;
+  font-size:12px!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.cook-sidebar .favorites-panel .favorites .food-text strong {
+  display:block;
+  font-size:12px!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.cook-sidebar .favorites-panel .favorites>.favorite-row>button.favorite-add {
+  grid-column:2;
+  grid-row:1;
+  font-size:10px;
+  min-height:28px;
+  padding:5px 6px!important;
+  white-space:nowrap;
+  margin:0!important;
+}
+.cook-sidebar .favorites-panel .favorites>.favorite-row>button.favorite-remove {
+  grid-column:3;
+  grid-row:1;
+  padding:0!important;
+  width:26px;
+  min-width:26px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  margin:0!important;
+}
+.cook-sidebar .favorites-panel .favorites>.empty {
+  grid-column:1/-1;
+}
+@media(max-width:1000px){
+  .cook-sidebar .favorites-panel .favorites {grid-template-columns:1fr!important;max-height:170px!important;}
+}
+@media(max-width:800px){
+  .cook-sidebar .favorites-panel .favorites {grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media(max-width:500px){
+  .cook-sidebar .favorites-panel .favorites {grid-template-columns:1fr!important;}
+}
