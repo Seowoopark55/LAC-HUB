@@ -741,3 +741,44 @@
 .lac-together--detail .lac-together__ready-section{display:none}
 @media(max-width:900px){.lac-together--detail .lac-together__person-stack{grid-template-columns:1fr}.lac-together--detail .lac-together__person--detail .lac-together__person-phone{justify-self:start;align-items:flex-start}.lac-together--detail .lac-together__people-footer{flex-direction:column;align-items:stretch}.lac-together--detail .lac-together__people-ready-toggle{width:100%}}
 @media(max-width:540px){.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-head{align-items:flex-start;flex-wrap:wrap}.lac-together--detail .lac-together__voice-entry-actions{width:100%;margin-left:44px}.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open{flex:1}.lac-together--detail .lac-together__person--detail{align-items:flex-start;flex-wrap:wrap}.lac-together--detail .lac-together__person-controls{width:100%;justify-content:space-between}.lac-together--detail .lac-together__person-state{flex:1}}
+
+
+/* LAC Together casual lounge polish (original SVG + pure CSS; no third-party brand art). */
+.lac-together--detail .lac-together__raid-deck{background:#0b1929}
+.lac-together--detail .lac-together__post-side>.lac-together__post-section:not(.lac-together__voice){background:linear-gradient(180deg,#101f31 0%,#0b192a 100%)}
+.lac-together--detail .lac-together__post-chat{background:linear-gradient(180deg,#0c1d30,#091a2b);min-width:0}
+.lac-together--detail .lac-together__post-side .lac-together__section-heading h3,.lac-together--detail .lac-together__post-chat .lac-together__section-heading h3{font-size:14px;letter-spacing:-.03em}
+.lac-together--detail .lac-together__post-side .lac-together__section-heading small,.lac-together--detail .lac-together__post-chat .lac-together__section-heading small{letter-spacing:.08em;opacity:.6;font-weight:680;font-size:9px}
+.lac-together--detail .lac-together__voice--compact{background:linear-gradient(104deg,#1a3146 0%,#14283c 100%);padding:12px 16px;border-color:rgba(146,181,201,.15)}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-icon{border-radius:12px;border:1px solid rgba(123,205,206,.25);background:#213e52;color:#a5e4db;box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open{border-radius:11px!important;background:linear-gradient(180deg,#f1ca99,#e0b681)!important;border-color:#e1bf91!important;color:#263343!important;min-height:36px;box-shadow:0 3px 10px rgba(1,9,18,.12)}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-open:hover{background:linear-gradient(180deg,#f8d7ab,#efc796)!important}
+.lac-together--detail .lac-together__voice--compact .lac-together__voice-compact-help{border-radius:11px;border-color:rgba(168,190,208,.3);background:#20344a;color:#d7e5ef}
+.lac-together--detail .lac-together__people--detail{gap:8px}
+.lac-together--detail .lac-together__person--detail{border-radius:13px;border:1px solid rgba(162,191,211,.14);padding:11px 12px;background:linear-gradient(130deg,#1d3349,#172b41);transition:background .15s,border-color .15s}
+.lac-together--detail .lac-together__person--detail:hover{border-color:rgba(179,207,226,.3);background:linear-gradient(130deg,#223b53,#193147)}
+.lac-together--detail .lac-together__person--detail.is-ready{border-color:rgba(143,208,186,.26);background:linear-gradient(120deg,#1d3c43,#1b3144)}
+.lac-together--detail .lac-together__person--detail .lac-together__person-num{border-radius:9px;border-color:rgba(185,203,220,.25);background:#273d54;color:#d6e6f4}
+.lac-together--detail .lac-together__person--detail .lac-together__person-avatar{border-color:rgba(238,195,137,.43);color:#f0c78f}
+.lac-together--detail .lac-together__person--detail .lac-together__person-name strong{font-size:13px;letter-spacing:-.025em}
+.lac-together--detail .lac-together__person--detail .lac-together__person-name small{color:#9eb3c3}
+.lac-together--detail .lac-together__person-state{border-radius:10px;background:#263a4e;border-color:rgba(161,187,203,.23);color:#bfd1de}
+.lac-together--detail .lac-together__person-state.is-ready{background:#26524e;border-color:rgba(136,215,183,.38);color:#c4f1dd}
+.lac-together--detail .lac-together__person-state.is-ready .lac-together__person-state-dot{background:rgba(155,230,198,.18)}
+.lac-together--detail .lac-together__people-footer{padding:5px 2px 2px}
+.lac-together--detail .lac-together__people-ready-toggle{border-radius:12px;border-color:rgba(192,211,228,.22);background:linear-gradient(180deg,#30475a,#233849);color:#f2e9db}
+.lac-together--detail .lac-together__people-ready-toggle:hover{background:linear-gradient(180deg,#385268,#294257)}
+.lac-together--detail .lac-together__people-ready-toggle.is-ready{background:linear-gradient(180deg,#f0c997,#dbb27f);border-color:#ebc796;color:#213247}
+.lac-together--detail .lac-together__people-summary strong{color:#efc899}
+.lac-together--detail .lac-together__chat-welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:165px;margin:auto 0;text-align:center;color:#b8d3e1}
+.lac-together--detail .lac-together__chat-welcome-art{width:73px;height:60px;color:#8bbed0;filter:drop-shadow(0 4px 12px rgba(11,51,68,.23));margin-bottom:8px}
+.lac-together--detail .lac-together__chat-welcome strong{font-size:13px;letter-spacing:-.02em;color:#dfecf2;font-weight:800}
+.lac-together--detail .lac-together__chat-welcome span{font-size:11px;color:#8ea9bb}
+.lac-together--detail .lac-together__messages{background:rgba(12,28,44,.62);border-color:rgba(156,187,207,.22);border-radius:14px}
+.lac-together--detail .lac-together__chat-form input{border-radius:11px;border-color:rgba(167,191,213,.24);background:#132b41}
+.lac-together--detail .lac-together__chat-form button{border-radius:11px;background:linear-gradient(180deg,#efc795,#dfb47f);color:#203044}
+.lac-together--detail .lac-together__chat-form button:hover{background:#f6d4a9}
+.lac-together--detail .lac-together__voice-guide-dialog--compact{border-color:rgba(166,205,213,.25);background:linear-gradient(150deg,#20394d,#101f32)}
+.lac-together--detail .lac-together__voice-guide-visual{color:#a6dfd3}
+@media(max-width:540px){.lac-together--detail .lac-together__person--detail{padding:10px}.lac-together--detail .lac-together__chat-welcome{min-height:120px}}
+@media(prefers-reduced-motion:reduce){.lac-together--detail .lac-together__person--detail{transition:none}}
