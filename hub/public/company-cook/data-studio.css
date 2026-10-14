@@ -163,3 +163,47 @@
 }
 
 .cc-studio-success{border:1px solid #675c3d;background:#24271d;color:#e8d4a5;font-size:12px;padding:11px 15px;border-radius:10px;margin-bottom:12px}
+
+/* Fish-processing category: fishing results are not general cooking recipes. */
+.cc-studio-fish-summary{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 11px}
+.cc-studio-fish-summary span{border:1px solid #41515c;background:#151e25;border-radius:8px;color:#bed0da;padding:7px 11px;font-size:11px;font-weight:750}
+.cc-studio-fish-summary .is-research{border-color:#7a613b;background:#302518;color:#eed09b}
+.cc-studio-fish-info{font-size:11px!important;color:#afbecc!important;margin:0 0 13px!important}
+.cc-studio-fish-warning{padding:12px 15px;border:1px solid #735d3f;background:#2b231b;border-radius:9px;color:#f3d59b!important;margin:0 0 13px!important}
+.cc-studio-fish-area,.cc-studio-fish-select{width:100%;min-height:37px;padding:8px 10px;border:1px solid #425361;border-radius:8px;background:#0e151d;color:#e8edf1;font:inherit;font-size:12px}
+.cc-studio-fish-area{margin-top:9px}
+.cc-studio-tag.is-research{border-color:#775c35;background:#322519;color:#efc589}
+.cc-studio-fish-flow{display:grid;grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);align-items:center;gap:12px;margin:7px 0 15px}
+.cc-studio-fish-step{display:flex;flex-direction:column;justify-content:center;min-height:136px;padding:19px 20px;border:1px solid #394c5a;border-radius:12px;background:linear-gradient(150deg,#17232c,#101922)}
+.cc-studio-fish-step.is-output{border-color:#85643c;background:linear-gradient(145deg,#2a241a,#171b1e)}
+.cc-studio-fish-step-label{font-size:11px;font-weight:800;color:#9db2c1}
+.cc-studio-fish-step strong{display:block;font-size:30px;font-weight:900;color:#f4d090;margin:10px 0 4px}
+.cc-studio-fish-step small{font-size:12px;color:#d8e0e7;line-height:1.55}
+.cc-studio-fish-arrow{text-align:center;font-size:22px;color:#d3a35a}
+.cc-studio-fish-stats{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 25px}
+.cc-studio-fish-stats span{background:#1b2831;border:1px solid #35434e;border-radius:7px;padding:8px 10px;font-size:11px;color:#afc2ce}
+.cc-studio-fish-calc{border-top:1px solid #313f48;padding:20px 0 18px}
+.cc-studio-fish-calc>strong{font-size:14px;color:#ebeced}
+.cc-studio-fish-calc-row{display:grid;grid-template-columns:minmax(140px,1fr) minmax(180px,1.4fr);gap:15px;align-items:end;margin:12px 0 0}
+.cc-studio-fish-calc-row label{display:flex;flex-direction:column;gap:7px;font-size:11px;color:#9db1c0}
+.cc-studio-fish-calc-row input{width:100%;min-height:42px;padding:10px;border:1px solid #495c67;background:#0c151c;border-radius:8px;color:#edf2f5}
+.cc-studio-fish-calc-out{display:flex;flex-direction:column;gap:5px;border:1px solid #3d4b55;background:#0d181f;border-radius:8px;padding:10px 14px;min-height:48px}
+.cc-studio-fish-calc-out strong{font-size:14px;color:#f3ca81}
+.cc-studio-fish-calc-out small{font-size:11px;color:#aabdc9}
+.cc-studio-fish-research{padding:24px;border:1px solid #705738;border-radius:12px;background:linear-gradient(130deg,#29231b,#151d23);margin-bottom:20px}
+.cc-studio-fish-research>strong{font-size:18px;color:#f1c991}
+.cc-studio-fish-research p{font-size:12px;color:#c4b7a6;line-height:1.7}
+.cc-studio-fish-failures{padding:13px;border:1px solid #73573a;border-radius:8px;background:#181c1e;color:#e8bf85;font-size:12px;font-weight:800}
+.cc-studio-fish-editor .cc-studio-fish-experiment{margin-top:17px;display:grid;gap:13px}
+.cc-studio-fish-experiment textarea{min-height:90px;width:100%;border:1px solid #485762;border-radius:8px;background:#0c141c;color:#e6eef3;padding:12px;resize:vertical;font:inherit;font-size:12px}
+.cc-studio-fish-muted{opacity:.45}
+.cc-studio-fish-editor .cc-studio-form-grid .cc-studio-field:first-child{grid-column:1/-1}
+@media(max-width:760px){.cc-studio-fish-flow{gap:7px;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr)}
+  .cc-studio-fish-step{min-height:119px;padding:12px}.cc-studio-fish-step strong{font-size:22px}.cc-studio-fish-step small{font-size:10px}}
+@media(max-width:600px){
+ .cc-studio-tabs{gap:3px;padding:3px}
+ .cc-studio-tab{flex:1 1 0;min-width:0;gap:4px;padding:10px 4px;font-size:11px;white-space:nowrap;justify-content:center}
+ .cc-studio-tab-icon{display:none}
+ .cc-studio-tab-count{font-size:9px;padding:2px 4px}
+}
+@media(max-width:480px){.cc-studio-fish-calc-row{grid-template-columns:1fr}}

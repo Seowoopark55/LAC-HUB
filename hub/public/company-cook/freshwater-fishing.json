@@ -1,0 +1,214 @@
+{
+  "revision": "2026-10-14",
+  "source": "사용자 제공 낚시터 - 시트1.csv",
+  "description": "민물낚시 연구 기록. 일반 낚시터 24종은 기존 COOK catalog.fish에서 불러옵니다.",
+  "entries": [
+    {
+      "fish_name": "잉어",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 3,
+      "output_material": "민물 생선살",
+      "output_qty": 1,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "워마우스",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 3,
+      "output_material": "민물 생선살",
+      "output_qty": 2,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "브라운 불헤드",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 3,
+      "output_material": "민물 생선살",
+      "output_qty": 2,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "블랙 크래피",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 5,
+      "output_material": "민물 생선살",
+      "output_qty": 2,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "모기고기",
+      "area": "freshwater",
+      "status": "research",
+      "input_qty": null,
+      "output_material": null,
+      "output_qty": null,
+      "process_time": "10초",
+      "failed_attempts": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        10
+      ],
+      "note": "가공 성공 조합 미확인"
+    },
+    {
+      "fish_name": "화이트 크래피",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 3,
+      "output_material": "민물 생선살",
+      "output_qty": 1,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "그린 선피쉬",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 5,
+      "output_material": "민물 생선살",
+      "output_qty": 1,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "레드이어 선피쉬",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 5,
+      "output_material": "민물 생선살",
+      "output_qty": 1,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "줄무늬 베스",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 3,
+      "output_material": "민물 생선살",
+      "output_qty": 6,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "블루길",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 10,
+      "output_material": "민물 생선살",
+      "output_qty": 1,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "스몰마우스 베스",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 3,
+      "output_material": "민물 생선살",
+      "output_qty": 3,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "라지마우스 베스",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 3,
+      "output_material": "민물 생선살",
+      "output_qty": 3,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "채널 메기",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 1,
+      "output_material": "민물 생선살",
+      "output_qty": 1,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "무지개 송어",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 3,
+      "output_material": "민물 생선살",
+      "output_qty": 3,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "푸른 메기",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 1,
+      "output_material": "민물 생선살",
+      "output_qty": 6,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "초어",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 1,
+      "output_material": "민물 생선살",
+      "output_qty": 3,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "플랫헤드 메기",
+      "area": "freshwater",
+      "status": "confirmed",
+      "input_qty": 1,
+      "output_material": "민물 생선살",
+      "output_qty": 4,
+      "process_time": "10초",
+      "failed_attempts": [],
+      "note": ""
+    },
+    {
+      "fish_name": "점박이 베스",
+      "area": "freshwater",
+      "status": "research",
+      "input_qty": null,
+      "output_material": null,
+      "output_qty": null,
+      "process_time": "10초",
+      "failed_attempts": [
+        1
+      ],
+      "note": "가공 성공 조합 미확인"
+    }
+  ]
+}
