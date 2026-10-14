@@ -1,51 +1,50 @@
-/* 요리계산기 전용 iframe: 외부 앱 카드와 상단바가 한 장처럼 보이게 합니다.
- * 기존 HUB COOK 레시피/DB/편집/저장 동작은 수정하지 않습니다.
- * 높이는 부모의 ResizeObserver가 컨텐츠에 맞춰 계산합니다.
- */
-:root{color-scheme:dark;background:#101519}
-html,body{min-height:0!important;background:#101519!important;overflow:hidden}
-.frame{
-  display:block!important;
-  width:100%;min-height:0!important;height:auto!important;
-  margin:0!important;padding:0!important;
-  background:transparent!important;
-  background-attachment:scroll!important;
-}
-.shell{
-  width:100%;max-width:none!important;min-height:0!important;height:auto!important;
-  display:block!important;margin:0!important;
-  border:0!important;border-radius:0!important;box-shadow:none!important;
-  background:#101519;
-}
-/* The single visible header is the app header immediately above the iframe. */
+/* 요리계산기 PWA 전용 화면. HUB COOK 공통 JS / 레시피 / 저장 로직 미변경.
+ * AXE COOK의 넓은 작업대 구성을 참고하되 현재 HUB COOK DOM을 재사용합니다. */
+:root{color-scheme:dark;background:#0d1217}
+html,body{min-height:0!important;background:#0d1217!important;overflow-x:hidden;overflow-y:hidden}
+.frame{display:block!important;width:100%;min-height:0!important;height:auto!important;margin:0!important;padding:0!important;background:transparent!important}
+.shell{display:block!important;width:100%;max-width:none!important;min-height:0!important;height:auto!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#0d1217}
+/* Parent owns the single visible title bar. No duplicate toolbar or editor controls. */
 .header,.cook-toolbar,.preview-tag,.header .back,#cook-return-preview{display:none!important}
-.workspace{display:block!important;min-height:0!important;padding:17px 19px 18px!important}
-.cook-workbench{
-  grid-template-columns:minmax(285px,35%) minmax(0,1fr)!important;
-  align-items:start;gap:13px!important;
+.workspace{display:block!important;min-height:0!important;padding:14px 16px 18px!important}
+.cook-workbench{display:grid!important;grid-template-columns:minmax(330px,36%) minmax(0,1fr)!important;align-items:stretch!important;gap:14px!important}
+.cook-sidebar,.cook-results{display:flex!important;flex-direction:column;align-items:stretch;min-width:0;gap:12px!important}
+/* Keep search and favourites close, then a work list and locally saved memo. */
+.cook-sidebar .search-panel{order:0}
+.cook-sidebar .favorites-panel{order:1;min-height:90px}
+.cook-sidebar .orders-panel{order:2;min-height:142px}
+.cook-sidebar .cc-memo-panel{order:3;min-height:176px;flex:1 0 176px}
+/* Recipes and shopping list form the right-hand workbench. */
+.cook-results .cook-recipes-row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;align-items:stretch!important;min-height:250px}
+.cook-results .recipe-panel,.cook-results .process-panel{min-height:250px;display:flex;flex-direction:column}
+.cook-results .checklist-panel{min-height:274px;flex:1 1 274px}
+.cook-sidebar .panel,.cook-results .panel{background:linear-gradient(165deg,#151c21,#0e1419 90%);border:1px solid #323c43!important;box-shadow:0 4px 14px #0002}
+.cook-sidebar .panel-title h3,.cook-results .panel-title h3{font-size:14px;letter-spacing:-.015em}
+.cook-sidebar .orders{max-height:200px!important;overflow-y:auto}
+.cook-sidebar .favorites{max-height:138px!important;overflow-y:auto}
+.cook-results .cook-recipes-row .food-recipes,.cook-results .cook-recipes-row .data-lines{max-height:260px!important;overflow-y:auto}
+.cc-memo-panel textarea{display:block;width:100%;min-height:133px;resize:vertical;max-height:340px;padding:12px 13px;border:1px solid #313d49;border-radius:10px;background:#0b1117;color:#e9eff3;font:inherit;font-size:12px;line-height:1.65;outline:none}
+.cc-memo-panel textarea:focus-visible{outline:2px solid #e6ba74;outline-offset:2px}
+.cc-memo-panel textarea::placeholder{color:#7b8d9d}
+.cc-memo-state{margin:8px 0 0;font-size:10px;color:#9bafbc;min-height:13px}
+.cook-disclaimer{padding-top:9px;margin-top:9px!important}
+/* Narrow windows remain usable; panels stack rather than squeeze. */
+@media(max-width:1120px){
+ .cook-workbench{grid-template-columns:minmax(300px,38%) minmax(0,1fr)!important;gap:11px!important}
+ .cook-results .cook-recipes-row{grid-template-columns:1fr!important;min-height:0}
+ .cook-results .recipe-panel,.cook-results .process-panel{min-height:135px}
+ .cook-results .checklist-panel{min-height:235px}
 }
-.cook-sidebar,.cook-results{gap:11px!important}
-.cook-disclaimer{padding-top:9px;margin-top:8px!important}
-@media(max-width:990px){
-  .cook-workbench{grid-template-columns:minmax(275px,35%) minmax(0,1fr)!important}
-  .cook-recipes-row{grid-template-columns:1fr!important}
+@media(max-width:800px){
+ .workspace{padding:12px!important}
+ .cook-workbench{grid-template-columns:1fr!important}
+ .cook-sidebar .cc-memo-panel{flex:none}
+ .cook-results .cook-recipes-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .cook-sidebar .orders-panel{min-height:100px}
 }
-@media(max-width:790px){
-  .workspace{padding:12px!important}
-  .cook-workbench{grid-template-columns:1fr!important}
-  .cook-recipes-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+@media(max-width:600px){
+ .workspace{padding:10px!important}
+ .cook-results .cook-recipes-row{grid-template-columns:1fr!important}
+ .cook-results .checklist-panel{min-height:180px}
+ .cc-memo-panel textarea{min-height:110px}
 }
-@media(max-width:620px){
-  .workspace{padding:11px!important}
-  .cook-recipes-row{grid-template-columns:1fr!important}
-}
-
-
-/* Subtle depth echoes the useful proportions of the earlier COOK tool. */
-.cook-workbench .panel{
-  background:linear-gradient(170deg,#171e23,#11171c 84%);
-  border-color:#37414a;
-  box-shadow:0 4px 16px rgba(0,0,0,.14);
-}
-.cook-workbench .panel-title h3{letter-spacing:-.015em}
-@media(min-width:1050px){.cook-sidebar,.cook-results{gap:12px!important}}

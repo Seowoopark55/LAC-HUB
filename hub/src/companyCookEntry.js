@@ -23,7 +23,7 @@ styles.textContent = `
   /* The background belongs to the stage, not an oversized iframe. */
   .cc-layout {
     min-height:100dvh;display:flex;flex-direction:column;align-items:center;
-    padding:clamp(12px,3vh,32px) 16px;
+    padding:clamp(10px,1.7vh,18px) 16px 28px;
     background:
       radial-gradient(ellipse 42% 34% at 50% 76%,rgba(195,141,73,.09),transparent 78%),
       radial-gradient(ellipse 36% 45% at 90% 56%,rgba(61,94,112,.10),transparent 80%),
@@ -31,9 +31,9 @@ styles.textContent = `
       url('/brand/lac-one-shell-clean.png') center center / cover fixed no-repeat,
       #090d12;
   }
-  /* Auto margins center a small workbench, but collapse when its content grows. */
+  /* A full workbench, like the previous cooking app: content fills the stage. */
   .cc-panel {
-    flex:none;width:min(1320px,100%);margin:auto 0;overflow:hidden;
+    flex:none;width:min(1460px,100%);margin:0 auto;overflow:hidden;
     background:#101519;border:1px solid rgba(192,146,79,.28);border-radius:15px;
     box-shadow:0 20px 65px #0009,0 0 0 1px #ffffff04;
   }
@@ -43,7 +43,7 @@ styles.textContent = `
   }
   /* Decorative brand-neutral kitchen hero inside the unified calculator card. */
   .cc-hero {
-    height:clamp(108px,11.8vw,157px);
+    height:clamp(160px,12.2vw,205px);
     background:
       linear-gradient(90deg,rgba(7,10,13,.05) 0%,transparent 20%,transparent 80%,rgba(7,10,13,.05) 100%),
       url('/company-cook/hero-kitchen.webp') center center / cover no-repeat,
@@ -80,13 +80,12 @@ styles.textContent = `
     .cc-layout {padding-top:max(34px,calc(env(titlebar-area-height,0px) + 8px))}
     .cc-header,.cc-actions,.cc-button{-webkit-app-region:no-drag}
   }
-  /* In compact windows preserve the working area; banner yields to function. */
+  /* Keep the hero when possible; narrow/tiny windows favour actual controls. */
   @media(max-height:680px) and (min-width:751px){
-    .cc-layout{padding-top:10px;padding-bottom:10px}
-    .cc-hero{height:84px}
+    .cc-hero{height:112px}
   }
-  @media(max-height:540px){.cc-hero{display:none}}
-  @media(max-width:750px){.cc-hero{display:none}}
+  @media(max-height:500px){.cc-hero{display:none}}
+  @media(max-width:720px){.cc-hero{display:none}}
   @media(max-width:620px){
     .cc-layout{padding:9px}
     .cc-panel{border-radius:11px}
@@ -249,6 +248,34 @@ function sizeCompanyFrame(iframe, doc){
   childWindow.document.fonts?.ready?.then(() => measure()).catch(()=>{});
 }
 
+const COMPANY_MEMO_KEY = 'lac-company-cook-private-memo-v1';
+function mountCompanyMemo(doc, iframe){
+  if(frame!==iframe || !iframe.isConnected) return;
+  const sidebar=doc.querySelector('.cook-sidebar');
+  if(!sidebar || sidebar.querySelector('#cc-memo'))return;
+  const section=doc.createElement('section');
+  section.id='cc-memo';section.className='panel cc-memo-panel';
+  const heading=doc.createElement('div');heading.className='panel-title';
+  const h=doc.createElement('h3');h.textContent='✎ 작업 메모';
+  const hint=doc.createElement('small');hint.textContent='이 브라우저에만 저장';
+  heading.append(h,hint);
+  const label=doc.createElement('label');label.className='sr-only';label.htmlFor='cc-memo-text';label.textContent='작업 메모';
+  const memo=doc.createElement('textarea');memo.id='cc-memo-text';memo.maxLength=3000;
+  memo.placeholder='주문자, 전달 위치, 제작 순서 등 필요한 내용을 기록해 주세요.';
+  memo.setAttribute('aria-label','작업 메모');
+  const state=doc.createElement('p');state.className='cc-memo-state';state.setAttribute('role','status');
+  try { memo.value=iframe.contentWindow.localStorage.getItem(COMPANY_MEMO_KEY)||''; }
+  catch { state.textContent='현재 브라우저에서 메모 저장을 사용할 수 없습니다.'; }
+  memo.addEventListener('input',()=>{
+    try {
+      iframe.contentWindow.localStorage.setItem(COMPANY_MEMO_KEY,memo.value);
+      state.textContent='이 브라우저에 저장됨';
+    }catch{state.textContent='메모 저장 실패 · 저장 공간을 확인해 주세요.';}
+  });
+  section.append(heading,label,memo,state);
+  sidebar.append(section);
+}
+
 function installCompanyWorkspace(iframe){
   if(frame!==iframe || !iframe.isConnected) return;
   const doc = iframe.contentDocument;
@@ -264,6 +291,8 @@ function installCompanyWorkspace(iframe){
   stylesheet.onload = () => {
     if(frame!==iframe) return;
     try {
+      // Companion UI stays company-only and is never loaded by the HUB COOK route.
+      mountCompanyMemo(doc, iframe);
       sizeCompanyFrame(iframe, doc);
     } catch (error) {
       console.error('요리계산기 화면 크기 조정 실패',error);

@@ -6,10 +6,6 @@
   "start_url": "/company-cook/",
   "scope": "/company-cook/",
   "display": "standalone",
-  "display_override": [
-    "window-controls-overlay",
-    "standalone"
-  ],
   "background_color": "#080b10",
   "theme_color": "#080b10",
   "icons": [
