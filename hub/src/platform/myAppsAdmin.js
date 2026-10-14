@@ -5,7 +5,7 @@ export function mountMyAppsAdmin(root,state,supabase){
   wrap.className='lac-my-apps';
   wrap.style.cssText='margin:20px auto;max-width:1050px;padding:18px;border:1px solid #354050;border-radius:14px;background:#131a22;color:#f5f7fa;';
   const heading=document.createElement('h2');heading.textContent='MY APPS';heading.style.cssText='font-size:19px;margin:0 0 8px';
-  const sub=document.createElement('p');sub.textContent='COMPANY COOK · 로그인 없는 독립 PWA · 운영자 ON/OFF';sub.style.color='#abb8c7';
+  const sub=document.createElement('p');sub.textContent='요리계산기 · 로그인 없는 독립 PWA · 운영자 ON/OFF';sub.style.color='#abb8c7';
   const line=document.createElement('div');line.style.cssText='display:flex;gap:12px;align-items:center;flex-wrap:wrap';
   const status=document.createElement('span');status.textContent='상태 확인 중';
   const button=document.createElement('button');button.type='button';button.textContent='조회 중';button.disabled=true;
@@ -23,7 +23,7 @@ export function mountMyAppsAdmin(root,state,supabase){
   button.addEventListener('click',async()=>{
     if(busy)return;
     const next=!enabled;
-    if(!window.confirm(next?'COMPANY COOK을 모든 사용자에게 공개할까요?':'COMPANY COOK 진입을 차단할까요?'))return;
+    if(!window.confirm(next?'요리계산기를 모든 사용자에게 공개할까요?':'요리계산기 진입을 차단할까요?'))return;
     busy=true;button.disabled=true;status.textContent='변경 중…';
     const {error}=await supabase.rpc('my_apps_set_company_cook_enabled',{p_enabled:next});
     if(!wrap.isConnected)return;

@@ -3,7 +3,7 @@
 import {envReady, supabase} from './lib/supabase.js';
 
 const app = document.getElementById('app');
-document.title = 'COMPANY COOK';
+document.title = '요리계산기';
 document.documentElement.style.colorScheme = 'dark';
 if(!document.querySelector('link[rel=manifest]')) {
   const manifest = document.createElement('link');
@@ -93,11 +93,11 @@ function installedMode(){
 function openInstallGuide(){
   const dialog = document.createElement('dialog');
   dialog.className = 'cc-dialog';
-  dialog.innerHTML = `<h2>COMPANY COOK 앱 설치</h2>
+  dialog.innerHTML = `<h2>요리계산기 설치</h2>
     <p>설치 버튼이 브라우저에서 지원되지 않으면 아래 방법으로 설치할 수 있습니다.</p>
     <ol><li>Chrome: 주소창의 설치 아이콘 또는 메뉴에서 <b>앱 설치</b></li>
     <li>Edge: 메뉴 → <b>앱</b> → <b>이 사이트를 앱으로 설치</b></li>
-    <li>설치 뒤에는 바탕화면 또는 시작 메뉴의 COMPANY COOK 아이콘으로 실행</li></ol>
+    <li>설치 뒤에는 바탕화면 또는 시작 메뉴의 요리계산기 아이콘으로 실행</li></ol>
     <button class="cc-button cc-button--primary" type="button">확인</button>`;
   dialog.querySelector('button').addEventListener('click',() => dialog.close());
   dialog.addEventListener('close',() => dialog.remove(),{once:true});
@@ -134,7 +134,7 @@ function createAppShell(){
   const brand = document.createElement('div');brand.className = 'cc-brand';
   const logo = document.createElement('span');logo.className = 'cc-logo';logo.textContent = 'C';
   const name = document.createElement('div');
-  const strong = document.createElement('strong');strong.textContent = 'COMPANY COOK';
+  const strong = document.createElement('strong');strong.textContent = '요리계산기';
   const small = document.createElement('small');small.textContent = '요리 제작 · 재료 계산';
   name.append(strong,small);brand.append(logo,name);
   const actions = document.createElement('div');actions.className = 'cc-actions';
@@ -160,21 +160,30 @@ function installCompanyWorkspace(iframe){
   if(frame!==iframe || !iframe.isConnected) return;
   const doc = iframe.contentDocument;
   if(!doc?.head || !doc.querySelector('.workspace')) return;
+  doc.title = '요리계산기';
+  const innerTitle = doc.querySelector('.header h1');
+  if(innerTitle) innerTitle.textContent = '요리계산기';
   // Content styles are ONLY injected into the company iframe. Original HUB COOK is unaffected.
   const stylesheet = doc.createElement('link');
   stylesheet.rel = 'stylesheet';
   stylesheet.href = '/company-cook/company-style.css';
   stylesheet.onload = () => {
     if(frame!==iframe) return;
-    makeInsights(doc);
-    iframe.style.visibility = 'visible';
+    // A supplementary dashboard must never hide the working calculator.
+    try {
+      makeInsights(doc, iframe);
+    } catch(error) {
+      console.error('요리계산기 보조 패널 렌더링 실패',error);
+    } finally {
+      if(frame===iframe) iframe.style.visibility = 'visible';
+    }
   };
   stylesheet.onerror = () => {
     if(frame===iframe) showStatus('화면 스타일을 불러오지 못했습니다','잠시 후 다시 접속해 주세요.',true);
   };
   doc.head.append(stylesheet);
 }
-function makeInsights(doc){
+function makeInsights(doc, iframe){
   const work = doc.querySelector('.workspace');
   if(!work || doc.querySelector('#cc-insights')) return;
   const section = doc.createElement('section');
@@ -270,18 +279,18 @@ async function checkStatus(){
   let timeoutId = null;
   try {
     if(!envReady || !supabase){showStatus('연결 설정 확인 필요','앱 서버 연결 설정이 없습니다.');return;}
-    if(!navigator.onLine){showStatus('인터넷 연결 필요','온라인에서만 COMPANY COOK을 이용할 수 있습니다.',true);return;}
+    if(!navigator.onLine){showStatus('인터넷 연결 필요','온라인에서만 요리계산기를 이용할 수 있습니다.',true);return;}
     const {data,error} = await Promise.race([
       supabase.rpc('my_apps_company_cook_status'),
       new Promise((_,reject) => {timeoutId = window.setTimeout(() => reject(new Error('status timeout')),10000);}),
     ]);
     if(current!==seq)return;
     if(error){showStatus('운영 상태 조회 실패','인터넷 연결을 확인한 뒤 다시 시도해 주세요.',true);return;}
-    if(data!==true){showStatus('COMPANY COOK 이용 중지','운영자가 앱 이용을 중지했습니다.');return;}
+    if(data!==true){showStatus('요리계산기 이용 중지','운영자가 앱 이용을 중지했습니다.');return;}
     if(!frame){
       const layout = createAppShell();
       const iframe = document.createElement('iframe');
-      iframe.className = 'cc-frame';iframe.title = '요리 계산기';
+      iframe.className = 'cc-frame';iframe.title = '요리계산기';
       iframe.style.visibility = 'hidden';
       iframe.src = '/cook-preview/index.html?lacCookHostPreview=1';
       iframe.setAttribute('referrerpolicy','same-origin');
@@ -310,7 +319,7 @@ window.addEventListener('message',async event => {
       event.source.postMessage({type:'lac-cook:recipes:response:v1',requestId,...result},event.origin);
   };
   if(action!=='list'){
-    respond({ok:false,error:'COMPANY COOK에서는 레시피를 수정할 수 없습니다.'});return;
+    respond({ok:false,error:'요리계산기 앱에서는 레시피를 수정할 수 없습니다.'});return;
   }
   try {
     const [recipes,processes] = await Promise.all([

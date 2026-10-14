@@ -28,8 +28,8 @@
       // Early route detection avoids flashing the HUB logo before the PWA boots.
       if (/^\/company-cook(?:\/|$)/.test(location.pathname)) {
         document.documentElement.classList.add('lac-company-cook-route');
-        document.title = 'COMPANY COOK';
-        document.querySelector('meta[name="application-name"]')?.setAttribute('content','COMPANY COOK');
+        document.title = '요리계산기';
+        document.querySelector('meta[name="application-name"]')?.setAttribute('content','요리계산기');
         document.querySelector('meta[name="description"]')?.setAttribute('content','온라인 요리 계산기');
         document.querySelector('link[rel="icon"]')?.setAttribute('href','/company-cook/icon-192.png');
         const link=document.createElement('link');

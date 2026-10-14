@@ -1,16 +1,29 @@
 {
   "id": "/company-cook/",
-  "name": "COMPANY COOK",
-  "short_name": "COOK",
-  "description": "LAC 요리 작업 계산기",
+  "name": "요리계산기",
+  "short_name": "요리계산기",
+  "description": "요리 제작 및 재료 계산기",
   "start_url": "/company-cook/",
   "scope": "/company-cook/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
   "background_color": "#080b10",
   "theme_color": "#080b10",
   "icons": [
-    { "src": "/company-cook/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/company-cook/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    {
+      "src": "/company-cook/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/company-cook/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }
