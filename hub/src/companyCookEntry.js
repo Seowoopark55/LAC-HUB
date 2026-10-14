@@ -322,7 +322,9 @@ function paintAppSettings(){
 async function loadAppData(){
   dataLoadInFlight=true;dataError='';
   try {
-    const {default:catalog}=await import('/cook-preview/data/catalog.js');
+    // The catalog is a public asset served as an ES module at runtime, not a Vite source import.
+    const catalogUrl = new URL('/cook-preview/data/catalog.js', window.location.origin).href;
+    const {default:catalog} = await import(/* @vite-ignore */ catalogUrl);
     // This tab is informational; public database reads never enable mutations.
     const [recipes,processes]=await Promise.all([
       supabase.from('lac_cook_recipe_entries').select('food_id,food_name,set_qty,cook_time,source_kind,version'),

@@ -1,0 +1,9 @@
+{
+  "baseline_commit": "fe4caa956451b2a42f301bfd134f1ca915ebcedf",
+  "file": "hub/src/companyCookEntry.js",
+  "restore_git_blob": "1c7f1c98acb82ba5132b5f58143e82efd2d25a30",
+  "restore_sha256": "d8a8a587de7403146dc4ff09184ebf56e3f48ea0f3099e3b6de96330ff24b7b8",
+  "patch_git_blob": "e5fee69b5b805f9859648600ce8613fe18703c44",
+  "patch_sha256": "a9748b3ddefc3c89ac2e1ba63e33b6fd232b0efebcfdc1e8724d2c3701127425",
+  "files_changed": 1
+}
