@@ -68,6 +68,40 @@ styles.textContent = `
   .cc-data-item{border:1px solid #34404b;border-radius:9px;padding:12px;background:#10161c}
   .cc-data-item strong{display:block;font-size:12px;color:#f1e5d2}
   .cc-data-item small{display:block;font-size:10px;color:#92a4b4;margin-top:5px;line-height:1.6}
+
+  /* Public catalog and protected editor live together in Data, not in another app route. */
+  .cc-view-head .cc-manage-status{font-size:11px;color:#b8c8d5}
+  .cc-data-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:9px 0 12px}
+  .cc-data-toolbar .cc-button{min-height:33px}
+  .cc-data-item{display:flex;gap:9px;align-items:center;justify-content:space-between;min-width:0}
+  .cc-data-select{min-width:0;flex:1;text-align:left;cursor:pointer;border:0;padding:0;background:none;color:inherit}
+  .cc-data-select strong{font-size:12px}
+  .cc-data-select:hover strong,.cc-data-select:focus-visible strong{color:#f3c57c}
+  .cc-data-select:focus-visible{outline:2px solid #ecc37c;outline-offset:3px}
+  .cc-data-active{border-color:#b08a52;background:#1c2024}
+  .cc-data-detail{padding:16px;border:1px solid #695335;border-radius:11px;background:#121a20;margin-top:12px}
+  .cc-data-detail h3{margin:0 0 7px;font-size:16px;color:#f1e8d9}
+  .cc-data-detail .cc-data-meta{font-size:11px;color:#a9b9c5;margin:0 0 9px}
+  .cc-data-parts{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 14px}
+  .cc-data-part{border:1px solid #3b4853;border-radius:8px;padding:6px 9px;background:#1a242b;color:#dfe9f0;font-size:11px}
+  .cc-data-toolbar .cc-link{font-size:11px}
+  .cc-editor-dialog{max-width:min(660px,calc(100vw - 28px));width:100%;max-height:min(85dvh,800px);
+    overflow-y:auto;border:1px solid #8b6c40;border-radius:14px;background:#171f27;color:#eef3f8;
+    box-shadow:0 25px 70px #000b;padding:21px}
+  .cc-editor-dialog::backdrop{background:#000c}
+  .cc-editor-dialog h2{font-size:18px;margin:0 0 12px}
+  .cc-editor-dialog label{display:grid;gap:5px;font-size:11px;font-weight:750;color:#c4d0dd}
+  .cc-editor-dialog input,.cc-editor-dialog select{width:100%;min-width:0;background:#0e151b;color:#f4f5f5;border:1px solid #485461;
+    border-radius:8px;padding:9px;font-size:12px}
+  .cc-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+  .cc-editor-grid .cc-span-all{grid-column:1/-1}
+  .cc-editor-ingredients{display:grid;gap:8px;margin:10px 0}
+  .cc-editor-ingredient-row{display:grid;grid-template-columns:minmax(0,1fr) 100px 32px;gap:6px;align-items:center}
+  .cc-editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
+  .cc-editor-status{font-size:11px;min-height:20px;color:#f0be83}
+  .cc-data-help{font-size:11px;color:#9fb1c0;margin:8px 0}
+  @media(max-width:600px){.cc-editor-dialog{padding:13px}.cc-editor-grid{grid-template-columns:1fr}
+    .cc-editor-ingredient-row{grid-template-columns:minmax(0,1fr) 74px 30px}}
   .cc-link{display:inline-flex;align-items:center;text-decoration:none;padding:9px 13px;border-radius:9px;
     border:1px solid #af8a51;background:#302515;color:#f3d09a;font-size:12px;font-weight:800}
   .cc-link:hover{background:#48341b}
@@ -151,6 +185,14 @@ let dataCache = [];
 let dataError = '';
 let viewHost = null;
 let navButtons = null;
+let catalogSnapshot = null;
+let adminStatus = 'unknown';
+let dataSelectedKey = '';
+let dataFilterText = '';
+let dataKind = 'all';
+let dataFetchEpoch = 0;
+let pendingHomeRefresh = false;
+let activeEditorDialog = null;
 
 function resetView(){
   frameResizeObserver?.disconnect();
@@ -158,6 +200,7 @@ function resetView(){
   frameResizeCleanup?.();
   frameResizeCleanup = null;
   frame = null;
+  if(activeEditorDialog){activeEditorDialog.close();activeEditorDialog.remove();activeEditorDialog=null;}
   viewHost = null;
   navButtons = null;
   currentView = 'home';
@@ -249,12 +292,7 @@ function createAppShell(){
     button.textContent=text;button.addEventListener('click',handler);nav.append(button);navButtons.set(key,button);
   };
   addNav('home','⌂  홈',()=>switchAppView('home'));
-  addNav('data','▦  데이터',()=>switchAppView('data'));
-  addNav('edit','✎  레시피 수정 ↗',()=>{
-    // Deliberately use the existing authenticated HUB route for editing.
-    // The public PWA never receives write capabilities, credentials, or role bypasses.
-    window.open('/cook','_blank','noopener,noreferrer');
-  });
+  addNav('data','▦  데이터 · 편집',()=>switchAppView('data'));
   addNav('settings','⚙  설정',()=>switchAppView('settings'));
   const actions=document.createElement('div');actions.className='cc-actions';
   const install=document.createElement('button');install.id='cc-install';install.type='button';
@@ -291,11 +329,20 @@ function switchAppView(view){
   if(frame){frame.hidden=view!=='home';
     if(view==='home')requestAnimationFrame(()=>frame?.contentWindow?.dispatchEvent(new Event('resize')));
   }
-  if(view==='home')return;
+  if(view==='home'){
+    if(pendingHomeRefresh && frame){
+      pendingHomeRefresh=false;
+      frame.style.visibility='hidden';
+      // Local recipe workspace is autosaved by the existing calculator.
+      frame.src='/cook-preview/index.html?lacCookHostPreview=1';
+    }
+    return;
+  }
   if(view==='settings')paintAppSettings();
   if(view==='data'){
     paintAppData();
     if(!dataLoaded && !dataLoadInFlight)void loadAppData();
+    if(adminStatus==='unknown')void checkEditorAdmin().then(()=>{if(currentView==='data')paintAppData();});
   }
 }
 function makeText(tag,className,text){
@@ -305,80 +352,299 @@ function makeText(tag,className,text){
 function paintAppSettings(){
   if(!viewHost)return;
   viewHost.replaceChildren();
-  const heading=makeText('h2','','앱 설정');
-  const intro=makeText('p','','설치·데이터 보관·운영 안내를 확인할 수 있습니다. 요리계산기의 공통 레시피는 이 화면에서 수정할 수 없습니다.');
-  const install=makeText('div','cc-view-card',null);
-  install.append(makeText('h3','','설치형 요리계산기'),makeText('p','',installedMode()?'현재 설치형 앱으로 실행 중입니다.':'브라우저의 설치 기능을 이용하면 바탕화면 아이콘으로 실행할 수 있습니다.'));
-  const installButton=makeText('button','cc-button cc-button--primary','앱 설치 / 설치 안내');
-  installButton.type='button';installButton.addEventListener('click',()=>void handleInstall());
-  install.append(installButton);
-  const storage=makeText('div','cc-view-card',null);
-  storage.append(makeText('h3','','작업 정보 보관'),makeText('p','','작업 목록·즐겨찾기·작업 메모는 현재 브라우저에 저장됩니다. 브라우저 사이트 데이터를 삭제하면 사라질 수 있습니다.'));
-  const management=makeText('div','cc-view-card',null);
-  management.append(makeText('h3','','레시피 수정 및 운영 관리'),makeText('p','','공통 레시피 수정은 기존 LAC HUB 로그인과 편집 권한이 필요합니다. 요리계산기 앱은 공개 읽기 전용입니다.'));
-  const link=makeText('a','cc-link','보호된 HUB COOK 열기 ↗');link.href='/cook';link.target='_blank';link.rel='noopener noreferrer';management.append(link);
-  viewHost.append(heading,intro,install,storage,management);
+  const heading=makeText('h2','','설정');
+  const box=makeText('div','cc-view-card',null);
+  box.append(makeText('h3','','준비 중'),makeText('p','','필요한 설정이 생기면 이곳에 추가할 예정입니다. 지금은 기존 계산기와 저장 방식을 유지합니다.'));
+  viewHost.append(heading,box);
+}
+// Same public catalog snapshot + DB overlays that the HUB calculator uses.
+// All edits are in this parent context. The anonymous iframe never receives credentials.
+const dataKey=item=>`${item.kind}:${item.id}`;
+const normName=value=>String(value||'').trim().toLocaleLowerCase('ko');
+const validPosInt=(value,max)=>String(value).trim()!==''&&Number.isSafeInteger(Number(value))&&Number(value)>0&&Number(value)<=max;
+function baselineProcessRows(name){
+  return (catalogSnapshot?.processes||[]).filter(row=>row.is_active==='TRUE'&&row.process_material_name===name);
+}
+function ingredientNames(){
+  const rows=catalogSnapshot||{};
+  return [...new Set([
+    ...(rows.materials||[]).map(row=>row.material_name),
+    ...(rows.farms||[]).map(row=>row.material_name),
+    ...(rows.fish||[]).map(row=>row.result_material_name),
+    ...(rows.processes||[]).flatMap(row=>[row.input_material_name,row.process_material_name]),
+    ...(rows.recipes||[]).map(row=>row.material_name),
+  ].filter(Boolean))];
+}
+function normalizeData(catalog,recipeRows,processRows){
+  const foods=new Map();
+  for(const row of catalog.foods||[]){
+    if(row.is_active!=='TRUE')continue;
+    const ingredients=(catalog.recipes||[]).filter(part=>part.is_active==='TRUE'&&part.food_name===row.food_name)
+      .map(part=>({name:part.material_name,qty:Number(part.required_qty)})).filter(p=>p.name&&validPosInt(p.qty,999999));
+    foods.set(row.food_id,{id:row.food_id,kind:'food',name:row.food_name,time:row.cook_time,qty:row.set_qty,
+      ingredients,version:null,sourceKind:'baseline'});
+  }
+  for(const row of recipeRows){
+    const previous=foods.get(row.food_id);
+    foods.set(row.food_id,{...previous,id:row.food_id,kind:'food',name:row.food_name,time:row.cook_time,
+      qty:row.set_qty,ingredients:row.ingredients||[],version:row.version,sourceKind:row.source_kind});
+  }
+  const processes=new Map();
+  for(const row of catalog.processes||[]){
+    if(row.is_active!=='TRUE'||!row.process_material_name)continue;
+    const name=row.process_material_name;
+    const record=processes.get(name)||{id:name,kind:'process',name,time:row.process_time,qty:row.result_qty,
+      ingredients:[],version:null,sourceKind:'baseline'};
+    if(row.input_material_name&&validPosInt(row.required_qty,999999))
+      record.ingredients.push({name:row.input_material_name,qty:Number(row.required_qty)});
+    processes.set(name,record);
+  }
+  for(const row of processRows){
+    const previous=processes.get(row.process_material_name);
+    processes.set(row.process_material_name,{...previous,id:row.process_material_name,kind:'process',name:row.process_material_name,
+      time:row.process_time||previous?.time||'',qty:row.result_qty,
+      ingredients:row.ingredients===null?(previous?.ingredients||[]):row.ingredients||[],
+      dbIngredients:row.ingredients,version:row.version,sourceKind:row.source_kind});
+  }
+  return [...foods.values(),...processes.values()].sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+}
+async function checkEditorAdmin(){
+  adminStatus='checking';
+  try{
+    const {data:user,error:userError}=await supabase.auth.getUser();
+    if(userError||!user?.user){adminStatus='guest';return false;}
+    const {data,error}=await supabase.rpc('platform_is_admin');
+    adminStatus=(!error&&data===true)?'admin':'denied';
+  }catch{adminStatus='denied';}
+  return adminStatus==='admin';
+}
+async function refreshAdminButton(button){
+  if(button)button.disabled=true;
+  await checkEditorAdmin();
+  if(currentView==='data')paintAppData();
 }
 async function loadAppData(){
+  if(dataLoadInFlight)return;
+  const epoch=++dataFetchEpoch;
   dataLoadInFlight=true;dataError='';
-  try {
-    // The catalog is a public asset served as an ES module at runtime, not a Vite source import.
-    const catalogUrl = new URL('/cook-preview/data/catalog.js', window.location.origin).href;
+  try{
+    const catalogUrl = new URL('/cook-preview/data/catalog.js',window.location.origin).href;
     const {default:catalog} = await import(/* @vite-ignore */ catalogUrl);
-    // This tab is informational; public database reads never enable mutations.
     const [recipes,processes]=await Promise.all([
-      supabase.from('lac_cook_recipe_entries').select('food_id,food_name,set_qty,cook_time,source_kind,version'),
-      supabase.from('lac_cook_process_entries').select('process_material_name,result_qty,process_time,source_kind,version'),
+      supabase.from('lac_cook_recipe_entries').select('food_id,food_name,set_qty,cook_time,ingredients,source_kind,version').order('food_name'),
+      supabase.from('lac_cook_process_entries').select('process_material_name,result_qty,process_time,ingredients,source_kind,version').order('process_material_name'),
     ]);
-    if(recipes.error || processes.error)throw new Error('공통 DB 조회 실패');
-    const foodMap=new Map((catalog.foods||[]).filter(x=>x.is_active==='TRUE').map(x=>[x.food_id,{name:x.food_name,time:x.cook_time,qty:x.set_qty,kind:'food'}]));
-    for(const item of recipes.data||[]){
-      if(item.source_kind==='new')foodMap.set(item.food_id,{name:item.food_name,time:item.cook_time,qty:item.set_qty,kind:'food'});
-      else if(foodMap.has(item.food_id))foodMap.set(item.food_id,{...foodMap.get(item.food_id),name:item.food_name||foodMap.get(item.food_id).name,time:item.cook_time??foodMap.get(item.food_id).time,qty:item.set_qty??foodMap.get(item.food_id).qty});
-    }
-    const processMap=new Map((catalog.processes||[]).filter(x=>x.is_active==='TRUE').map(x=>[x.result_material_name||x.material_name||x.process_material_name,{name:x.result_material_name||x.material_name||x.process_material_name,qty:x.result_qty,time:x.process_time,kind:'process'}]));
-    for(const item of processes.data||[]){
-      processMap.set(item.process_material_name,{name:item.process_material_name,time:item.process_time,qty:item.result_qty,kind:'process'});
-    }
-    dataCache=[...foodMap.values(),...processMap.values()].filter(x=>x.name).sort((a,b)=>xname(a).localeCompare(xname(b),'ko'));
+    if(recipes.error||processes.error)throw Error('공통 DB 조회 실패');
+    if(epoch!==dataFetchEpoch)return;
+    catalogSnapshot=catalog;
+    dataCache=normalizeData(catalog,recipes.data||[],processes.data||[]);
     dataLoaded=true;
-  }catch{
+  }catch(error){
+    if(epoch!==dataFetchEpoch)return;
     dataError='데이터를 불러오지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.';
+    console.warn('COOK 데이터 로딩:',error?.message||error);
   }finally{
-    dataLoadInFlight=false;if(currentView==='data')paintAppData();
+    if(epoch===dataFetchEpoch){dataLoadInFlight=false;if(currentView==='data')paintAppData();}
   }
 }
-function xname(item){return String(item.name||'');}
 function paintAppData(){
-  if(!viewHost)return;
+  if(!viewHost||currentView!=='data')return;
   viewHost.replaceChildren();
   const head=makeText('div','cc-view-head',null);
-  head.append(makeText('h2','','레시피 데이터'),makeText('span','',dataLoaded?'읽기 전용 · 공통 데이터 연동':'조회 중'));
-  const intro=makeText('p','','요리와 가공 데이터의 이름·제작시간·생산량을 확인할 수 있습니다. 등록·수정은 기존 HUB COOK에서 관리자 권한으로 진행하세요.');
+  const status=makeText('span','cc-manage-status',adminStatus==='admin'?'관리자 편집 가능':
+    adminStatus==='checking'?'관리자 확인 중':adminStatus==='denied'?'일반 사용자 · 읽기 전용':'공통 데이터 · 읽기 전용');
+  head.append(makeText('h2','','요리·가공 데이터 관리'),status);
+  const intro=makeText('p','','요리와 가공 데이터의 재료, 생산 수량, 제작 시간을 확인할 수 있습니다. 관리자만 이 화면에서 등록·수정할 수 있습니다.');
   const box=makeText('div','cc-view-card',null);
-  if(dataError){box.append(makeText('p','',dataError));const retry=makeText('button','cc-button','다시 확인');retry.addEventListener('click',()=>void loadAppData());box.append(retry);viewHost.append(head,intro,box);return;}
+  const tools=makeText('div','cc-data-toolbar',null);
+  const authBtn=makeText('button','cc-button','관리자 권한 확인');authBtn.type='button';
+  authBtn.addEventListener('click',()=>void refreshAdminButton(authBtn));
+  tools.append(authBtn);
+  const refreshData=makeText('button','cc-button','데이터 새로고침');refreshData.type='button';
+  refreshData.addEventListener('click',()=>{pendingHomeRefresh=true;void loadAppData();});
+  tools.append(refreshData);
+  if(adminStatus!=='admin'){
+    const login=makeText('a','cc-link','HUB에서 관리자 로그인 ↗');
+    login.href='/';login.target='_blank';login.rel='noopener noreferrer';tools.append(login);
+    tools.append(makeText('span','cc-data-help','로그인은 HUB에서 하고, 이 화면으로 돌아와 권한 확인을 누르세요.'));
+  }else{
+    for(const [kind,label] of [['food','+ 요리 등록'],['process','+ 가공 등록']]){
+      const add=makeText('button','cc-button cc-button--primary',label);add.type='button';
+      add.addEventListener('click',()=>openDataEditor(kind,null));tools.append(add);
+    }
+  }
+  box.append(tools);
+  if(dataError){
+    box.append(makeText('p','',dataError));const retry=makeText('button','cc-button','다시 확인');
+    retry.addEventListener('click',()=>void loadAppData());box.append(retry);
+    viewHost.append(head,intro,box);return;
+  }
   if(!dataLoaded){box.append(makeText('p','','데이터를 불러오는 중입니다…'));viewHost.append(head,intro,box);return;}
   const controls=makeText('div','cc-view-filters',null);
-  const query=makeText('input');query.type='search';query.placeholder='레시피 이름 검색';query.setAttribute('aria-label','레시피 데이터 검색');
+  const query=makeText('input');query.type='search';query.value=dataFilterText;
+  query.placeholder='요리·가공 이름 검색';query.setAttribute('aria-label','레시피 데이터 검색');
   const kind=makeText('select');kind.setAttribute('aria-label','데이터 종류');
-  for(const [value,label] of [['all','전체'],['food','요리'],['process','가공']]){const option=makeText('option','',label);option.value=value;kind.append(option);}
-  controls.append(query,kind);
+  for(const [value,label] of [['all','전체'],['food','요리'],['process','가공']]){
+    const option=makeText('option','',label);option.value=value;kind.append(option);
+  }
+  kind.value=dataKind;controls.append(query,kind);
   const count=makeText('p','','');const list=makeText('div','cc-data-list',null);
+  const detail=makeText('section','cc-data-detail',null);detail.hidden=true;
+  const paintDetail=()=>{
+    const item=dataCache.find(row=>dataKey(row)===dataSelectedKey);
+    detail.replaceChildren();detail.hidden=!item;
+    if(!item)return;
+    const meta=item.kind==='food'?'요리 레시피':'가공 레시피';
+    detail.append(makeText('h3','',item.name));
+    detail.append(makeText('p','cc-data-meta',`${meta} · 시간 ${item.time??'미확인'}${item.kind==='food'?'초':''} · 생산량 ${item.qty??'미확인'} · ${item.sourceKind==='baseline'?'기본 데이터':'DB 반영 데이터'}`));
+    detail.append(makeText('h3','','필요 재료'));
+    const parts=makeText('div','cc-data-parts',null);
+    for(const p of item.ingredients||[]){parts.append(makeText('span','cc-data-part',`${p.name} × ${p.qty}`));}
+    if(!parts.childElementCount)parts.append(makeText('p','','등록된 투입 재료가 없습니다.'));
+    detail.append(parts);
+    if(adminStatus==='admin'){
+      const edit=makeText('button','cc-button cc-button--primary','레시피 수정');edit.type='button';
+      edit.addEventListener('click',()=>openDataEditor(item.kind,item));detail.append(edit);
+    }
+  };
   const filter=()=>{
-    const needle=query.value.trim().toLocaleLowerCase('ko');
-    const entries=dataCache.filter(x=>(kind.value==='all'||x.kind===kind.value)&&xname(x).toLocaleLowerCase('ko').includes(needle)).slice(0,160);
+    dataFilterText=query.value;dataKind=kind.value;
+    const needle=normName(dataFilterText);
+    const found=dataCache.filter(row=>(dataKind==='all'||row.kind===dataKind)&&normName(row.name).includes(needle));
+    const entries=found.slice(0,160);
     list.replaceChildren();
     for(const item of entries){
       const card=makeText('div','cc-data-item',null);
-      const note=item.kind==='food'?'요리 · ':'가공 · ';
-      card.append(makeText('strong','',item.name),makeText('small','',note+'시간 '+(item.time||'미확인')+' · 생산량 '+(item.qty||'미확인')));
-      list.append(card);
+      if(dataSelectedKey===dataKey(item))card.classList.add('cc-data-active');
+      const select=makeText('button','cc-data-select');select.type='button';
+      select.append(makeText('strong','',item.name),makeText('small','',`${item.kind==='food'?'요리':'가공'} · ${item.time||'시간 미확인'} · 생산량 ${item.qty||'미확인'} · 재료 ${(item.ingredients||[]).length}종`));
+      select.setAttribute('aria-label',`${item.name} 상세 보기`);
+      select.addEventListener('click',()=>{dataSelectedKey=dataKey(item);filter();});
+      card.append(select);list.append(card);
     }
-    count.textContent=`${entries.length}건 표시 · 전체 ${dataCache.length}건`;
+    count.textContent=`${entries.length}건 표시 · 전체 ${found.length}건 / 공통 ${dataCache.length}건`;
     if(!entries.length)list.append(makeText('p','','검색 결과가 없습니다.'));
+    paintDetail();
   };
   query.addEventListener('input',filter);kind.addEventListener('change',filter);
-  box.append(controls,count,list);viewHost.append(head,intro,box);filter();
+  box.append(controls,count,detail,list);viewHost.append(head,intro,box);filter();
+}
+function openDataEditor(kind,item){
+  if(adminStatus!=='admin')return;
+  const edit=Boolean(item);
+  const dialog=makeText('dialog','cc-editor-dialog',null);
+  const h2=makeText('h2','',`${kind==='food'?'요리':'가공'} ${edit?'수정':'등록'}`);
+  const form=makeText('form','',null);form.noValidate=true;
+  const grid=makeText('div','cc-editor-grid',null);
+  const field=(labelName,type,value,max=null,extra='')=>{
+    const lab=makeText('label','',labelName);
+    const inp=makeText('input');inp.type=type;inp.value=value==null?'':String(value);
+    if(max)inp.maxLength=max;if(type==='number'){inp.min='0';inp.step='any';}
+    if(extra)inp.placeholder=extra;lab.append(inp);return {lab,inp};
+  };
+  const name=field(kind==='food'?'요리 이름':'가공 결과물 이름','text',item?.name||'',90);
+  if(edit&&kind==='process')name.inp.readOnly=true;
+  const qty=field(kind==='food'?'1세트 생산량':'1회 가공 생산량','number',item?.qty??'');
+  const time=field(kind==='food'?'조리 시간 (초)':'가공 시간 (선택)','text',item?.time??'',40);
+  grid.append(name.lab,qty.lab,time.lab);
+  const preserveExisting=kind==='process'&&edit&&item.sourceKind!=='new';
+  const yieldWrap=makeText('label','cc-data-help',null);
+  const yieldCheck=makeText('input');yieldCheck.type='checkbox';yieldCheck.checked=preserveExisting;
+  if(preserveExisting)yieldWrap.append(yieldCheck,makeText('span','',' 기존 투입 재료는 유지하고 생산량·시간만 변경'));
+  const materialHeading=makeText('p','cc-data-help','투입 재료 · 1회 기준 수량 (최대 24종)');
+  const parts=makeText('div','cc-editor-ingredients',null);
+  const datalist=makeText('datalist');datalist.id='cc-edit-material-opts';
+  const existingMaterials=ingredientNames();
+  for(const text of existingMaterials){const option=makeText('option');option.value=text;datalist.append(option);}
+  const addPart=(initialName='',initialQty='')=>{
+    if(parts.childElementCount>=24)return;
+    const row=makeText('div','cc-editor-ingredient-row',null);
+    const pname=makeText('input');pname.type='text';pname.placeholder='재료 이름';pname.maxLength=90;
+    pname.value=initialName;pname.setAttribute('list',datalist.id);pname.setAttribute('aria-label','재료명');
+    const pqty=makeText('input');pqty.type='number';pqty.min='1';pqty.max='999999';pqty.step='1';
+    pqty.placeholder='수량';pqty.value=initialQty;pqty.setAttribute('aria-label','재료 수량');
+    const del=makeText('button','cc-button','×');del.type='button';del.setAttribute('aria-label','재료 제거');
+    del.addEventListener('click',()=>{if(parts.childElementCount>1)row.remove();});
+    row.append(pname,pqty,del);parts.append(row);
+  };
+  for(const p of item?.ingredients||[])addPart(p.name,p.qty);
+  if(!parts.childElementCount)addPart();
+  const add=makeText('button','cc-button','+ 재료 추가');add.type='button';
+  add.addEventListener('click',()=>addPart());
+  const syncYieldMode=()=>{
+    const preserving=preserveExisting&&yieldCheck.checked;
+    parts.hidden=preserving;add.hidden=preserving;materialHeading.hidden=preserving;
+  };
+  if(preserveExisting)yieldCheck.addEventListener('change',syncYieldMode);
+  syncYieldMode();
+  const status=makeText('p','cc-editor-status','');status.setAttribute('role','status');
+  const actions=makeText('div','cc-editor-actions',null);
+  const cancel=makeText('button','cc-button','취소');cancel.type='button';cancel.addEventListener('click',()=>dialog.close());
+  const save=makeText('button','cc-button cc-button--primary',edit?'변경사항 저장':'레시피 등록');save.type='submit';
+  actions.append(cancel,save);
+  form.append(grid,...(preserveExisting?[yieldWrap]:[]),materialHeading,parts,datalist,add,status,actions);
+  dialog.append(h2,makeText('p','cc-data-help','저장된 수정 내용은 공통 DB에 반영되며 HUB COOK에도 적용됩니다.'),form);
+  activeEditorDialog=dialog;
+  dialog.addEventListener('close',()=>{dialog.remove();if(activeEditorDialog===dialog)activeEditorDialog=null;},{once:true});
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();save.disabled=true;status.textContent='저장 정보를 확인하고 있습니다…';
+    try{
+      if(!await checkEditorAdmin())throw Error('플랫폼 관리자 로그인이 확인되지 않았습니다.');
+      const statusReply=await supabase.rpc('my_apps_company_cook_status');
+      if(statusReply.error||statusReply.data!==true)throw Error('현재 앱 이용이 중지되어 저장할 수 없습니다.');
+      const title=name.inp.value.trim();const count=qty.inp.value.trim();const seconds=time.inp.value.trim();
+      if(!title||title.length>90)throw Error('이름은 1~90자로 입력하세요.');
+      if(!validPosInt(count,100000))throw Error('생산 수량은 1~100000 사이의 정수로 입력하세요.');
+      if(kind==='food' && (seconds===''||!Number.isFinite(Number(seconds))||Number(seconds)<0||Number(seconds)>86400||
+          Math.abs(Math.round(Number(seconds)*100)-Number(seconds)*100)>1e-6))
+        throw Error('조리 시간은 0~86400초, 소수 둘째 자리까지 입력하세요.');
+      if(kind==='process'&&seconds.length>40)throw Error('가공 시간은 40자 이내로 입력하세요.');
+      const yieldOnly=preserveExisting&&yieldCheck.checked;
+      const ingredients=yieldOnly?(Array.isArray(item.dbIngredients)?item.dbIngredients:null):
+        [...parts.children].map(row=>({name:row.children[0].value.trim(),qty:Number(row.children[1].value)}));
+      if(!yieldOnly){
+        if(ingredients.length<1||ingredients.length>24||ingredients.some(row=>!row.name||row.name.length>90||!validPosInt(row.qty,999999)))
+          throw Error('투입 재료 1~24종의 이름과 수량을 확인해 주세요.');
+        if(new Set(ingredients.map(row=>normName(row.name))).size!==ingredients.length)throw Error('같은 재료가 중복 등록되었습니다.');
+        const known=new Set(existingMaterials.map(normName));
+        if(ingredients.some(row=>!known.has(normName(row.name))))throw Error('기존 목록에 없는 재료명이 있습니다. 현재는 기존 재료만 사용할 수 있습니다.');
+        if(kind==='process'&&ingredients.some(row=>normName(row.name)===normName(title)))throw Error('가공 결과물 자신을 투입 재료로 사용할 수 없습니다.');
+      }
+      if(kind==='process'&&!edit&&(catalogSnapshot?.materials||[]).concat(catalogSnapshot?.farms||[]).some(row=>normName(row.material_name)===normName(title)))
+        throw Error('기존 구매·농장 재료와 이름이 겹칩니다. 다른 가공품 이름을 지정하세요.');
+      if(dataCache.some(row=>row.kind===kind && normName(row.name)===normName(title) && (!edit || dataKey(row)!==dataKey(item))))
+        throw Error('같은 이름의 데이터가 이미 있습니다. 기존 항목을 수정하세요.');
+      const sourceKind=edit?(item.sourceKind==='new'?'new':'override'):'new';
+      let result;
+      if(kind==='food'){
+        const entry={food_id:edit?item.id:`lac_new_${crypto.randomUUID().replace(/-/g,'')}`,
+          food_name:title,set_qty:Number(count),cook_time:Number(seconds),ingredients,source_kind:sourceKind};
+        if(edit&&item.version!=null){
+          result=await supabase.from('lac_cook_recipe_entries').update(entry)
+            .eq('food_id',item.id).eq('version',item.version)
+            .select('food_id,version').maybeSingle();
+          if(!result.error&&!result.data)throw Error('다른 곳에서 먼저 수정했습니다. 데이터를 새로고침한 뒤 다시 시도하세요.');
+        }else result=await supabase.from('lac_cook_recipe_entries').insert(entry).select('food_id,version').single();
+      }else{
+        const entry={process_material_name:title,result_qty:Number(count),process_time:seconds,ingredients,source_kind:sourceKind};
+        if(edit&&item.version!=null){
+          const version=Number(item.version);
+          if(!Number.isSafeInteger(version)||version<1||version>=2147483645)throw Error('수정 버전이 올바르지 않습니다.');
+          result=await supabase.from('lac_cook_process_entries').update({...entry,version:version+1,updated_at:new Date().toISOString()})
+            .eq('process_material_name',item.id).eq('version',version)
+            .select('process_material_name,version').maybeSingle();
+          if(!result.error&&!result.data)throw Error('다른 곳에서 먼저 수정했습니다. 데이터를 새로고침한 뒤 다시 시도하세요.');
+        }else result=await supabase.from('lac_cook_process_entries').insert(entry).select('process_material_name,version').single();
+      }
+      if(result.error)throw result.error;
+      dataSelectedKey=`${kind}:${kind==='food'?(edit?item.id:result.data?.food_id):title}`;
+      dataLoaded=false;dataCache=[];pendingHomeRefresh=true;
+      dialog.close();
+      await loadAppData();
+    }catch(error){status.textContent=`저장 실패: ${error.message||error}`;}
+    finally{save.disabled=false;}
+  });
+  document.body.append(dialog);dialog.showModal();name.inp.focus();
 }
 
 function sizeCompanyFrame(iframe, doc){
