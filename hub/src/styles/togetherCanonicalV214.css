@@ -813,3 +813,244 @@
 .lac-together--detail .lac-together__post-chat .lac-together__chat-form{margin-top:12px}
 @media(max-width:920px){.lac-together--detail .lac-together__raid-deck{grid-template-columns:1fr;min-height:0}.lac-together--detail .lac-together__post-side{border-right:0;border-bottom:1px solid rgba(186,205,225,.14)}.lac-together--detail .lac-together__party-panel{flex:none}.lac-together--detail .lac-together__people--detail,.lac-together--detail .lac-together__people-shell.is-many .lac-together__people--detail{grid-template-columns:1fr;grid-auto-rows:auto}}
 @media(max-width:560px){.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-controls{flex-wrap:wrap}.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-state{flex:1}.lac-together--detail .lac-together__people-shell.is-many .lac-together__person-kick{width:100%}}
+
+
+/* 2026-10-14 compact casual pass: keep the party detail in one glance and only densify when member count grows. */
+.lac-together--detail .lac-together__post--raid{
+  border-radius:22px;
+  overflow:hidden;
+  background:linear-gradient(180deg,rgba(9,23,39,.96),rgba(7,18,30,.97));
+  box-shadow:0 18px 42px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.lac-together--detail .lac-together__raid-deck{
+  grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr)!important;
+  align-items:start!important;
+  min-height:0!important;
+  gap:0;
+}
+.lac-together--detail .lac-together__post-side,
+.lac-together--detail .lac-together__party-panel,
+.lac-together--detail .lac-together__lounge-panel{
+  min-height:0!important;
+}
+.lac-together--detail .lac-together__post-side{
+  display:flex!important;
+  flex-direction:column!important;
+}
+.lac-together--detail .lac-together__party-panel{
+  display:flex!important;
+  flex-direction:column!important;
+}
+.lac-together--detail .lac-together__voice--compact{
+  padding:13px 16px 12px!important;
+  border-bottom:1px solid rgba(233,198,138,.18)!important;
+  background:linear-gradient(180deg,rgba(36,58,79,.58),rgba(18,34,51,.64))!important;
+}
+.lac-together--detail .lac-together__voice-compact-head{gap:12px!important;align-items:center!important}
+.lac-together--detail .lac-together__voice-compact-icon{
+  width:40px;height:40px;border-radius:14px;background:linear-gradient(180deg,#38516a,#2a425a)!important;
+  border:1px solid rgba(186,223,231,.24)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)
+}
+.lac-together--detail .lac-together__voice-compact-copy strong{font-size:15px;letter-spacing:-.02em;color:#f5ead8}
+.lac-together--detail .lac-together__voice-compact-copy small{font-size:11px;color:#b8cbdb}
+.lac-together--detail .lac-together__voice-compact-open,
+.lac-together--detail .lac-together__voice-compact-create{
+  min-height:40px!important;padding:0 16px!important;border-radius:14px!important;
+  background:linear-gradient(180deg,#e9c994,#d7ae73)!important;border:1px solid rgba(255,232,196,.36)!important;
+  color:#203043!important;box-shadow:0 8px 18px rgba(0,0,0,.18)!important;font-weight:800!important
+}
+.lac-together--detail .lac-together__voice-compact-help{
+  width:38px;height:38px;border-radius:12px!important;background:rgba(255,255,255,.06)!important;
+  border:1px solid rgba(206,226,238,.18)!important;color:#d6e5ef!important
+}
+.lac-together--detail .lac-together__voice-compact-note{margin:9px 0 0!important;font-size:11px!important;color:#c1d3e0!important}
+.lac-together--detail .lac-together__voice-compact-links{margin-top:8px!important;gap:12px!important}
+.lac-together--detail .lac-together__voice-copy,
+.lac-together--detail .lac-together__voice-web-link{font-size:10.5px!important}
+
+.lac-together--detail .lac-together__party-panel .lac-together__section-heading,
+.lac-together--detail .lac-together__lounge-panel .lac-together__section-heading{
+  margin-bottom:12px;
+}
+.lac-together--detail .lac-together__section-heading h3{font-size:17px;letter-spacing:-.02em}
+.lac-together--detail .lac-together__section-heading h3 small{color:#92aec2}
+
+.lac-together--detail .lac-together__people-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:10px!important;
+  min-height:0!important;
+}
+.lac-together--detail .lac-together__people--detail{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-auto-rows:auto!important;
+  align-content:start!important;
+  gap:10px!important;
+  flex:none!important;
+}
+.lac-together--detail .lac-together__people-shell.is-many .lac-together__people--detail{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+.lac-together--detail .lac-together__people-shell.is-crowded .lac-together__people--detail{
+  gap:7px!important;
+}
+.lac-together--detail .lac-together__person--detail{
+  min-height:78px!important;
+  height:auto!important;
+  padding:12px 14px!important;
+  border-radius:18px!important;
+  background:linear-gradient(180deg,rgba(42,76,88,.22),rgba(19,42,58,.28))!important;
+  border:1px solid rgba(160,211,214,.22)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important;
+}
+.lac-together--detail .lac-together__person--detail.is-ready{
+  background:linear-gradient(180deg,rgba(66,124,103,.18),rgba(24,61,54,.24))!important;
+  border-color:rgba(133,214,176,.28)!important;
+}
+.lac-together--detail .lac-together__person-num{
+  border-radius:12px!important;
+  background:rgba(119,148,189,.15)!important;
+  border:1px solid rgba(173,196,226,.18)!important;
+  color:#d6e0ea!important;
+}
+.lac-together--detail .lac-together__person-avatar{
+  border-radius:16px!important;
+  background:linear-gradient(180deg,#30485e,#23384d)!important;
+  border:1px solid rgba(182,219,238,.2)!important;
+}
+.lac-together--detail .lac-together__person-stack{
+  gap:8px!important;
+}
+.lac-together--detail .lac-together__person-name strong{font-size:14px!important}
+.lac-together--detail .lac-together__person-name small{font-size:10px!important;color:#a8bfce!important}
+.lac-together--detail .lac-together__person-phone{
+  min-width:96px!important;
+  gap:3px!important;
+}
+.lac-together--detail .lac-together__person-phone span{font-size:9.5px!important;color:#8ea7b8!important}
+.lac-together--detail .lac-together__person-phone strong{font-size:11.5px!important;color:#eff6fb!important}
+.lac-together--detail .lac-together__person-controls{gap:8px!important}
+.lac-together--detail .lac-together__person-state{
+  min-height:30px!important;
+  padding:0 12px!important;
+  border-radius:999px!important;
+  background:rgba(83,109,133,.28)!important;
+  border:1px solid rgba(177,201,217,.15)!important;
+  color:#d8e7f0!important;
+  font-size:10.5px!important;
+}
+.lac-together--detail .lac-together__person-state.is-ready{
+  background:linear-gradient(180deg,#4d8b6d,#386953)!important;
+  border-color:rgba(171,225,190,.24)!important;
+  color:#effff3!important;
+}
+.lac-together--detail .lac-together__person-kick{
+  min-height:30px!important;
+  padding:0 11px!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.05)!important;
+  border:1px solid rgba(212,175,128,.24)!important;
+  color:#f0cf9f!important;
+  font-size:10px!important;
+}
+.lac-together--detail .lac-together__people-footer{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  margin-top:2px!important;
+  padding-top:2px!important;
+}
+.lac-together--detail .lac-together__people-summary{
+  min-width:0;
+  display:flex;align-items:center;gap:9px;
+  padding:10px 14px;border-radius:16px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(183,205,220,.12)
+}
+.lac-together--detail .lac-together__people-summary strong{font-size:24px;line-height:1;color:#f0d4a5}
+.lac-together--detail .lac-together__people-summary span{font-size:11px;color:#b7cad7}
+.lac-together--detail .lac-together__ready-toggle{
+  margin:0!important;flex:0 0 auto!important;min-height:42px!important;padding:0 18px!important;
+  border-radius:16px!important;background:linear-gradient(180deg,#2d4457,#223748)!important;
+  border:1px solid rgba(195,222,231,.16)!important;color:#f1f6fb!important;font-size:12px!important;
+}
+.lac-together--detail .lac-together__ready-toggle:hover{background:linear-gradient(180deg,#345168,#264051)!important}
+.lac-together--detail .lac-together__privacy{margin-top:4px!important;font-size:10px!important;color:#88a0b0!important}
+
+.lac-together--detail .lac-together__lounge-panel{
+  display:flex!important;
+  flex-direction:column!important;
+}
+.lac-together--detail .lac-together__post-chat .lac-together__messages{
+  flex:none!important;
+  min-height:264px!important;
+  max-height:330px!important;
+  border-radius:18px!important;
+  background:linear-gradient(180deg,rgba(9,28,47,.84),rgba(8,25,42,.92))!important;
+  border:1px solid rgba(156,187,207,.18)!important;
+}
+.lac-together--detail .lac-together__post-chat .lac-together__chat-welcome{
+  min-height:160px!important;
+  padding:14px 10px!important;
+}
+.lac-together--detail .lac-together__message p{
+  border-radius:16px!important;
+  background:rgba(105,129,158,.36)!important;
+}
+.lac-together--detail .lac-together__message.is-mine p{
+  background:rgba(142,164,191,.44)!important;
+}
+.lac-together--detail .lac-together__chat-form{margin-top:10px!important}
+.lac-together--detail .lac-together__chat-form input{
+  min-height:40px!important;border-radius:14px!important;background:#132a41!important
+}
+.lac-together--detail .lac-together__chat-form button{
+  min-width:58px!important;border-radius:14px!important;background:linear-gradient(180deg,#eac791,#dab278)!important;
+  color:#223245!important;font-weight:800!important
+}
+
+/* Recruitment list: softer and more casual. */
+.lac-together__grid{gap:16px!important}
+.lac-together__item{
+  border-radius:20px!important;
+  border-color:rgba(135,170,196,.18)!important;
+  background:linear-gradient(145deg,rgba(24,39,58,.94),rgba(16,28,43,.96))!important;
+  box-shadow:0 14px 26px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+.lac-together__item:before{
+  left:18px!important;top:14px!important;width:92px!important;height:4px!important;border-radius:999px!important;
+  background:linear-gradient(90deg,#f0c783,#8bdcc6)!important;opacity:.95!important
+}
+.lac-together__item:hover{
+  transform:translateY(-3px)!important;
+  border-color:rgba(228,197,141,.34)!important;
+  background:linear-gradient(145deg,rgba(29,48,70,.98),rgba(18,31,48,.98))!important;
+}
+.lac-together__badge{
+  border-radius:999px!important;padding:4px 10px!important;font-size:10px!important
+}
+.lac-together__item-symbol{
+  width:36px!important;height:36px!important;border-radius:14px!important;
+  background:linear-gradient(180deg,#3d5169,#293d55)!important;border-color:rgba(184,217,230,.15)!important
+}
+.lac-together__item-heading strong{font-size:17px!important}
+.lac-together__item-desc{
+  padding-left:48px!important;color:#b7cbdb!important;white-space:normal!important;line-height:1.45!important;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px!important
+}
+.lac-together__item-count b{
+  width:28px!important;height:28px!important;border-radius:12px!important;background:rgba(255,255,255,.04)!important
+}
+
+@media(max-width:960px){
+  .lac-together--detail .lac-together__raid-deck{grid-template-columns:1fr!important}
+  .lac-together--detail .lac-together__post-side{border-right:0!important;border-bottom:1px solid rgba(186,205,225,.14)!important}
+}
+@media(max-width:780px){
+  .lac-together--detail .lac-together__people-shell.is-many .lac-together__people--detail{grid-template-columns:1fr!important}
+  .lac-together--detail .lac-together__people-footer{flex-direction:column!important;align-items:stretch!important}
+  .lac-together--detail .lac-together__ready-toggle{width:100%!important}
+  .lac-together--detail .lac-together__post-chat .lac-together__messages{max-height:280px!important}
+}
