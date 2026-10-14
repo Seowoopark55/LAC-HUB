@@ -78,6 +78,29 @@ styles.textContent = `
     .cc-brand small{display:none}
     .cc-button{padding:5px 8px}
   }
+  /* Installed PWA: no decorative full-window backdrop or floating centered card.
+     The actual OS window is browser-controlled; adapt to its width and height. */
+  html.cc-compact-mode,html.cc-compact-mode body,html.cc-compact-mode #app{background:#101519}
+  html.cc-compact-mode .cc-layout{
+    min-height:100dvh;display:block;padding:0;background:#101519;
+  }
+  html.cc-compact-mode .cc-panel{
+    width:100%;max-width:none;margin:0;overflow:visible;
+    border:0;border-radius:0;box-shadow:none;background:#101519;
+  }
+  html.cc-compact-mode .cc-header{
+    min-height:39px;padding:4px 11px;position:sticky;top:0;z-index:5;
+    background:#141a1f;border-bottom:1px solid #313c45;
+  }
+  html.cc-compact-mode .cc-brand small{font-size:9px}
+  html.cc-compact-mode .cc-frame{background:#101519}
+  @media(display-mode:window-controls-overlay){
+    html.cc-compact-mode .cc-layout{padding-top:max(34px,calc(env(titlebar-area-height,0px) + 7px))}
+  }
+  @media(max-width:620px){
+    html.cc-compact-mode .cc-layout{padding:0}
+    html.cc-compact-mode .cc-header{padding:4px 8px}
+  }
 `;
 document.head.append(styles);
 
@@ -118,6 +141,19 @@ function installedMode(){
   return window.matchMedia('(display-mode: standalone)').matches ||
     window.matchMedia('(display-mode: window-controls-overlay)').matches ||
     navigator.standalone === true;
+}
+// In an installed PWA, collapse the decorative stage into a compact app surface.
+// Normal web access remains completely unchanged.
+function syncDisplayMode(){
+  const compact = installedMode();
+  document.documentElement.classList.toggle('cc-compact-mode',compact);
+  try {
+    frame?.contentDocument?.documentElement?.classList.toggle('cc-compact-mode',compact);
+  } catch { /* Only same-origin COOK is mounted. */ }
+  updateInstallButton();
+}
+for(const mode of ['standalone','window-controls-overlay']){
+  window.matchMedia(`(display-mode: ${mode})`).addEventListener?.('change',syncDisplayMode);
 }
 function openInstallGuide(){
   const dialog = document.createElement('dialog');
@@ -221,6 +257,7 @@ function installCompanyWorkspace(iframe){
   const doc = iframe.contentDocument;
   if(!doc?.head || !doc.querySelector('.workspace')) return;
   doc.title = '요리계산기';
+  doc.documentElement.classList.toggle('cc-compact-mode',installedMode());
   const innerTitle = doc.querySelector('.header h1');
   if(innerTitle) innerTitle.textContent = '요리계산기';
   // Content styles are ONLY injected into the company iframe. Original HUB COOK is unaffected.
@@ -314,5 +351,7 @@ window.addEventListener('focus',tick);
 window.addEventListener('online',tick);
 window.addEventListener('offline',() => {seq++;showStatus('인터넷 연결 필요','온라인에서만 이용할 수 있습니다.',true);});
 window.setInterval(tick,15000);
+// Apply PWA layout before first paint; do not show the HUB logo or login screen.
+syncDisplayMode();
 // No logo/status flash on fast connections: leave neutral background until the check resolves.
 void checkStatus();
