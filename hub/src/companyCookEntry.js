@@ -35,9 +35,68 @@ async function checkStatus(){
     app.replaceChildren();
     frame=document.createElement('iframe');frame.title='COMPANY COOK 요리 계산기';
     frame.className='cc-app';frame.src='/cook-preview/index.html?lacCookHostPreview=1';
-    frame.setAttribute('referrerpolicy','same-origin');app.append(frame);
+    frame.setAttribute('referrerpolicy','same-origin');
+    frame.addEventListener('load', () => {
+      // The shared calculator retains HUB-only editing/report controls;
+      // hide them in this read-only company launcher, without changing HUB COOK.
+      if (!frame?.isConnected) return;
+      try {
+        const doc=frame.contentDocument;
+        if (!doc?.head) return;
+        const readOnlyStyle=doc.createElement('style');
+        readOnlyStyle.textContent='.cook-toolbar,.header .back,#cook-return-preview{display:none!important}';
+        doc.head.append(readOnlyStyle);
+      } catch { /* Cross-origin access is not required for data authorization. */ }
+    });
+    app.append(frame);
   }
 }
+// COMPANY COOK uses the same public recipe/process overlays as HUB COOK, but
+// never forwards a Discord session or enables add/edit actions in the iframe.
+// The two source tables already grant SELECT to anon and enforce admin-only
+// mutations through Supabase RLS; this bridge performs SELECT operations only.
+window.addEventListener('message', async event => {
+  if (!frame || event.origin !== window.location.origin ||
+      event.source !== frame.contentWindow ||
+      !event.data || typeof event.data !== 'object' || Array.isArray(event.data) ||
+      event.data.type !== 'lac-cook:recipes:request:v1') return;
+  const {requestId, action} = event.data;
+  if (typeof requestId !== 'string' || !requestId || requestId.length > 80) return;
+  const requestingFrame = frame;
+  const reply = result => {
+    if (frame === requestingFrame && requestingFrame.contentWindow === event.source) {
+      event.source.postMessage({type:'lac-cook:recipes:response:v1',requestId,...result},event.origin);
+    }
+  };
+  if (action !== 'list') {
+    reply({ok:false,error:'COMPANY COOK에서는 레시피를 수정할 수 없습니다.'});
+    return;
+  }
+  try {
+    // Public columns only; no account/company records, write RPC, or service key.
+    const [recipeResult, processResult] = await Promise.all([
+      supabase.from('lac_cook_recipe_entries')
+        .select('food_id,food_name,set_qty,cook_time,ingredients,source_kind,version')
+        .order('food_name'),
+      supabase.from('lac_cook_process_entries')
+        .select('process_material_name,result_qty,process_time,ingredients,source_kind,version')
+        .order('process_material_name')
+    ]);
+    if (frame !== requestingFrame) return;
+    if (recipeResult.error || processResult.error) {
+      throw new Error('공통 레시피 또는 가공 데이터 조회 실패');
+    }
+    reply({ok:true,entries:recipeResult.data || [],canEdit:false,
+      processReady:true,processEntries:processResult.data || []});
+  } catch {
+    // Do not silently substitute potentially outdated bundled data.
+    reply({ok:false,error:'공통 레시피 데이터 조회에 실패했습니다.'});
+    if (frame === requestingFrame) {
+      panel('공통 데이터 연결 실패','최신 요리·가공 레시피를 불러오지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.',true);
+    }
+  }
+});
+
 // Strict online-only behavior: status checks on focus, return, online, and at an interval.
 function tick(){if(document.visibilityState==='visible')void checkStatus();}
 document.addEventListener('visibilitychange',tick);
