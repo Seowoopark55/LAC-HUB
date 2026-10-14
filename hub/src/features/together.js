@@ -11,6 +11,35 @@ const TOGETHER_PAGE_SIZE=6; // PC 3 columns × 2 rows; pagination is invisible u
 let voiceRefreshTimer=null;
 const ui={mode:'list',category:'전체',bossFilter:'전체',difficultyFilter:'전체',page:1,total:0,items:[],detail:null,roster:[],rosterLoaded:false,messages:[],id:null,loading:false,busy:false,error:'',chatDraft:'',profileUser:null,profile:null,profileChecked:false,formDraft:{},lastSync:0,voice:null,partyState:null};
 let voiceGuideChannel=null;
+let detailChatScrollTop=0;
+let detailChatStickBottom=true;
+function captureDetailChatScroll(){
+  if(typeof document==='undefined')return;
+  const box=document.querySelector('#lac-together .lac-together__messages');
+  if(!box)return;
+  detailChatScrollTop=box.scrollTop;
+  detailChatStickBottom=(box.scrollHeight-box.clientHeight-box.scrollTop)<=40;
+}
+function restoreDetailChatScroll(){
+  if(typeof document==='undefined')return;
+  const apply=()=>{
+    const box=document.querySelector('#lac-together .lac-together__messages');
+    if(!box)return;
+    if(detailChatStickBottom){box.scrollTop=box.scrollHeight;return;}
+    const max=Math.max(0,box.scrollHeight-box.clientHeight);
+    box.scrollTop=Math.min(detailChatScrollTop,max);
+  };
+  if(typeof requestAnimationFrame==='function')requestAnimationFrame(apply);else setTimeout(apply,0);
+}
+if(typeof document!=='undefined'){
+  document.addEventListener('scroll',event=>{
+    const target=event.target;
+    if(!(target instanceof HTMLElement))return;
+    if(!target.matches('.lac-together__messages'))return;
+    detailChatScrollTop=target.scrollTop;
+    detailChatStickBottom=(target.scrollHeight-target.clientHeight-target.scrollTop)<=40;
+  },true);
+}
 const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const when=v=>{try{return new Intl.DateTimeFormat('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Seoul'}).format(new Date(v));}catch{return '시간 미확인';}};
 // Show the real end deadline as a live countdown. This is presentation only:
@@ -265,6 +294,7 @@ async function fetchDetail(){if(!ui.id)return;const data=await rpc('get_post',{p
 }
 export async function refreshTogether(state,render,{quiet=false}={}){
   if(state.page!=='together'||['create','edit'].includes(ui.mode)||ui.loading||ui.busy)return;
+  if(ui.mode==='detail')captureDetailChatScroll();
   ui.loading=true;
   try{
     if(ui.mode==='detail')await fetchDetail();else await fetchList();
@@ -277,7 +307,7 @@ export async function refreshTogether(state,render,{quiet=false}={}){
     // Background polling must not steal focus from chat typing or collapse the shared account menu.
     const active=typeof document!=='undefined'?document.activeElement:null;
     const editing=quiet && typeof document!=='undefined' && ((active?.closest?.('#lac-together') && active?.matches?.('input,textarea,select')) || document.querySelector('#lac-together .hub-account__profile[open]'));
-    if(state.page==='together'&&!editing)render();
+    if(state.page==='together'&&!editing){render();restoreDetailChatScroll();}
     if(needsRefetch && state.page==='together' && ui.mode==='list')void refreshTogether(state,render);
     // While Discord creates the room, refresh only this page every 3 seconds.
     if(state.page==='together' && ui.mode==='detail' && ui.voice?.status==='pending' && !voiceRefreshTimer){
@@ -311,7 +341,7 @@ async function ensureProfile(state,openProfile){if(!state.session?.user)return f
   if(ui.profile)return true;
   await openProfile();return false;
 }
-async function runMutation(task,state,render){if(ui.busy)return;ui.busy=true;ui.error='';render();try{await task();if(ui.mode==='detail')await fetchDetail();else await fetchList();}catch(e){ui.error=displayError(e);}finally{ui.busy=false;render();}}
+async function runMutation(task,state,render){if(ui.busy)return;captureDetailChatScroll();ui.busy=true;ui.error='';render();try{await task();if(ui.mode==='detail')await fetchDetail();else await fetchList();}catch(e){ui.error=displayError(e);}finally{ui.busy=false;render();restoreDetailChatScroll();}}
 export async function togetherAction(button,state,{render,openProfile,login}){
   const action=button.dataset.togetherAction;
   if(action==='voice-link-copy'){
