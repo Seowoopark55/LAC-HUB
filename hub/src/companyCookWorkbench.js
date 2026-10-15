@@ -15,7 +15,10 @@ const TASK_NAMES_KEY = 'lac-company-cook-task-names-v1';
 let catalogueNamesPromise;
 function loadCatalogueNames() {
   if (!catalogueNamesPromise) {
-    catalogueNamesPromise = import(/* @vite-ignore */ '/cook-preview/data/catalog.js')
+    // The catalogue lives under Vite publicDir, not in Vite's module graph.
+    // Resolve its same-origin URL at runtime, as companyCookEntry.js already does.
+    const catalogueUrl = new URL('/cook-preview/data/catalog.js', window.location.origin).href;
+    catalogueNamesPromise = import(/* @vite-ignore */ catalogueUrl)
       .then(mod => new Map((mod.default?.foods || [])
         .filter(row => typeof row?.food_id === 'string' && typeof row.food_name === 'string')
         .map(row => [row.food_id, row.food_name])))
