@@ -1,6 +1,7 @@
 // COMPANY COOK: standalone online-only PWA. HUB authentication and pass boot are
 // intentionally not invoked on this route. No privileged company data is loaded.
 import {envReady, supabase} from './lib/supabase.js';
+import {mountCompanyTaskTabs,mountCompanyFavoriteGroups,mountCompanyWaterUnits} from './companyCookWorkbench.js';
 
 const app = document.getElementById('app');
 document.title = '요리계산기';
@@ -1961,15 +1962,18 @@ function installCompanyWorkspace(iframe){
     if(frame!==iframe) return;
     try {
       // Companion UI stays company-only and is never loaded by the HUB COOK route.
+      if(!mountCompanyTaskTabs(doc, iframe))return;
       mountCompanyMemo(doc, iframe);
       mountCompanyWorkbenchPolish(doc, iframe);
+      mountCompanyFavoriteGroups(doc, iframe);
+      mountCompanyWaterUnits(doc, iframe);
       sizeCompanyFrame(iframe, doc);
     } catch (error) {
       console.error('요리계산기 화면 크기 조정 실패',error);
       // A sizing issue must not hide the functional calculator.
       iframe.style.height = 'max(460px,80dvh)';
     } finally {
-      if(frame===iframe) iframe.style.visibility = 'visible';
+      if(frame===iframe && iframe.dataset.ccTabReloading!=='1') iframe.style.visibility = 'visible';
     }
   };
   stylesheet.onerror = () => {
