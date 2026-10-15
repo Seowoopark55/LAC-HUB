@@ -270,7 +270,8 @@ function loadGroups(storage) {
   const custom=[...new Set(extra)].filter(x=>!DEFAULT_GROUPS.includes(x)&&x!=='전체');
   const categories=[...DEFAULT_GROUPS,...custom];
   const assignments=raw?.assignments&&typeof raw.assignments==='object'&&!Array.isArray(raw.assignments)?raw.assignments:{};
-  const selected=categories.includes(raw?.selected)||raw?.selected==='전체'?raw.selected:'전체';
+  // Legacy '전체' view is intentionally retired; unclassified favourites live in '기타'.
+  const selected=categories.includes(raw?.selected)?raw.selected:'기타';
   return {custom,assignments,selected,page:Number.isInteger(raw?.page)&&raw.page>=0?raw.page:0};
 }
 export function mountCompanyFavoriteGroups(doc,iframe) {
@@ -293,9 +294,11 @@ export function mountCompanyFavoriteGroups(doc,iframe) {
   const dlgBody=doc.createElement('div');dlgBody.className='cc-favorite-dialog-body';
   dialog.append(dlgBody);doc.body.append(dialog);
   const save=()=>{try{store(storage,GROUPS_KEY,group);return true;}catch{return false;}};
+  // Preserve existing classification data while migrating the retired '전체' tab.
+  if(parseJson(storage.getItem(GROUPS_KEY),{})?.selected==='전체')save();
   function listRows(){return [...root.querySelectorAll(':scope > .favorite-row')];}
   function refresh(){
-    const cats=['전체',...DEFAULT_GROUPS,...group.custom];
+    const cats=[...DEFAULT_GROUPS,...group.custom];
     catNav.replaceChildren();
     for(const c of cats){
       const b=doc.createElement('button');b.type='button';b.textContent=c;b.className='cc-favorite-group';
@@ -306,7 +309,7 @@ export function mountCompanyFavoriteGroups(doc,iframe) {
     const rows=listRows();
     const matching=rows.filter(row=>{
       const name=row.querySelector('.favorite-name')?.textContent?.trim()||'';
-      return group.selected==='전체'||(group.assignments[name]||'기타')===group.selected;
+      return (group.assignments[name]||'기타')===group.selected;
     });
     const pages=Math.max(1,Math.ceil(matching.length/PER_PAGE));
     group.page=Math.max(0,Math.min(group.page,pages-1));
@@ -324,7 +327,7 @@ export function mountCompanyFavoriteGroups(doc,iframe) {
     const h=doc.createElement('h3');h.textContent='즐겨찾기 분류';
     const close=doc.createElement('button');close.type='button';close.textContent='닫기';
     close.addEventListener('click',()=>dialog.close());head.append(h,close);dlgBody.append(head);
-    const hint=doc.createElement('p');hint.textContent='요리를 선택한 카테고리로 분류합니다. 전체 화면에는 최대 6개씩 표시됩니다.';dlgBody.append(hint);
+    const hint=doc.createElement('p');hint.textContent='요리를 카테고리로 분류합니다. 선택한 카테고리는 한 번에 최대 6개씩 표시됩니다.';dlgBody.append(hint);
     const names=listRows().map(row=>row.querySelector('.favorite-name')?.textContent?.trim()).filter(Boolean);
     const list=doc.createElement('div');list.className='cc-favorite-group-editor';
     for(const name of names){
