@@ -362,3 +362,45 @@ html,body{min-height:0!important;background:#0d1217!important;overflow-x:hidden;
 
 /* Tab close is the sole individual-removal control; avoid duplicated actions. */
 .cook-sidebar .orders-panel .order-row button.remove{display:none!important}
+
+
+/* COMPANY COOK · 2026-10-15 compact one-line task tabs fix.
+   Active tab already shows the name, so don't render the same title again. */
+.cook-sidebar .orders-panel{min-height:0!important}
+.cook-sidebar .orders-panel>.panel-title{margin-bottom:8px!important;padding-bottom:9px!important}
+.cook-sidebar .cc-task-line{display:flex;align-items:center;gap:8px;max-width:100%;min-width:0;min-height:35px}
+.cook-sidebar .cc-task-line .cc-task-tabs{flex:1 1 0;width:0;min-width:0;max-width:none;
+  margin:0!important;padding:1px 0!important;min-height:33px;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none!important;scroll-behavior:smooth}
+.cook-sidebar .cc-task-line .cc-task-tabs::-webkit-scrollbar{display:none}
+.cook-sidebar .cc-task-line .cc-task-tab{min-height:30px;max-width:180px}
+.cook-sidebar .cc-task-line .cc-task-choose{padding:5px 4px 5px 9px;max-width:140px;font-size:12px}
+.cook-sidebar .cc-task-line .cc-task-remove{padding:3px 7px 3px 4px}
+.cook-sidebar .cc-task-line .orders{flex:0 0 auto;display:flex!important;min-width:0;width:auto!important;
+  max-width:145px;max-height:none!important;overflow:visible!important;align-items:center}
+.cook-sidebar .cc-task-line .orders>.order-row{display:flex!important;min-width:0;width:auto!important;
+  margin:0!important;padding:0!important;border:0!important;min-height:32px!important;
+  align-items:center;justify-content:flex-end}
+.cook-sidebar .cc-task-line .orders>.order-row>.food-text{display:none!important}
+.cook-sidebar .cc-task-line .orders>.order-row>.order-controls{margin:0!important;width:auto!important;
+  min-width:0;justify-content:flex-end}
+.cook-sidebar .cc-task-line .orders>.order-row .qty-stepper{margin:0!important}
+.cook-sidebar .cc-task-line .orders>.empty{margin:0!important;font-size:11px!important;white-space:nowrap}
+.cook-sidebar .cc-task-line .cc-task-tabs[hidden]{display:none!important}
+.cook-sidebar .cc-task-line:has(.cc-task-tabs[hidden]) .orders{max-width:100%;flex:1}
+.cook-sidebar .cc-task-feedback:empty{display:none!important}
+@media(max-width:600px){
+ .cook-sidebar .cc-task-line{gap:5px}
+ .cook-sidebar .cc-task-line .cc-task-tab{max-width:146px}
+ .cook-sidebar .cc-task-line .cc-task-choose{max-width:105px}
+ .cook-sidebar .cc-task-line .orders{max-width:125px}
+}
+/* Explicit stepper bounds are essential in mid-size PWA windows. */
+.cook-sidebar .cc-task-line .orders>.order-row>.order-controls{display:flex;align-items:center;
+  justify-content:flex-end;flex:0 0 auto;max-width:122px!important;width:122px!important}
+.cook-sidebar .cc-task-line .qty-stepper{display:flex!important;align-items:center;flex:0 0 122px;
+  max-width:122px!important;width:122px!important;min-width:0!important;overflow:hidden}
+.cook-sidebar .cc-task-line .qty-stepper .qty-adjust{flex:0 0 31px!important;min-width:31px!important;
+  width:31px!important;max-width:31px!important;box-sizing:border-box}
+.cook-sidebar .cc-task-line .qty-stepper input.qty{flex:1 1 0!important;min-width:0!important;
+  width:0!important;max-width:60px!important;box-sizing:border-box;text-align:center}

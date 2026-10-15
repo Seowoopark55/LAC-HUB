@@ -9,6 +9,20 @@ const GROUPS_KEY = 'lac-company-cook-favorite-groups-v1';
 const DEFAULT_GROUPS = ['음료','배고픔','전투','기타'];
 const PER_PAGE = 6;
 const MAX_CUSTOM_GROUPS = 3;
+const TASK_NAMES_KEY = 'lac-company-cook-task-names-v1';
+// The iframe's public catalogue has stable display names for built-in dishes.
+// Names are presentation-only: saved workspace IDs remain unchanged.
+let catalogueNamesPromise;
+function loadCatalogueNames() {
+  if (!catalogueNamesPromise) {
+    catalogueNamesPromise = import(/* @vite-ignore */ '/cook-preview/data/catalog.js')
+      .then(mod => new Map((mod.default?.foods || [])
+        .filter(row => typeof row?.food_id === 'string' && typeof row.food_name === 'string')
+        .map(row => [row.food_id, row.food_name])))
+      .catch(() => new Map());
+  }
+  return catalogueNamesPromise;
+}
 
 function parseJson(input, fallback) {
   try { return JSON.parse(input); } catch { return fallback; }
@@ -99,20 +113,34 @@ export function mountCompanyTaskTabs(doc, iframe) {
   const title = panel.querySelector('.panel-title');
   const tabs = doc.createElement('nav');tabs.className='cc-task-tabs';tabs.setAttribute('aria-label','요리별 작업 전환');
   tabs.setAttribute('role','tablist');
-  orderList.before(tabs);
+  // Keep task selection and batch quantity on the SAME line. The calculator
+  // still owns the stepper and input handlers; no duplicate state is created.
+  const taskLine = doc.createElement('div');taskLine.className='cc-task-line';
+  orderList.before(taskLine);taskLine.append(tabs,orderList);
   const feedback=doc.createElement('span');feedback.className='cc-task-feedback';feedback.setAttribute('role','status');
-  tabs.after(feedback);
+  taskLine.after(feedback);
   const clearButton=doc.getElementById('clear');
-  const getName=id => {
-    // The COOK library writes the visible dish name into the order row and
-    // search results, but IDs remain the durable source of tab identity.
-    const names=parseJson(storage.getItem('lac-company-cook-task-names-v1'),{});
-    return (names && typeof names[id]==='string' ? names[id] : '')||id;
+  let nameCache = parseJson(storage.getItem(TASK_NAMES_KEY),{});
+  if (!nameCache || typeof nameCache!=='object' || Array.isArray(nameCache))nameCache={};
+  let catalogueNames = new Map();
+  const rememberName=(id,name)=>{
+    if(typeof id!=='string' || !id || typeof name!=='string' || !name.trim() || name.length>90)return;
+    const clean=name.trim();
+    if(nameCache[id]===clean)return;
+    nameCache[id]=clean;
+    try {store(storage,TASK_NAMES_KEY,nameCache);}catch{/* Labels can still render this session. */}
   };
-  const rememberName=(id, name)=>{
-    if (!id || !name || name.length>90) return;
-    const names=parseJson(storage.getItem('lac-company-cook-task-names-v1'),{});
-    try {store(storage,'lac-company-cook-task-names-v1',{...(names||{}),[id]:name});}catch{}
+  const visibleActiveName=()=>{
+    const id=deck.active;
+    if(!id)return;
+    const label=orderList.querySelector('.order-row .food-text strong')?.textContent?.trim();
+    if(label && label!==id)rememberName(id,label);
+  };
+  visibleActiveName();
+  const getName=id=>{
+    const cached=nameCache[id];
+    if(typeof cached==='string' && cached.trim() && cached!==id)return cached;
+    return catalogueNames.get(id)||'요리 이름 확인 중';
   };
   const captureLive=()=>{
     const current=getWorkspace(storage);
@@ -163,6 +191,15 @@ export function mountCompanyTaskTabs(doc, iframe) {
     display();
   }
   display();
+  // Existing saved decks may contain only cook_### IDs. Resolve names from
+  // the public source once without changing orders, checks, or favourite data.
+  void loadCatalogueNames().then(names=>{
+    catalogueNames=names;
+    for(const id of deck.ids){
+      if((!nameCache[id] || nameCache[id]===id) && names.has(id))rememberName(id,names.get(id));
+    }
+    if(tabs.isConnected)display();
+  });
   let adding=false;
   // The native calculator adds to its Map and autosaves before the click
   // returns. Capture the existing tab first, then split the new recipe away.
