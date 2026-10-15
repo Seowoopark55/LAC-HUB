@@ -59,11 +59,14 @@ function store(storage, key, data) { storage.setItem(key, JSON.stringify(data));
 function backupIfMissing(storage, raw) {
   if (raw && !storage.getItem(LEGACY_BACKUP_KEY)) storage.setItem(LEGACY_BACKUP_KEY,raw);
 }
-function reloadFrame(iframe) {
-  iframe.style.visibility='hidden';
-  iframe.dataset.ccTabReloading='1';
-  // replace() prevents every tab switch from adding another browser history entry.
-  iframe.contentWindow.location.replace('/cook-preview/index.html?lacCookHostPreview=1');
+function applyLiveWorkspace(iframe, snapshot) {
+  // The calculator validates and repaints in memory. Do not reload the iframe.
+  const api=iframe.contentWindow?.__lacCompanyCookWorkspace;
+  if(typeof api?.apply!=='function')return false;
+  try{return api.apply(snapshot)===true;}catch(error){
+    console.error('요리별 작업 변경 실패',error);
+    return false;
+  }
 }
 
 export function mountCompanyTaskTabs(doc, iframe) {
@@ -101,18 +104,21 @@ export function mountCompanyTaskTabs(doc, iframe) {
     try {
       store(storage,DECK_KEY,deck);
       if (deck.ids.length>1 && deck.active) {
-        store(storage,ACTIVE_WORK_KEY,deck.snapshots[deck.active]);
-        reloadFrame(iframe);return false;
+        if(!applyLiveWorkspace(iframe,deck.snapshots[deck.active])){
+          console.warn('요리 탭 복원 기능을 사용할 수 없습니다. 기존 작업을 유지합니다.');
+          return true;
+        }
       }
     }catch(error) { console.warn('요리 탭 초기 저장을 수행할 수 없습니다.',error);return true; }
   }
   // A previously selected tab must be loaded before exposing the calculator.
   const liveId=live?.orders.length===1 ? live.orders[0].id : '';
   if (deck.active && (liveId!==deck.active || live?.orders.length!==1)) {
-    try {store(storage,ACTIVE_WORK_KEY,deck.snapshots[deck.active]);reloadFrame(iframe);return false;}
-    catch {return true;}
+    if(!applyLiveWorkspace(iframe,deck.snapshots[deck.active])){
+      console.warn('요리 탭 복원 기능이 준비되지 않았습니다.');
+      return true;
+    }
   }
-  delete iframe.dataset.ccTabReloading;
   const title = panel.querySelector('.panel-title');
   const tabs = doc.createElement('nav');tabs.className='cc-task-tabs';tabs.setAttribute('aria-label','요리별 작업 전환');
   tabs.setAttribute('role','tablist');
@@ -170,28 +176,39 @@ export function mountCompanyTaskTabs(doc, iframe) {
     if(title)title.querySelector('h3')?.setAttribute('title','요리별로 한 가지씩 계산합니다.');
   }
   function goTo(id) {
-    const snap = deck.snapshots[id];
+    const snap=deck.snapshots[id];
     if(!snap)return;
     captureLive();
-    deck.active=id;
-    try {store(storage,DECK_KEY,deck);store(storage,ACTIVE_WORK_KEY,snap);}catch{
-      feedback.textContent='작업 전환을 저장하지 못했습니다.';return;
+    const old=deck.active;
+    if(!applyLiveWorkspace(iframe,snap)){
+      feedback.textContent='작업 화면을 전환하지 못했습니다.';return;
     }
-    reloadFrame(iframe);
+    deck.active=id;
+    try {store(storage,DECK_KEY,deck);}catch{
+      deck.active=old;
+      applyLiveWorkspace(iframe,deck.snapshots[old]);
+      feedback.textContent='작업 전환 저장에 실패했습니다.';return;
+    }
+    feedback.textContent='';display();
   }
   function switchTo(id) {if(id && id!==deck.active && deck.ids.includes(id))goTo(id);}
   function removeOne(id) {
     if(!deck.ids.includes(id))return;
-    if(id!==deck.active)captureLive();
-    deck.ids=deck.ids.filter(x=>x!==id);delete deck.snapshots[id];
-    const next=deck.ids.includes(deck.active)?deck.active:(deck.ids[0]||'');
-    deck.active=next;
-    try {
-      store(storage,DECK_KEY,deck);
-      if(next && id!==next) {store(storage,ACTIVE_WORK_KEY,deck.snapshots[next]);reloadFrame(iframe);return;}
-      if(!next){const cur=getWorkspace(storage);if(cur){store(storage,ACTIVE_WORK_KEY,{...cur,orders:[],checked:[],choices:{offers:{},fish:{}}});reloadFrame(iframe);return;}}
-    }catch {feedback.textContent='목록 변경을 저장하지 못했습니다.';return;}
-    display();
+    captureLive();
+    const nextIds=deck.ids.filter(x=>x!==id);
+    const next=nextIds.includes(deck.active)?deck.active:(nextIds[0]||'');
+    const current=getWorkspace(storage);
+    const nextSnapshot=next?deck.snapshots[next]:current&&{...current,orders:[],checked:[],choices:{offers:{},fish:{}}};
+    if(!nextSnapshot || !applyLiveWorkspace(iframe,nextSnapshot)){
+      feedback.textContent='작업을 제거하지 못했습니다.';return;
+    }
+    const previous=deck;
+    deck={...deck,ids:nextIds,active:next,snapshots:{...deck.snapshots}};
+    delete deck.snapshots[id];
+    try{store(storage,DECK_KEY,deck);}catch{
+      deck=previous;feedback.textContent='작업 삭제 저장에 실패했습니다.';return;
+    }
+    feedback.textContent='';display();
   }
   display();
   // Existing saved decks may contain only cook_### IDs. Resolve names from
@@ -228,14 +245,19 @@ export function mountCompanyTaskTabs(doc, iframe) {
       if(!newSnap)return;
       if(deck.ids.length>=100){
         feedback.textContent='작업 목록은 최대 100가지까지 저장할 수 있습니다.';
-        try{store(storage,ACTIVE_WORK_KEY,deck.snapshots[deck.active]);reloadFrame(iframe);}catch{}
+        if(deck.snapshots[deck.active])applyLiveWorkspace(iframe,deck.snapshots[deck.active]);
         return;
       }
       deck.ids.push(id);deck.snapshots[id]=newSnap;
-      try{store(storage,DECK_KEY,deck);store(storage,ACTIVE_WORK_KEY,newSnap);deck.active=id;store(storage,DECK_KEY,deck);}catch{
-        feedback.textContent='추가한 요리를 보관하지 못했습니다.';return;
+      if(!applyLiveWorkspace(iframe,newSnap)){
+        deck.ids=deck.ids.filter(x=>x!==id);delete deck.snapshots[id];
+        feedback.textContent='추가한 요리를 전환하지 못했습니다.';return;
       }
-      reloadFrame(iframe);
+      deck.active=id;
+      try{store(storage,DECK_KEY,deck);}catch{
+        feedback.textContent='추가한 요리를 저장하지 못했습니다.';return;
+      }
+      feedback.textContent='';display();
     },0);
   };
   doc.addEventListener('click',beginAdd,true);
@@ -255,11 +277,14 @@ export function mountCompanyTaskTabs(doc, iframe) {
     if(!win.confirm('등록된 작업을 모두 제거할까요? 즐겨찾기와 주문 기록은 유지됩니다.'))return;
     const cur=getWorkspace(storage);
     const next=cur?{...cur,orders:[],checked:[],choices:{offers:{},fish:{}}}:null;
-    try{
-      deck=emptyDeck();store(storage,DECK_KEY,deck);
-      if(next)store(storage,ACTIVE_WORK_KEY,next);
-    }catch{feedback.textContent='전체 목록을 비우지 못했습니다.';return;}
-    reloadFrame(iframe);
+    if(!next || !applyLiveWorkspace(iframe,next)){
+      feedback.textContent='전체 목록을 비우지 못했습니다.';return;
+    }
+    deck=emptyDeck();
+    try{store(storage,DECK_KEY,deck);}catch{
+      feedback.textContent='전체 목록 저장에 실패했습니다.';return;
+    }
+    feedback.textContent='';display();
   };
   clearButton?.addEventListener('click',clearAll,true);
   // The original calculator's other controls continue to handle quantities,

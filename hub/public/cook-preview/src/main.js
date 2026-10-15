@@ -549,6 +549,25 @@ document.querySelectorAll('[data-idea]').forEach(button=>button.addEventListener
 $('cook-idea-close').addEventListener('click',()=>$('cook-idea').close());
 $('cook-idea-cancel').addEventListener('click',()=>$('cook-idea').close());
 $('cook-idea-submit').addEventListener('click',()=>{submitIdeaToHub();});
+// Private, same-origin company PWA adapter. Keep shared HUB COOK behaviour intact.
+// It accepts only validated v1 drafts and never changes cloud or recipe tables.
+if(new URLSearchParams(location.search).get('lacCookHostPreview')==='1' && window.parent!==window){
+  window.__lacCompanyCookWorkspace={
+    apply(snapshot){
+      if(!autoSaveReady || !state.foods.length || !snapshot || typeof snapshot!=='object')return false;
+      const loaded=parseWorkspace(JSON.stringify(snapshot),{revision,foods:state.foods});
+      const plan=calculatePlan(catalog,[...loaded.orders].map(([foodId,batches])=>({foodId,batches})),loaded.choices);
+      const nextChecks=currentChecks(loaded.checked,checklistItems(plan));
+      state.orders=loaded.orders;
+      state.choices=loaded.choices;
+      state.checked=nextChecks;
+      state.memo=loaded.memo||'';
+      paintOrders();
+      persistCurrentWork();
+      return true;
+    }
+  };
+}
 start();
 
 
